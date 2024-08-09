@@ -11,7 +11,7 @@ from scipy.spatial import distance
 from sklearn.preprocessing import StandardScaler
 from django.conf import settings
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-import imageio
+import imageio.v2 as imageio
 
 
 pd.set_option('display.float_format', '{:.5f}'.format)
@@ -20,7 +20,7 @@ pd.options.mode.copy_on_write = True
 project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SKM.settings')
-data_folder = settings.BASE_DIR / 'dummy' / 'SMH_PROTOTYPE_FILE/'
+data_folder = settings.BASE_DIR / 'dummy' / 'Datapoints/'
 django.setup()
 
 filename = [
@@ -131,8 +131,10 @@ def adjust_dxf_coordinates_to00(dxf_file):
             entity.dxf.insert = insert
 
     # Save the modified DXF file
-    output_filename = dxf_file+'new'
-    doc.saveas(output_filename)
+    # output_filename = dxf_file+'new'
+    output_filename = os.path.splitext(os.path.basename(dxf_file))[0] + project_name+"_new.dxf"
+    output_path = os.path.join(settings.BASE_DIR, 'Temp', 'dxfCache', output_filename)
+    doc.saveas(output_path)
 
 # Example usage
 def calculate_length(start, end):
@@ -585,10 +587,12 @@ def trim_for_X(df, cut_x1, cut_x2,diff, filename1, filename2, filename3):
                         msp3.delete_entity(line2)
                         break
                      
-                  
-    doc1.saveas(filename1)
-    doc2.saveas(filename2)
-    doc3.saveas(filename3)
+    filepath1=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename1)   
+    filepath2=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename2)  
+    filepath3=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename3)                
+    doc1.saveas(filepath1)
+    doc2.saveas(filepath2)
+    doc3.saveas(filepath3)
 
     
 def add_horizontal_lines_for_Y(df):
@@ -899,9 +903,12 @@ def trim_dxf_for_Y(df, cut_y1, cut_y2,diff, filename1, filename2, filename3):
                         msp1.delete_entity(line1)
                         msp3.delete_entity(line2)
                         break
-    doc1.saveas(filename1)
-    doc2.saveas(filename2)
-    doc3.saveas(filename3)
+    filepath1=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename1)   
+    filepath2=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename2)  
+    filepath3=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename3)               
+    doc1.saveas(filepath1)
+    doc2.saveas(filepath2)
+    doc3.saveas(filepath3)
 
 #----------------------------------------------------------------------------------------------------------------------
 
@@ -919,7 +926,10 @@ def Multiple_trim_for_X(df):
         filename2 = 'centertrim.dxf'
         filename3 = 'righttrim.dxf'
         trim_for_X(df, cut_x1, cut_x2,diff, filename1, filename2, filename3)
-        files = [filename1,filename3]
+        filepath1=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename1)   
+        filepath2=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename2)  
+        filepath3=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename3)
+        files = [filepath1,filepath3]
         lefttrimnew = Dxf_to_DF(files[0])
         righttrimnew = Dxf_to_DF(files[1])
         df = pd.concat((lefttrimnew,righttrimnew))
@@ -941,8 +951,10 @@ def Multiple_trim_for_Y(df):
         filename2 = 'betweencut.dxf'
         filename3 = 'abovecut.dxf'
         trim_dxf_for_Y(df, cut_y1, cut_y2,diff, filename1, filename2, filename3)
-
-        files = [filename1,filename3]
+        filepath1=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename1)   
+        filepath2=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename2)  
+        filepath3=os.path.join(settings.BASE_DIR,'Temp','trimCache',project_name+filename3)
+        files = [filepath1,filepath3]
 
         belowtrimnew = Dxf_to_DF(files[0])
         abovetrimnew = Dxf_to_DF(files[1])
@@ -999,16 +1011,6 @@ def create_dxf_from_dataframe(df, output_filename):
     # print("Hello",output_filepath)
     return output_filepath
 
-
-    # png_folder = os.path.join(os.path.dirname(filename), 'png')
-    # # if not os.path.exists(png_folder):
-    # #     os.makedirs(png_folder)
-    # new_filename = filename.replace('.dxfTrimmed', '.png')
-    # print('new_filename:',new_filename)
-    # png_filepath = os.path.join(png_folder,os.path.basename(new_filename))
-    # print('png_filepath:',png_filepath)
-    # fig.savefig(png_filepath, bbox_inches='tight')
-    # plt.close(fig)
 
 def floor_dist_line_test(df):
     max_along_x = np.round(np.max(np.abs(df['X_end'] - df['X_start'])), 2)
@@ -1682,9 +1684,9 @@ def plot_2d_boundary(ax, floor, gap, z_value, i,frames):
     ax.set_xticks([])
     ax.set_yticks([])         
     ax.set_zticks(range(0, 250, 20))
-# plt.tight_layout()
+    # plt.tight_layout()
     frame_filename = f'boundary_frame_{i}.png'
-    frame_path=os.path.join(settings.MEDIA_ROOT,'tempframes',frame_filename)
+    frame_path=os.path.join(settings.BASE_DIR,'Temp','gifCache',project_name+frame_filename)
     plt.savefig(frame_path)
     frame = imageio.imread(frame_path)
     frames.append(frame)
@@ -1798,7 +1800,7 @@ def final_3d(df,number):
             ax.set_zticks(range(0, 250, 20))
             plt.tight_layout()
             frame_filename = f'frame_{i}_{layer}.png'
-            frame_path=os.path.join(settings.MEDIA_ROOT,'tempframes',frame_filename)
+            frame_path=os.path.join(settings.BASE_DIR,'Temp','gifCache',project_name+frame_filename)
             plt.savefig(frame_path)
 
             # Check if the file was saved correctly
@@ -1838,7 +1840,9 @@ for file in Sorted_points:
     adjust_dxf_coordinates_to00(os.path.join(data_folder, file))
 
     # Convert the modified DXF file to a DataFrame for further processing
-    testing1 = Dxf_to_DF(os.path.join(data_folder, file+'new'))
+    output_filename = os.path.splitext(os.path.basename(file))[0] + project_name+"_new.dxf"
+    # output_path = os.path.join(settings.BASE_DIR, 'Temp', 'dxfCache', output_filename)
+    testing1 = Dxf_to_DF(os.path.join(settings.BASE_DIR, 'Temp', 'dxfCache', output_filename))
 
         # Adjust the start and end coordinates within the DataFrame
     testing2 = adjust_Xstart_ystart(testing1)

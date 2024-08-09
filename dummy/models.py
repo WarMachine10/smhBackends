@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from .models import *
 from django.conf import settings
+
 class Project(models.Model):
     project_name = models.CharField(max_length=255)
     width = models.IntegerField()
@@ -44,6 +45,5 @@ class MapFile(models.Model):
     @property
     def map_url(self):
         return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{self.map_path}"
-
 
 

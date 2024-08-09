@@ -203,17 +203,17 @@ class UserFileListView(APIView):
         for user_file in user_files:
             file_data = {
                 "id": user_file.id,
-                "png_image": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{user_file.png_image}",
-                "dxf_file": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{user_file.dxf_file}",
-                "gif_file": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{user_file.gif_file}" if user_file.gif_file else None,
+                "png_image": f"{user_file.png_image}",
+                "dxf_file": f"{user_file.dxf_file}",
+                "gif_file": f"{user_file.gif_file}" if user_file.gif_file else None,
                 "info": {},
                 "created_at": user_file.created_at,
                 "user": user_file.user.id
             }
-
+# full_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{key}"
             # Process the info dictionary
             for key, value in user_file.info.items():
-                full_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{key}"
+                full_url = f"{key}"
                 file_data["info"][full_url] = value
 
             serialized_data.append(file_data)
