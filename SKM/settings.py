@@ -202,5 +202,3 @@ SWAGGER_SETTINGS = {
 # EMAIL_HOST_PASSWORD = 'your_email_password'
 # EMAIL_FROM = 'your_default_from_email@example.com'
 
-
-

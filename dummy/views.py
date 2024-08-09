@@ -97,6 +97,9 @@ class CreateProjectView(CreateAPIView):
             dxf_filename = png_filename.replace('.png', '.dxf')
             dxf_saved, dxf_name = self.save_file(dxf_filename, user_file, 'dxf_file', subfolder='dxfs')
             
+            gif_filename = png_filename.replace('.png', '.gif')
+            gif_saved, gif_name = self.save_file(gif_filename, user_file, 'gif_file', subfolder='gifs')
+            
             floor_files_saved = []
             floor_file_keys = list(floor_data.keys())
             for floor_file in floor_file_keys:
@@ -104,12 +107,13 @@ class CreateProjectView(CreateAPIView):
                 if floor_saved:
                     floor_files_saved.append(floor_name)
             
-            if png_saved or dxf_saved or floor_files_saved:
+            if png_saved or dxf_saved or gif_saved or floor_files_saved:
                 user_file.save()
-                logger.info(f"Saved UserFile: id={user_file.id}, png={png_name}, dxf={dxf_name}, info={user_file.info}")
+                logger.info(f"Saved UserFile: id={user_file.id}, png={png_name}, dxf={dxf_name}, gif={gif_name}, info={user_file.info}")
                 processed_files.append({
                     'png': png_name,
                     'dxf': dxf_name,
+                    'gif': gif_name,
                     'floors': floor_files_saved
                 })
             else:
@@ -128,43 +132,31 @@ class CreateProjectView(CreateAPIView):
             return False, None
 
         try:
-            # Generate a short unique ID
             short_id = generate_short_uuid()
-            
-            # Split the filename and extension
             name, ext = os.path.splitext(filename)
-            
-            # Create a unique filename with the short ID
             unique_filename = f"{name}_{short_id}{ext}"
-            
-            # Define the S3 key (path in the bucket)
             s3_key = f"media/{subfolder}/{unique_filename}"
             
-            # Determine the content type
             content_type, _ = mimetypes.guess_type(filename)
             if content_type is None:
                 content_type = 'application/octet-stream'
 
-            # Set up the ExtraArgs for S3 upload
             extra_args = {
                 'ContentType': content_type,
                 'ACL': 'public-read'
             }
 
-            # Set Content-Disposition based on file type
-            if ext.lower() == '.png':
+            if ext.lower() in ['.png', '.gif']:
                 extra_args['ContentDisposition'] = 'inline'
             elif ext.lower() == '.dxf':
                 extra_args['ContentDisposition'] = f'attachment; filename="{quote(unique_filename)}"'
 
-            # Upload file to S3
             s3_client = settings.S3_CLIENT
             
             with open(source_path, 'rb') as file:
                 s3_client.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, s3_key, ExtraArgs=extra_args)
             
-            # Generate the S3 URL
-            s3_url = f"{s3_key}"
+            s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
             
             if file_type == 'floor_file':
                 if user_file.info is None:
@@ -176,8 +168,6 @@ class CreateProjectView(CreateAPIView):
             
             logger.success(f"Successfully saved {file_type} to S3: {s3_url}")
             self.files_to_delete.append(source_path)
-            # Remove the local file after successful S3 upload
-            # os.remove(source_path)
             
             return True, s3_url
 
@@ -215,6 +205,7 @@ class UserFileListView(APIView):
                 "id": user_file.id,
                 "png_image": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{user_file.png_image}",
                 "dxf_file": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{user_file.dxf_file}",
+                "gif_file": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{user_file.gif_file}" if user_file.gif_file else None,
                 "info": {},
                 "created_at": user_file.created_at,
                 "user": user_file.user.id

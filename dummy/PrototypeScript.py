@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np
+import numpy as np,sys
 import ezdxf,math,os, sys,json, django
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -10,6 +10,9 @@ from shapely.ops import linemerge, unary_union
 from scipy.spatial import distance
 from sklearn.preprocessing import StandardScaler
 from django.conf import settings
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import imageio
+
 
 pd.set_option('display.float_format', '{:.5f}'.format)
 pd.options.mode.copy_on_write = True
@@ -1631,7 +1634,192 @@ def plot_dataframe(df,inmage_name):
 #     fig.savefig(png_filepath, bbox_inches='tight')
 #     plt.close(fig)
     
-    return png_filepath
+    #return png_filepath
+#########################################################################
+
+def add_plane(ax, x1, y1, x2, y2, height_low, height_high, color):
+    vertices = [
+        (x1, y1, height_low), (x2, y2, height_low),
+        (x2, y2, height_high), (x1, y1, height_high)
+    ]
+    poly = Poly3DCollection([vertices], alpha=0.5, facecolors=color)
+    ax.add_collection3d(poly)
+
+def add_text(ax, x, y, z, text, color):
+    ax.text(x, y, z, text, color='Black', fontsize=5)
+
+
+
+def plot_2d_boundary(ax, floor, gap, z_value, i,frames):
+    
+    boundary_data = floor[floor['Layer'] == 'Boundary']
+        
+    # Calculate the min and max coordinates for the boundary layer
+    min_x = boundary_data['X_start'].min()
+    max_x = boundary_data['X_start'].max()
+    min_y = boundary_data['Y_start'].min()
+    max_y = boundary_data['Y_start'].max()
+    z = boundary_data['Z_start'].min()
+
+    # Vertices of the rectangular plane
+    x = [min_x, max_x, max_x, min_x]
+    y = [min_y, min_y, max_y, max_y]
+    z = [z, z, z, z]  # Plane at z = 10
+
+    vertices = [list(zip(x, y, z))]
+    poly = Poly3DCollection(vertices, alpha=0.1, facecolors='black')
+    ax.add_collection3d(poly)
+
+    # Plot boundary lines
+    for _, row in boundary_data.iterrows():
+        x_line = [row['X_start'], row['X_end']]
+        y_line = [row['Y_start'], row['Y_end']]
+        z_line = [row['Z_start'], row['Z_end']]  # Plane at z = 10
+        ax.plot(x_line, y_line, z_line, color='#292323')
+
+    ax.set_title(f'2D Boundary for Floor {i}')
+    ax.grid(False)
+    ax.set_xticks([])
+    ax.set_yticks([])         
+    ax.set_zticks(range(0, 250, 20))
+# plt.tight_layout()
+    frame_filename = f'boundary_frame_{i}.png'
+    frame_path=os.path.join(settings.MEDIA_ROOT,'tempframes',frame_filename)
+    plt.savefig(frame_path)
+    frame = imageio.imread(frame_path)
+    frames.append(frame)
+    
+        
+
+# Initialize the figure and axis for 3D plotting
+def final_3d(df,number):
+    layer_colors = {
+    'Garden': '#90EE90', 
+    'WashArea': '#ADD8E6',
+    'WashArea_Staircase': '#ADD8E6', 
+    'Parking': '#FFFF00', 
+    'DiningRoom': '#FFFF00', 
+    'LivingRoom1': '#FFFF00', 
+    'BathRoom1': '#FF474C', 
+    'BedRoom1': '#FF474C', 
+    'Kitchen': '#FFFF00',
+    'PoojaRoom': '#FF474C', 
+    'BedRoom3': '#FF474C', 
+    'BedRoom2': '#FF474C', 
+    'Balcony': '#FFFF00', 
+    'BathRoom2a': '#FF474C',
+    'BedRoom2a': '#FF474C', 
+    'BathRoom2b': '#FF474C',
+    'BathRoom2': '#FF474C', 
+    'LivingRoom2': '#FFFF00', 
+    '0': '#FF474C',
+    'Terrace': '#FF474C'
+    }
+    df = floor_main(df)
+    df = df.set_index('floor').sort_index()
+    Gaps = []
+    unique_floors = df.index.unique()
+
+    # Initialize frames list
+    frames = []
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Loop through each unique index in t3
+    for idx, i in enumerate(unique_floors):
+        floor = df.loc[i]
+        floor = floor.reset_index(drop=True)
+        gap = floor['X_start'].min()
+        Gaps.append(gap)
+        z_value = 108
+        floor[['X_start', 'X_end', 'X_insert']] = floor[['X_start', 'X_end', 'X_insert']] - gap
+        floor[['Z_start', 'Z_end', 'Z_insert']] = floor[['Z_start', 'Z_end', 'Z_insert']] + (z_value * i)
+
+        # Sort the floor DataFrame by Y_start
+
+        staircase_layer = floor[floor['Layer'] == 'Staircase']
+
+        # Count the number of horizontal and vertical lines
+        horizontal_lines_count = staircase_layer['Horizontal'].sum()
+        vertical_lines_count = staircase_layer['Vertical'].sum()
+        if horizontal_lines_count>vertical_lines_count:
+            floor = floor.sort_values(by='Y_start')
+
+            staircase_len = floor[floor['Layer'] == 'Staircase']['Y_start'].count()
+
+            diff = z_value / staircase_len
+            sum_z = 0
+        else:
+            floor = floor.sort_values(by='X_start')
+
+            staircase_len = floor[floor['Layer'] == 'Staircase']['X_start'].count()
+
+            diff = z_value / staircase_len
+            sum_z = 0
+
+        for j in floor.index.values:
+            if floor.loc[j, "Layer"] == "Staircase":
+                sum_z += diff
+                floor.loc[j, "Z_start"] = floor.loc[j, "Z_start"] + sum_z
+                floor.loc[j, "Z_end"] = floor.loc[j, "Z_end"] + sum_z
+
+        if i == df.index.unique()[-1]:
+            floor = floor[floor["Layer"] != "Staircase"]
+        
+        # Plot the 2D boundary plane for the current floor
+        plot_2d_boundary(ax, floor, gap, z_value, i,frames)
+        
+        # Plot lines and add planes for each layer in this floor
+        for layer in floor['Layer'].unique():
+            layer_data = floor[floor['Layer'] == layer]
+            color = layer_colors.get(layer, '#808080')
+            for _, row in layer_data[layer_data['Type'] == 'LINE'].iterrows():
+                ax.plot(
+                    [row['X_start'], row['X_end']],
+                    [row['Y_start'], row['Y_end']],
+                    [row['Z_start'], row['Z_end']],
+                    label=row['Layer'],
+                    color=color
+                )
+                add_plane(ax, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], z_value * i, z_value * i + 18, color)
+
+            for _, row in layer_data[layer_data['Type'] == 'MTEXT'].iterrows():
+                mid_x = row['X_insert']
+                mid_y = row['Y_insert']
+                mid_z = row['Z_insert']
+                add_text(ax, mid_x, mid_y, mid_z, row['Text'], color)
+
+            # Set plot labels and view
+            ax.set_title(f'3D Plot for Floor {i}, Layer: {layer}')
+            ax.view_init(elev=40, azim=30)
+            ax.grid(False)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_zticks(range(0, 250, 20))
+            plt.tight_layout()
+            frame_filename = f'frame_{i}_{layer}.png'
+            frame_path=os.path.join(settings.MEDIA_ROOT,'tempframes',frame_filename)
+            plt.savefig(frame_path)
+
+            # Check if the file was saved correctly
+            try:
+                frame = imageio.imread(frame_path)
+                frames.append(frame)
+            except Exception as e:
+                print(f"Error reading {frame_path}: {e}")
+
+    # Save all frames as a GIF
+    pause_duration = 5  # Number of times to repeat the last frame
+    for _ in range(pause_duration):
+        frames.append(frames[-1])
+    gif_name = project_name + '_{}.gif'.format(number)
+    gif_path=os.path.join(settings.MEDIA_ROOT,'gifs',gif_name)
+    imageio.mimsave(gif_path, frames, duration=5)
+
+
+
+
+########################################################
 
 
 base_dir = settings.BASE_DIR / 'assets'
@@ -1730,7 +1918,8 @@ for file in Sorted_points:
         # step8[['X_start','X_end','X_insert']] = step8[['X_start','X_end','X_insert']] + (Gaps[j])/12 
         ine3 = pd.concat([ine3,step8])
 
-        # Create a new DXF file from the adjusted DataFrame and add it to the list
+    
+
     digit = ''.join([char for char in file if char.isdigit()])
     final_filename = project_name+'_{}'.format(digit)+'.dxf'
     create_dxf_from_dataframe(ine3, final_filename)
@@ -1745,6 +1934,7 @@ for file in Sorted_points:
     avg = (area_true_percentage+length_true_percentage+width_true_percentage)/3
     avg = round(avg,2)
     print("INFO:",final_json)
+    final_3d(ine3,digit)
     # print(final_filename , ':' , avg)
     # print(f"AVG:{avg}")
     # boqs = area_main(ine3)
