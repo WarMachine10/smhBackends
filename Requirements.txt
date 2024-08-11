@@ -42,6 +42,7 @@ greenlet==3.0.3
 gunicorn==22.0.0
 h11==0.14.0
 idna==3.7
+imageio==2.34.2
 inflection==0.5.1
 itsdangerous==2.2.0
 itypes==1.2.0
