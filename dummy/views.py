@@ -6,21 +6,17 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.conf import settings
 from django.core.files.base import ContentFile
 from subprocess import run, PIPE
-import json, os, uuid,ast, shutil
-import boto3,re,glob
+import json, os, uuid,ast, shutil,boto3,re,glob,mimetypes,pandas as pd,base64
 from loguru import logger
-from urllib.parse import unquote
-import mimetypes
 from pathlib import Path
 from urllib.parse import quote
 from botocore.exceptions import ClientError
 from rest_framework.permissions import IsAuthenticated
 from .serializers import *
-import pandas as pd,base64
 from helper.SiteAnalyzer import main, soil_type
 from helper.uuidGenerator import generate_short_uuid
+from helper.CacheCleaner import cleanup_temp_files
 from drf_yasg.utils import swagger_auto_schema
-
 
 
 class CreateProjectView(CreateAPIView):
@@ -38,9 +34,8 @@ class CreateProjectView(CreateAPIView):
             response = self.run_external_script(serializer.validated_data, request.user)
             return response
         finally:
-            # Assuming 'name' is the field for project name in your serializer
             project_name = serializer.validated_data.get('name', '')
-            self.cleanup_temp_files(project_name)
+            cleanup_temp_files(project_name)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,6 +43,7 @@ class CreateProjectView(CreateAPIView):
         
     def run_external_script(self, data, user):
         script_path = os.path.join(settings.BASE_DIR, 'dummy', 'PrototypeScript.py')
+        python_executable='/home/ubuntu/SketchMyHome-Complete/venv/bin/python'
         if not os.path.exists(script_path):
             return self.error_response('Script path does not exist')
         result = run(['python', script_path, json.dumps(data)], 
@@ -93,16 +89,12 @@ class CreateProjectView(CreateAPIView):
             user_file = UserFile(
                 user=user,
                 info=floor_data
-            )
-            
-            png_saved, png_name = self.save_file(png_filename, user_file, 'png_image', subfolder='pngs')
-            
+            )         
+            png_saved, png_name = self.save_file(png_filename, user_file, 'png_image', subfolder='pngs') 
             dxf_filename = png_filename.replace('.png', '.dxf')
-            dxf_saved, dxf_name = self.save_file(dxf_filename, user_file, 'dxf_file', subfolder='dxfs')
-            
+            dxf_saved, dxf_name = self.save_file(dxf_filename, user_file, 'dxf_file', subfolder='dxfs')        
             gif_filename = png_filename.replace('.png', '.gif')
-            gif_saved, gif_name = self.save_file(gif_filename, user_file, 'gif_file', subfolder='gifs')
-            
+            gif_saved, gif_name = self.save_file(gif_filename, user_file, 'gif_file', subfolder='gifs')         
             floor_files_saved = []
             floor_file_keys = list(floor_data.keys())
             for floor_file in floor_file_keys:
@@ -126,88 +118,53 @@ class CreateProjectView(CreateAPIView):
                 })
             else:
                 logger.critical(f"Failed to save files for {png_filename}")
-
         return processed_files
 
     def save_file(self, filename, user_file, file_type, subfolder):
         if not filename:
-            return False, None
-        
-        source_path = os.path.join(settings.MEDIA_ROOT, subfolder, filename)
-        
+            return False, None    
+        source_path = os.path.join(settings.MEDIA_ROOT, subfolder, filename)       
         if not os.path.exists(source_path):
             logger.warning(f"File not found: {source_path}")
             return False, None
-
         try:
             short_id = generate_short_uuid()
             name, ext = os.path.splitext(filename)
             unique_filename = f"{name}_{short_id}{ext}"
             s3_key = f"media/{subfolder}/{unique_filename}"
-            
             content_type, _ = mimetypes.guess_type(filename)
             if content_type is None:
                 content_type = 'application/octet-stream'
-
             extra_args = {
                 'ContentType': content_type,
                 'ACL': 'public-read'
             }
-
             if ext.lower() in ['.png', '.gif']:
                 extra_args['ContentDisposition'] = 'inline'
             elif ext.lower() == '.dxf':
                 extra_args['ContentDisposition'] = f'attachment; filename="{quote(unique_filename)}"'
-
-            s3_client = settings.S3_CLIENT
-            
+            s3_client = settings.S3_CLIENT 
             with open(source_path, 'rb') as file:
                 s3_client.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, s3_key, ExtraArgs=extra_args)
-            
-            s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
-            
+            s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"  
             if file_type == 'floor_file':
                 if user_file.info is None:
                     user_file.info = {}
                 user_file.info[s3_url] = user_file.info.pop(filename, {})
                 user_file.save(update_fields=['info'])
             else:
-                setattr(user_file, file_type, s3_url)
-            
-            logger.success(f"Successfully saved {file_type} to S3: {s3_url}")
-            
+                setattr(user_file, file_type, s3_url)        
+            logger.success(f"Successfully saved {file_type} to S3: {s3_url}") 
             # Delete the local file after successful S3 upload
             os.remove(source_path)
-            logger.info(f"Deleted local file after S3 upload: {source_path}")
-            
+            logger.info(f"Deleted local file after S3 upload: {source_path}")     
             return True, s3_url
-
         except ClientError as e:
             logger.error(f"Error uploading {file_type} {filename} to S3: {str(e)}")
             return False, None
         except Exception as e:
             logger.error(f"Error processing {file_type} {filename}: {str(e)}")
             return False, None
-
-
-    def cleanup_temp_files(self, project_name):
-        base_dir = Path(settings.BASE_DIR)
-        temp_folders = ['dxfCache', 'gifCache', 'trimCache']
-        floor_png=base_dir/'media'/'pngs/'
-        for folder in temp_folders:
-            folder_path = base_dir / 'Temp' / folder
-            self.delete_specific_files(str(folder_path), project_name)
-        self.delete_specific_files(str(floor_png),project_name)#for that rubbish floor files in pngs
-
-    def delete_specific_files(self, folder_path, project_name):
-        # Use a wildcard pattern to match any files containing the project_name
-        files_to_delete = glob.glob(os.path.join(folder_path, f"*{project_name}*"))
-        for file_path in files_to_delete:
-            try:
-                os.remove(file_path)
-                logger.info(f"Deleted temporary file: {file_path}")
-            except Exception as e:
-                logger.error(f"Error deleting temporary file {file_path}: {e}")
 
     def error_response(self, message, details=None):
         response = {'message': message}
@@ -238,9 +195,7 @@ class UserFileListView(APIView):
             for key, value in user_file.info.items():
                 full_url = f"{key}"
                 file_data["info"][full_url] = value
-
             serialized_data.append(file_data)
-
         return Response(serialized_data)            
 
 
@@ -257,13 +212,10 @@ class GenerateMapAndSoilDataView(APIView):
 
         if not latitude or not longitude or not boundary_coords:
             return Response({'error': 'Latitude, longitude, and boundary coordinates are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
         if len(boundary_coords) != 4:
             return Response({'error': 'Exactly 4 sets of boundary coordinates are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
         # Generate a unique filename
         unique_filename = f'map_{generate_short_uuid()}.html'
-        
         try:
             latitude = float(latitude)
             longitude = float(longitude)
@@ -307,14 +259,12 @@ class GenerateMapAndSoilDataView(APIView):
             foundation_type=soil_data['Foundation Type']
         )
         soil_data_serializer = SoilDataSerializer(soil_data_instance)
-        
         # Return the serialized data
         response_data = {
             'map_file': map_file_serializer.data,
             'soil_data': soil_data_serializer.data
         }
         logger.info(f"Response data: {response_data}")
-
         return Response(response_data, status=status.HTTP_201_CREATED)
 
     def upload_to_s3(self, file_path, s3_key):
