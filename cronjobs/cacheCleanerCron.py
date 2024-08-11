@@ -32,7 +32,10 @@ patternPng = '*.png'
 folder_trim = os.path.join(settings.BASE_DIR,'Temp','trimCache/')
 patternTrim = '*.dxf'
 
+folder_floor = os.path.join(settings.BASE_DIR,'media','pngs/')
+patternFloor = '*.png'
 # Hitting the function
 delete_specific_files(folder_dxf, patternDxf)
 delete_specific_files(folder_png, patternPng)
 delete_specific_files(folder_trim, patternTrim)
+delete_specific_files(folder_floor, patternFloor)

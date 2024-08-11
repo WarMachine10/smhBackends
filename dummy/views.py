@@ -7,10 +7,11 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from subprocess import run, PIPE
 import json, os, uuid,ast, shutil
-import boto3,re
+import boto3,re,glob
 from loguru import logger
 from urllib.parse import unquote
 import mimetypes
+from pathlib import Path
 from urllib.parse import quote
 from botocore.exceptions import ClientError
 from rest_framework.permissions import IsAuthenticated
@@ -37,7 +38,9 @@ class CreateProjectView(CreateAPIView):
             response = self.run_external_script(serializer.validated_data, request.user)
             return response
         finally:
-            self.delete_processed_files()
+            # Assuming 'name' is the field for project name in your serializer
+            project_name = serializer.validated_data.get('name', '')
+            self.cleanup_temp_files(project_name)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -106,6 +109,11 @@ class CreateProjectView(CreateAPIView):
                 floor_saved, floor_name = self.save_file(floor_file, user_file, 'floor_file', subfolder='pngs')
                 if floor_saved:
                     floor_files_saved.append(floor_name)
+                    # Delete the local floor file after successful S3 upload
+                    local_floor_path = os.path.join(settings.MEDIA_ROOT, 'pngs', floor_file)
+                    if os.path.exists(local_floor_path):
+                        os.remove(local_floor_path)
+                        logger.info(f"Deleted local floor file after S3 upload: {local_floor_path}")
             
             if png_saved or dxf_saved or gif_saved or floor_files_saved:
                 user_file.save()
@@ -167,7 +175,10 @@ class CreateProjectView(CreateAPIView):
                 setattr(user_file, file_type, s3_url)
             
             logger.success(f"Successfully saved {file_type} to S3: {s3_url}")
-            self.files_to_delete.append(source_path)
+            
+            # Delete the local file after successful S3 upload
+            os.remove(source_path)
+            logger.info(f"Deleted local file after S3 upload: {source_path}")
             
             return True, s3_url
 
@@ -177,14 +188,26 @@ class CreateProjectView(CreateAPIView):
         except Exception as e:
             logger.error(f"Error processing {file_type} {filename}: {str(e)}")
             return False, None
-        
-    def delete_processed_files(self):
-        for file_path in self.files_to_delete:
+
+
+    def cleanup_temp_files(self, project_name):
+        base_dir = Path(settings.BASE_DIR)
+        temp_folders = ['dxfCache', 'gifCache', 'trimCache']
+        floor_png=base_dir/'media'/'pngs/'
+        for folder in temp_folders:
+            folder_path = base_dir / 'Temp' / folder
+            self.delete_specific_files(str(folder_path), project_name)
+        self.delete_specific_files(str(floor_png),project_name)#for that rubbish floor files in pngs
+
+    def delete_specific_files(self, folder_path, project_name):
+        # Use a wildcard pattern to match any files containing the project_name
+        files_to_delete = glob.glob(os.path.join(folder_path, f"*{project_name}*"))
+        for file_path in files_to_delete:
             try:
                 os.remove(file_path)
-                logger.info(f"Deleted file: {file_path}")
-            except OSError as e:
-                logger.error(f"Error deleting file {file_path}: {e}")
+                logger.info(f"Deleted temporary file: {file_path}")
+            except Exception as e:
+                logger.error(f"Error deleting temporary file {file_path}: {e}")
 
     def error_response(self, message, details=None):
         response = {'message': message}
@@ -210,7 +233,7 @@ class UserFileListView(APIView):
                 "created_at": user_file.created_at,
                 "user": user_file.user.id
             }
-# full_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{key}"
+            # full_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{key}"
             # Process the info dictionary
             for key, value in user_file.info.items():
                 full_url = f"{key}"

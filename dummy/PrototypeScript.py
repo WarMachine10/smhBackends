@@ -1913,7 +1913,7 @@ for file in Sorted_points:
 
         # Multiple trimming operations along Y coordinates
         step8 = Multiple_trim_for_Y(step4)
-        inmage_name = file+'_{}'.format(j)+'.png'
+        inmage_name = project_name+file+'_{}'.format(j)+'.png'
         plot_dataframe(step8,inmage_name)
         boq = area_main(step8)
 
