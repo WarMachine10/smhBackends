@@ -46,11 +46,17 @@ def create_map(latitude, longitude, zoom=22, min_zoom=16):
     )
     return folium_map
 
-def add_marker(map_obj, latitude, longitude, color, popup, icon_path=None):
+def add_marker(map_obj, latitude, longitude, color, popup, icon_path=None,place_type=None):
+    icons={"park":"tree-conifer",
+           "shopping_mall":"shopping-cart",
+           "bank":"usd",
+           "school":"book",
+           "hotel":"briefcase"
+           }
     if icon_path:
         icon = folium.CustomIcon(icon_path, icon_size=(30, 30))
     else:
-        icon = folium.Icon(color=color, icon='info-sign')
+        icon = folium.Icon(color=color, icon=icons.get(place_type, 'info-sign'),prefix='glyphicon')
 
     folium.Marker(
         [latitude, longitude], 
@@ -102,7 +108,7 @@ def find_nearby_places(map_obj, latitude, longitude, place_types, radius):
                 popup_text = f"<b><span style='color:red;'>NAME:</span></b> {place_name}<br>" \
                              f"<b><span style='color:red;'>CATEGORY:</span></b> {place_type}<br>" \
                              f"<b><span style='color:red;'>DISTANCE:</span></b> {place_distance:.2f} meters"
-                add_marker(map_obj, place_lat, place_lon, colors.get(place_type, 'blue'), popup_text)
+                add_marker(map_obj, place_lat, place_lon, colors.get(place_type, 'blue'), popup_text, place_type=place_type)
             
             print(f"Found {len(places_result['results'])} {place_type}(s)")
         else:
@@ -239,7 +245,7 @@ def main(output_file, latitude, longitude, boundary_coords):
         return None
     
     # Add the boundary around the house
-    add_boundary(folium_map, boundary_coords, fill_color='red', fill_opacity=0.2)
+    add_boundary(folium_map, boundary_coords, fill_color='red', fill_opacity=0.4)
     
     # Ensure the maps directory exists within media folder
     media_maps_dir = os.path.join(settings.MEDIA_ROOT, 'maps')
