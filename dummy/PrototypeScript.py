@@ -1639,6 +1639,45 @@ def plot_dataframe(df,inmage_name):
     #return png_filepath
 #########################################################################
 
+def stairecase_manage(df):
+    mtext_df = df[df['Type'] == 'MTEXT'].copy()
+    line_df = df[(df['Type'] == 'LINE') & (df['Layer'] == 'Staircase')].copy()
+
+    # Initialize a set to keep track of assigned mtexts
+    assigned_mtexts = set()
+
+    # Function to find the nearest available MTEXT that hasn't been assigned yet
+    def find_nearest_mtext(x, y, assigned_mtexts):
+        # Calculate the distance to each MTEXT
+        distances = np.sqrt((mtext_df['X_insert'] - x)**2 + (mtext_df['Y_insert'] - y)**2)
+        # Sort distances and find the nearest available MTEXT
+        for idx in distances.sort_values().index:
+            if mtext_df.loc[idx, 'Text'] not in assigned_mtexts:
+                assigned_mtexts.add(mtext_df.loc[idx, 'Text'])
+                return mtext_df.loc[idx, 'Text']
+        return None
+
+    # Assign MTEXT to each Staircase LINE, avoiding duplicates
+    for index, row in line_df.iterrows():
+        x_center = (row['X_start'] + row['X_end']) / 2
+        y_center = (row['Y_start'] + row['Y_end']) / 2
+        nearest_mtext = find_nearest_mtext(x_center, y_center, assigned_mtexts)
+        df.at[index, 'Staircase_number'] = nearest_mtext
+
+    # Fill NaN values with a placeholder (e.g., 0) and convert to integer
+    df['Staircase_number'] = df['Staircase_number'].fillna('Stair 0').apply(lambda x: int(x.split()[-1]) if isinstance(x, str) else 0)
+
+    # Sort the DataFrame by 'Staircase_number'
+    df = df.sort_values(by='Staircase_number')
+    staircase_layer = df[df['Staircase_number']>0]
+    # Display the final DataFrame
+    return staircase_layer
+
+
+
+
+
+
 def add_plane(ax, x1, y1, x2, y2, height_low, height_high, color):
     vertices = [
         (x1, y1, height_low), (x2, y2, height_low),
@@ -1699,24 +1738,25 @@ def final_3d(df,number):
     'Garden': '#90EE90', 
     'WashArea': '#ADD8E6',
     'WashArea_Staircase': '#ADD8E6', 
-    'Parking': '#FFFF00', 
-    'DiningRoom': '#FFFF00', 
-    'LivingRoom1': '#FFFF00', 
-    'BathRoom1': '#FF474C', 
-    'BedRoom1': '#FF474C', 
-    'Kitchen': '#FFFF00',
-    'PoojaRoom': '#FF474C', 
-    'BedRoom3': '#FF474C', 
-    'BedRoom2': '#FF474C', 
-    'Balcony': '#FFFF00', 
-    'BathRoom2a': '#FF474C',
-    'BedRoom2a': '#FF474C', 
-    'BathRoom2b': '#FF474C',
-    'BathRoom2': '#FF474C', 
-    'LivingRoom2': '#FFFF00', 
-    '0': '#FF474C',
-    'Terrace': '#FF474C'
+    'Parking': '#964B00', 
+    'DiningRoom': '#e8e11c', 
+    'LivingRoom1': '#9e10e0', 
+    'BathRoom1': '#108de0', 
+    'BedRoom1': '#9e10e0', 
+    'Kitchen': '#e8e11c',
+    'PoojaRoom': '#e8e11c', 
+    'BedRoom3': '#9e10e0', 
+    'BedRoom2': '#9e10e0', 
+    'Balcony': '#964B00', 
+    'BathRoom2a': '#108de0',
+    'BedRoom2a': '#9e10e0', 
+    'BathRoom2b': '#108de0',
+    'BathRoom2': '#108de0', 
+    'LivingRoom2': '#9e10e0', 
+    '0': '#964B00',
+    'Terrace': '#964B00'
     }
+
     df = floor_main(df)
     df = df.set_index('floor').sort_index()
     Gaps = []
@@ -1739,34 +1779,47 @@ def final_3d(df,number):
 
         # Sort the floor DataFrame by Y_start
 
-        staircase_layer = floor[floor['Layer'] == 'Staircase']
+        if (floor['Layer'] == 'Staircase').any():
 
-        # Count the number of horizontal and vertical lines
-        horizontal_lines_count = staircase_layer['Horizontal'].sum()
-        vertical_lines_count = staircase_layer['Vertical'].sum()
-        if horizontal_lines_count>vertical_lines_count:
-            floor = floor.sort_values(by='Y_start')
+            staircase_layer = floor[floor['Layer'] == 'Staircase']
+            floor = floor[floor['Layer'] != 'Staircase']
+        
+            stairs_line = staircase_layer[staircase_layer['Type'] == 'LINE']
+            stairs_MTEXT = staircase_layer[staircase_layer['Type'] == 'MTEXT']
+            stairs_line['Length'] = ((stairs_line['X_end'] - stairs_line['X_start'])**2 + (stairs_line['Y_end'] - stairs_line['Y_start'])**2)**0.5
 
-            staircase_len = floor[floor['Layer'] == 'Staircase']['Y_start'].count()
+        # Group lines by their length and filter groups with more than one line
+            common_length_lines = stairs_line.groupby('Length').filter(lambda x: len(x) > 1)
+            common_length_lines['Length'] = common_length_lines['Length'].round(2)
+
+            length_counts = common_length_lines['Length'].value_counts()
+            max_count_length = length_counts.idxmax()
+
+        # Filter the DataFrame to keep only lines with the most common length
+            max_length_lines = common_length_lines[common_length_lines['Length'] == max_count_length]
+            print('max_length_lines',max_length_lines)
+        
+            staires = pd.concat([max_length_lines,stairs_MTEXT])
+            print('staires',staires)
+            staircase_layer = stairecase_manage(staires)
+            print('staircase_layer',staircase_layer)
+            floor  = pd.concat([floor,staircase_layer])
+        
+        
+        
+
+            staircase_len = staircase_layer[staircase_layer['Layer'] == 'Staircase']['X_start'].count()
 
             diff = z_value / staircase_len
-            sum_z = 0
-        else:
-            floor = floor.sort_values(by='X_start')
+            sum_z = 0        
+            for j in floor.index.values:
+                if floor.loc[j, "Layer"] == "Staircase":
+                    sum_z += diff
+                    floor.loc[j, "Z_start"] = floor.loc[j, "Z_start"] + sum_z
+                    floor.loc[j, "Z_end"] = floor.loc[j, "Z_end"] + sum_z
 
-            staircase_len = floor[floor['Layer'] == 'Staircase']['X_start'].count()
-
-            diff = z_value / staircase_len
-            sum_z = 0
-
-        for j in floor.index.values:
-            if floor.loc[j, "Layer"] == "Staircase":
-                sum_z += diff
-                floor.loc[j, "Z_start"] = floor.loc[j, "Z_start"] + sum_z
-                floor.loc[j, "Z_end"] = floor.loc[j, "Z_end"] + sum_z
-
-        if i == df.index.unique()[-1]:
-            floor = floor[floor["Layer"] != "Staircase"]
+            if i == df.index.unique()[-1]:
+                floor = floor[floor["Layer"] != "Staircase"]
         
         # Plot the 2D boundary plane for the current floor
         plot_2d_boundary(ax, floor, gap, z_value, i,frames)
@@ -1809,14 +1862,22 @@ def final_3d(df,number):
                 frames.append(frame)
             except Exception as e:
                 print(f"Error reading {frame_path}: {e}")
-
+    for angle1 in range(50, 10, -10):
+        for angle in range(0, 360, 60):
+#             fig = plt.figure(figsize=(10, 10))
+#             ax = fig.add_subplot(111, projection='3d')
+            ax.view_init(elev=angle1, azim=angle)
+            last_frame_filename = f'last_frame.png'
+            plt.savefig(last_frame_filename)
+            last_frame = imageio.imread(last_frame_filename)
+            frames.append(last_frame)
     # Save all frames as a GIF
-    pause_duration = 5  # Number of times to repeat the last frame
+    pause_duration = 20  # Number of times to repeat the last frame
     for _ in range(pause_duration):
         frames.append(frames[-1])
     gif_name = project_name + '_{}.gif'.format(number)
     gif_path=os.path.join(settings.MEDIA_ROOT,'gifs',gif_name)
-    imageio.mimsave(gif_path, frames, duration=5)
+    imageio.mimsave(gif_path, frames, duration=100)
 
 
 
