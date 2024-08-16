@@ -1872,12 +1872,12 @@ def final_3d(df,number):
             last_frame = imageio.imread(last_frame_filename)
             frames.append(last_frame)
     # Save all frames as a GIF
-    pause_duration = 20  # Number of times to repeat the last frame
+    pause_duration = 25  # Number of times to repeat the last frame
     for _ in range(pause_duration):
         frames.append(frames[-1])
     gif_name = project_name + '_{}.gif'.format(number)
     gif_path=os.path.join(settings.MEDIA_ROOT,'gifs',gif_name)
-    imageio.mimsave(gif_path, frames, duration=100)
+    imageio.mimsave(gif_path, frames, duration=1200)
 
 
 
