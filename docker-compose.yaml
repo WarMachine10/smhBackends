@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"   # Expose port 80 to the host
+      - "8000:8000"  # Expose port 8000 to the host for Gunicorn
+    environment:
+      - ENV_VAR=value  # Add any necessary environment variables
+    volumes:
+      - .:/app/backend  # Mount the application code into the container
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
