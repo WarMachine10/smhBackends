@@ -26,7 +26,7 @@ class UserFile(models.Model):
     info = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
-        return f"UserFile(user={self.user}, png_image={self.png_image}, dxf_file={self.dxf_file})"
+        return f"UserFile(user={self.user}, png_image={self.png_image}, dxf_file={self.dxf_file},, gif_file={self.gif_file})"
     
 
 class SoilData(models.Model):
