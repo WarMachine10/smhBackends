@@ -12,7 +12,8 @@ from sklearn.preprocessing import StandardScaler
 from django.conf import settings
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import imageio.v2 as imageio
-
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 pd.set_option('display.float_format', '{:.5f}'.format)
 pd.options.mode.copy_on_write = True
@@ -1637,7 +1638,8 @@ def plot_dataframe(df,inmage_name):
 #     plt.close(fig)
     
     #return png_filepath
-#########################################################################
+# #########################################################################
+
 
 def stairecase_manage(df):
     mtext_df = df[df['Type'] == 'MTEXT'].copy()
@@ -1678,83 +1680,122 @@ def stairecase_manage(df):
 
 
 
-def add_plane(ax, x1, y1, x2, y2, height_low, height_high, color):
-    vertices = [
-        (x1, y1, height_low), (x2, y2, height_low),
-        (x2, y2, height_high), (x1, y1, height_high)
-    ]
-    poly = Poly3DCollection([vertices], alpha=0.5, facecolors=color)
-    ax.add_collection3d(poly)
+def add_plane(fig, x1, y1, x2, y2, height_low, height_high, color,layer_name):
+    # Create the vertical plane
+    fig.add_trace(go.Mesh3d(
+        x=[x1, x2, x2, x1],
+        y=[y1, y2, y2, y1],
+        z=[height_low, height_low, height_high, height_high],
+        i=[0, 0],
+        j=[1, 2],
+        k=[2, 3],
+        color=color,
+        hoverinfo='text',
+        hovertext=f'Layer: {layer_name}',
+        opacity=1
+    ))
 
-def add_text(ax, x, y, z, text, color):
-    ax.text(x, y, z, text, color='Black', fontsize=5)
+    # Add the edges of the plane for better visibility
+    fig.add_trace(go.Scatter3d(
+        x=[x1, x2, x2, x1, x1],
+        y=[y1, y2, y2, y1, y1],
+        z=[height_low, height_low, height_high, height_high, height_low],
+        mode='lines',
+        line=dict(color=color, width=2),
+        hoverinfo='text',
+        hovertext=f'Layer: {layer_name}',
+        showlegend=False
+    ))
+
+    # Add vertical lines at the corners
+    for x, y in [(x1, y1), (x2, y2)]:
+        fig.add_trace(go.Scatter3d(
+            x=[x, x],
+            y=[y, y],
+            z=[height_low, height_high],
+            mode='lines',
+            line=dict(color=color, width=2),
+            hoverinfo='text',
+            hovertext=f'Layer: {layer_name}',
+            showlegend=False
+        ))
 
 
-
-def plot_2d_boundary(ax, floor, gap, z_value, i,frames):
-    
-    boundary_data = floor[floor['Layer'] == 'Boundary']
         
+
+        
+
+
+def add_text(fig, x, y, z, text, color):
+    fig.add_trace(go.Scatter3d(
+        x=[x], y=[y], z=[z],
+        mode='text',
+        text=[text],
+        textfont=dict(color='black', size=10),
+        showlegend=False
+    ))
+
+def plot_2d_boundary(fig, floor, gap, z_value, i):
+    boundary_data = floor[floor['Layer'] == 'Boundary']
+    
+    if boundary_data.empty:
+        print(f"No boundary data found for floor {i}")
+        return
+
     # Calculate the min and max coordinates for the boundary layer
     min_x = boundary_data['X_start'].min()
     max_x = boundary_data['X_start'].max()
     min_y = boundary_data['Y_start'].min()
     max_y = boundary_data['Y_start'].max()
-    z = boundary_data['Z_start'].min()
-
-    # Vertices of the rectangular plane
-    x = [min_x, max_x, max_x, min_x]
-    y = [min_y, min_y, max_y, max_y]
-    z = [z, z, z, z]  # Plane at z = 10
-
-    vertices = [list(zip(x, y, z))]
-    poly = Poly3DCollection(vertices, alpha=0.1, facecolors='black')
-    ax.add_collection3d(poly)
+    
+    # Use the z_value and i to set the correct height for this floor's boundary
+    z = z_value * i
 
     # Plot boundary lines
     for _, row in boundary_data.iterrows():
-        x_line = [row['X_start'], row['X_end']]
-        y_line = [row['Y_start'], row['Y_end']]
-        z_line = [row['Z_start'], row['Z_end']]  # Plane at z = 10
-        ax.plot(x_line, y_line, z_line, color='#292323')
+        fig.add_trace(go.Scatter3d(
+            x=[row['X_start'], row['X_end']],
+            y=[row['Y_start'], row['Y_end']],
+            z=[z, z],  # Use the calculated z value for both start and end
+            mode='lines',
+            line=dict(color='#292323', width=2),
+            showlegend=False
+        ))
 
-    ax.set_title(f'2D Boundary for Floor {i}')
-    ax.grid(False)
-    ax.set_xticks([])
-    ax.set_yticks([])         
-    ax.set_zticks(range(0, 250, 20))
-    # plt.tight_layout()
-    frame_filename = f'boundary_frame_{i}.png'
-    frame_path=os.path.join(settings.BASE_DIR,'Temp','gifCache',project_name+frame_filename)
-    plt.savefig(frame_path)
-    frame = imageio.imread(frame_path)
-    frames.append(frame)
-    
-        
+    # Optionally, you can add a floor plane
+    fig.add_trace(go.Mesh3d(
+        x=[min_x, max_x, max_x, min_x],
+        y=[min_y, min_y, max_y, max_y],
+        z=[z, z, z, z],
+        i=[0, 0],
+        j=[1, 2],
+        k=[2, 3],
+        color='Black',
+        opacity=0.4
+    ))
 
-# Initialize the figure and axis for 3D plotting
 def final_3d(df,number):
     layer_colors = {
-    'Garden': '#90EE90', 
-    'WashArea': '#ADD8E6',
-    'WashArea_Staircase': '#ADD8E6', 
-    'Parking': '#964B00', 
-    'DiningRoom': '#e8e11c', 
-    'LivingRoom1': '#9e10e0', 
-    'BathRoom1': '#108de0', 
-    'BedRoom1': '#9e10e0', 
-    'Kitchen': '#e8e11c',
-    'PoojaRoom': '#e8e11c', 
-    'BedRoom3': '#9e10e0', 
-    'BedRoom2': '#9e10e0', 
-    'Balcony': '#964B00', 
-    'BathRoom2a': '#108de0',
-    'BedRoom2a': '#9e10e0', 
-    'BathRoom2b': '#108de0',
-    'BathRoom2': '#108de0', 
-    'LivingRoom2': '#9e10e0', 
-    '0': '#964B00',
-    'Terrace': '#964B00'
+        'Garden': '#90EE90', 
+        'WashArea': '#ADD8E6',
+        'WashArea_Staircase': '#ADD8E6', 
+        'Parking': '#964B00', 
+        'DiningRoom': '#e8e11c', 
+        'LivingRoom1': '#9e10e0', 
+        'BathRoom1': '#108de0', 
+        'BedRoom1': '#9e10e0', 
+        'Kitchen': '#e8e11c',
+        'PoojaRoom': '#e8e11c', 
+        'BedRoom3': '#9e10e0', 
+        'BedRoom2': '#9e10e0', 
+        'Balcony': '#964B00', 
+        'BathRoom2a': '#108de0',
+        'BedRoom2a': '#9e10e0', 
+        'BathRoom2b': '#108de0',
+        'BathRoom2': '#108de0', 
+        'LivingRoom2': '#9e10e0', 
+        '0': '#964B00',
+        'Terrace': '#964B00'
     }
 
     df = floor_main(df)
@@ -1762,127 +1803,212 @@ def final_3d(df,number):
     Gaps = []
     unique_floors = df.index.unique()
 
-    # Initialize frames list
-    frames = []
-    fig = plt.figure(figsize=(10, 10))
-    ax = fig.add_subplot(111, projection='3d')
-
-    # Loop through each unique index in t3
+    fig = make_subplots(rows=1, cols=1, specs=[[{'type': 'scene'}]])
     for idx, i in enumerate(unique_floors):
         floor = df.loc[i]
         floor = floor.reset_index(drop=True)
         gap = floor['X_start'].min()
         Gaps.append(gap)
-        z_value = 108
+        z_value = 150
         floor[['X_start', 'X_end', 'X_insert']] = floor[['X_start', 'X_end', 'X_insert']] - gap
         floor[['Z_start', 'Z_end', 'Z_insert']] = floor[['Z_start', 'Z_end', 'Z_insert']] + (z_value * i)
 
         # Sort the floor DataFrame by Y_start
 
         if (floor['Layer'] == 'Staircase').any():
-
             staircase_layer = floor[floor['Layer'] == 'Staircase']
             floor = floor[floor['Layer'] != 'Staircase']
-        
+
             stairs_line = staircase_layer[staircase_layer['Type'] == 'LINE']
             stairs_MTEXT = staircase_layer[staircase_layer['Type'] == 'MTEXT']
             stairs_line['Length'] = ((stairs_line['X_end'] - stairs_line['X_start'])**2 + (stairs_line['Y_end'] - stairs_line['Y_start'])**2)**0.5
 
-        # Group lines by their length and filter groups with more than one line
+            # Group lines by their length and filter groups with more than one line
             common_length_lines = stairs_line.groupby('Length').filter(lambda x: len(x) > 1)
             common_length_lines['Length'] = common_length_lines['Length'].round(2)
 
             length_counts = common_length_lines['Length'].value_counts()
-            max_count_length = length_counts.idxmax()
+            if not length_counts.empty:
+                max_count_length = length_counts.idxmax()
+            else:
+                max_count_length = None 
 
-        # Filter the DataFrame to keep only lines with the most common length
+            # Filter the DataFrame to keep only lines with the most common length
             max_length_lines = common_length_lines[common_length_lines['Length'] == max_count_length]
-            print('max_length_lines',max_length_lines)
-        
-            staires = pd.concat([max_length_lines,stairs_MTEXT])
-            print('staires',staires)
+            print('max_length_lines', max_length_lines)
+
+            staires = pd.concat([max_length_lines, stairs_MTEXT])
+            print('staires', staires)
+
+            # Manage the staircase layer before duplicating lines
             staircase_layer = stairecase_manage(staires)
-            print('staircase_layer',staircase_layer)
-            floor  = pd.concat([floor,staircase_layer])
-        
-        
-        
+            print('staircase_layer', staircase_layer)
+
+            floor = pd.concat([floor, staircase_layer])
 
             staircase_len = staircase_layer[staircase_layer['Layer'] == 'Staircase']['X_start'].count()
 
             diff = z_value / staircase_len
-            sum_z = 0        
+            sum_z = 0
+
             for j in floor.index.values:
                 if floor.loc[j, "Layer"] == "Staircase":
                     sum_z += diff
                     floor.loc[j, "Z_start"] = floor.loc[j, "Z_start"] + sum_z
                     floor.loc[j, "Z_end"] = floor.loc[j, "Z_end"] + sum_z
 
-            if i == df.index.unique()[-1]:
-                floor = floor[floor["Layer"] != "Staircase"]
-        
-        # Plot the 2D boundary plane for the current floor
-        plot_2d_boundary(ax, floor, gap, z_value, i,frames)
-        
-        # Plot lines and add planes for each layer in this floor
+            staircase_layer2 = floor[floor['Layer'] == 'Staircase']
+
+            # Now, create duplicates of the staircase lines and connect them with the original lines
+            connecting_lines = []
+
+            duplicated_lines = staircase_layer2[staircase_layer2['Type'] == 'LINE'].copy()
+            print('duplicated_lines:',duplicated_lines)
+            print('staircase_layer2:',staircase_layer2)
+            for _, orig_row in staircase_layer2[staircase_layer2['Type'] == 'LINE'].iterrows():
+                dup_row = orig_row.copy()
+
+                if abs(orig_row['X_start'] - orig_row['X_end']) <= 2:
+                    # Vertical line, increment X values
+                    dup_row['X_start'] += 12
+                    dup_row['X_end'] += 12
+
+                    # Add connection lines between original and duplicate
+                    connecting_lines.append({
+                        'X_start': orig_row['X_start'],
+                        'Y_start': orig_row['Y_start'],
+                        'Z_start': orig_row['Z_end'],
+                        'X_end': dup_row['X_start'],
+                        'Y_end': dup_row['Y_start'],
+                        'Z_end': dup_row['Z_end'],
+                        'Layer': 'Connected_staire_lines',
+                        'Type': 'LINE'
+                    })
+                    connecting_lines.append({
+                        'X_start': orig_row['X_end'],
+                        'Y_start': orig_row['Y_end'],
+                        'Z_start': orig_row['Z_end'],
+                        'X_end': dup_row['X_end'],
+                        'Y_end': dup_row['Y_end'],
+                        'Z_end': dup_row['Z_end'],
+                        'Layer': 'Connected_staire_lines',
+                        'Type': 'LINE'
+                    })
+
+                elif abs(orig_row['Y_start'] - orig_row['Y_end']) <= 2:
+                    # Horizontal line, increment Y values
+                    dup_row['Y_start'] += 12
+                    dup_row['Y_end'] += 12
+
+                    # Add connection lines between original and duplicate
+                    connecting_lines.append({
+                        'X_start': orig_row['X_start'],
+                        'Y_start': orig_row['Y_start'],
+                        'Z_start': orig_row['Z_end'],
+                        'X_end': dup_row['X_start'],
+                        'Y_end': dup_row['Y_start'],
+                        'Z_end': dup_row['Z_end'],
+                        'Layer': 'Connected_staire_lines',
+                        'Type': 'LINE'
+                    })
+                    connecting_lines.append({
+                        'X_start': orig_row['X_end'],
+                        'Y_start': orig_row['Y_end'],
+                        'Z_start': orig_row['Z_end'],
+                        'X_end': dup_row['X_end'],
+                        'Y_end': dup_row['Y_end'],
+                        'Z_end': dup_row['Z_end'],
+                        'Layer':'Connected_staire_lines',
+                        'Type': 'LINE'
+                    })
+
+                # Add the duplicated line to the list
+                duplicated_lines = pd.concat([duplicated_lines, pd.DataFrame([dup_row])])
+
+            # Convert the connecting lines list to a DataFrame and add to staircase_layer2
+            connecting_lines_df = pd.DataFrame(connecting_lines)
+            print('connecting_lines_df:',connecting_lines_df)
+            staircase_layer2 = pd.concat([staircase_layer2, duplicated_lines, connecting_lines_df])
+            print('staircase_layer2:',staircase_layer2)
+            
+            # Add the updated staircase layer back to the floor DataFrame
+            floor = pd.concat([floor, staircase_layer2])
+            print('Floor_stairs:',floor[floor['Layer']=='Connected_staire_lines'])
+
+        if i == df.index.unique()[-1]:
+            floor = floor[floor["Layer"] != "Staircase"]
+            floor = floor[floor["Layer"] != "Connected_staire_lines"]
+#     for idx, i in enumerate(unique_floors):
+#         floor = df.loc[i].reset_index(drop=True)
+        z_base = i * z_value  # Base height for this floor
+        z_ceiling = z_base + 18  # Ceiling height for this floor
+        plot_2d_boundary(fig, floor, gap, z_value, i)
         for layer in floor['Layer'].unique():
             layer_data = floor[floor['Layer'] == layer]
             color = layer_colors.get(layer, '#808080')
+            
             for _, row in layer_data[layer_data['Type'] == 'LINE'].iterrows():
-                ax.plot(
-                    [row['X_start'], row['X_end']],
-                    [row['Y_start'], row['Y_end']],
-                    [row['Z_start'], row['Z_end']],
-                    label=row['Layer'],
-                    color=color
-                )
-                add_plane(ax, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], z_value * i, z_value * i + 18, color)
+                if layer == 'Staircase' or layer == 'Connected_staire_lines':
+                    # For staircase, use the actual Z values from the data
+                    add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
+                              row['Z_start'], row['Z_end'], color,layer)
+                else:
+                    # For other layers, use the floor's base and ceiling
+                    add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
+                              z_base, z_ceiling, color,layer)
 
+            # Add text labels (keep this part the same)
             for _, row in layer_data[layer_data['Type'] == 'MTEXT'].iterrows():
-                mid_x = row['X_insert']
-                mid_y = row['Y_insert']
-                mid_z = row['Z_insert']
-                add_text(ax, mid_x, mid_y, mid_z, row['Text'], color)
+                fig.add_trace(go.Scatter3d(
+                    x=[row['X_insert']],
+                    y=[row['Y_insert']],
+                    z=[z_value*i],  # Place text in middle of room height
+                    mode='text',
+                    text=[row['Text']],
+                    textfont=dict(color='black', size=10),
+                    hoverinfo='text',
+                    hovertext=f'Layer: {layer}',
+                    showlegend=False
+                ))
 
-            # Set plot labels and view
-            ax.set_title(f'3D Plot for Floor {i}, Layer: {layer}')
-            ax.view_init(elev=40, azim=30)
-            ax.grid(False)
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.set_zticks(range(0, 250, 20))
-            plt.tight_layout()
-            frame_filename = f'frame_{i}_{layer}.png'
-            frame_path=os.path.join(settings.BASE_DIR,'Temp','gifCache',project_name+frame_filename)
-            plt.savefig(frame_path)
 
-            # Check if the file was saved correctly
-            try:
-                frame = imageio.imread(frame_path)
-                frames.append(frame)
-            except Exception as e:
-                print(f"Error reading {frame_path}: {e}")
-    for angle1 in range(50, 10, -10):
-        for angle in range(0, 360, 60):
-#             fig = plt.figure(figsize=(10, 10))
-#             ax = fig.add_subplot(111, projection='3d')
-            ax.view_init(elev=angle1, azim=angle)
-            last_frame_filename = f'last_frame.png'
-            plt.savefig(last_frame_filename)
-            last_frame = imageio.imread(last_frame_filename)
-            frames.append(last_frame)
-    # Save all frames as a GIF
-    pause_duration = 25  # Number of times to repeat the last frame
-    for _ in range(pause_duration):
-        frames.append(frames[-1])
-    gif_name = project_name + '_{}.gif'.format(number)
-    gif_path=os.path.join(settings.MEDIA_ROOT,'gifs',gif_name)
-    imageio.mimsave(gif_path, frames, duration=1200)
+    # Update layout for better visualization
+    fig.update_layout(
+    scene=dict(
+        xaxis_visible=False,
+        yaxis_visible=False,
+        zaxis=dict(
+            range=[0, 220],
+            title=dict(
+                text='Height',
+                font=dict(size=14, color='white')  # Change title color to white
+            ),
+            tickfont=dict(color='white'),  # Change tick label color to white
+            linecolor='white',  # Change axis line color to white
+            gridcolor='white'  # Change grid color to white
+        )
+    ),
+        title=f'3D Plot for All Floors',
+        height=800,
+        width=1000
+    )
+
+    # Show the plot
+    # fig.show()
+    file_name = f'{project_name}_{number}.html'
+    file_path = os.path.join(settings.MEDIA_ROOT, 'gifs', file_name)
+
+    # Ensure the directory exists
+
+    # Save the file
+    fig.write_html(file_path)
+    # If you want to save as HTML for interactivity
+
 
 
 #gif part finish
 
-########################################################
+# ########################################################
 
 
 base_dir = settings.BASE_DIR / 'assets'

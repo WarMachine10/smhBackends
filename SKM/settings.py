@@ -89,6 +89,16 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'smh-db',
+#         'USER': 'admin',
+#         'PASSWORD': '#projectGreen1',
+#         'HOST': 'smh-db.croqwqgeg8up.ap-southeast-1.rds.amazonaws.com',
+#         'PORT': '3306',
+#     }
+# }
 
 
 # Password validation

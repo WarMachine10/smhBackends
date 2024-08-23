@@ -93,7 +93,7 @@ class CreateProjectView(CreateAPIView):
             png_saved, png_name = self.save_file(png_filename, user_file, 'png_image', subfolder='pngs') 
             dxf_filename = png_filename.replace('.png', '.dxf')
             dxf_saved, dxf_name = self.save_file(dxf_filename, user_file, 'dxf_file', subfolder='dxfs')        
-            gif_filename = png_filename.replace('.png', '.gif')
+            gif_filename = png_filename.replace('.png', '.html')
             gif_saved, gif_name = self.save_file(gif_filename, user_file, 'gif_file', subfolder='gifs')         
             floor_files_saved = []
             floor_file_keys = list(floor_data.keys())

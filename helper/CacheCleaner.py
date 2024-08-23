@@ -15,7 +15,7 @@ def delete_specific_files(folder_path, project_name):
 
 def cleanup_temp_files(project_name):
         base_dir = Path(settings.BASE_DIR)
-        temp_folders = ['dxfCache', 'gifCache', 'trimCache']
+        temp_folders = ['dxfCache', 'trimCache']
         floor_png=base_dir/'media'/'pngs/'
         for folder in temp_folders:
             folder_path = base_dir / 'Temp' / folder
