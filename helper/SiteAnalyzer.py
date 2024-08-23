@@ -1,5 +1,3 @@
-
-
 import logging
 import folium
 from geopy.distance import geodesic

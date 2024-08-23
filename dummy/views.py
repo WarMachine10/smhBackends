@@ -141,6 +141,9 @@ class CreateProjectView(CreateAPIView):
             }
             if ext.lower() in ['.png', '.gif']:
                 extra_args['ContentDisposition'] = 'inline'
+            # if ext.lower() == '.html':
+            #     extra_args['ContentType'] = 'text/html'
+            #     extra_args['ContentDisposition'] = 'inline'    
             elif ext.lower() == '.dxf':
                 extra_args['ContentDisposition'] = f'attachment; filename="{quote(unique_filename)}"'
             s3_client = settings.S3_CLIENT 
@@ -185,7 +188,7 @@ class UserFileListView(APIView):
                 "id": user_file.id,
                 "png_image": f"{user_file.png_image}",
                 "dxf_file": f"{user_file.dxf_file}",
-                "gif_file": f"{user_file.gif_file}" if user_file.gif_file else None,
+                "gif_file": f"{user_file.gif_file}",
                 "info": {},
                 "created_at": user_file.created_at,
                 "user": user_file.user.id
