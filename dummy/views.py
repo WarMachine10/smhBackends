@@ -141,9 +141,9 @@ class CreateProjectView(CreateAPIView):
             }
             if ext.lower() in ['.png', '.gif']:
                 extra_args['ContentDisposition'] = 'inline'
-            # if ext.lower() == '.html':
-            #     extra_args['ContentType'] = 'text/html'
-            #     extra_args['ContentDisposition'] = 'inline'    
+            elif ext.lower() == '.html':
+                extra_args['ContentType'] = 'text/html'
+                extra_args['ContentDisposition'] = 'inline'    
             elif ext.lower() == '.dxf':
                 extra_args['ContentDisposition'] = f'attachment; filename="{quote(unique_filename)}"'
             s3_client = settings.S3_CLIENT 
