@@ -1,0 +1,5 @@
+Creds.txt
+data/
+*.md
+.cache
+.DS_Store
