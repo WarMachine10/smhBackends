@@ -57,7 +57,7 @@ ROOT_URLCONF = 'SKM.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Update this if your templates directory is different
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -94,10 +94,10 @@ REST_FRAMEWORK = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Development',
+        'NAME': 'Development', #This will be Production on server
         'USER': 'admin',
-        'PASSWORD': '#projectGreen1',
-        'HOST': 'prod.croqwqgeg8up.ap-southeast-1.rds.amazonaws.com',
+        'PASSWORD': os.getenv('RDS_KEY'),
+        'HOST': os.getenv('RDS_HOST_URL'),
         'PORT': '3306',
        
     }
@@ -142,7 +142,7 @@ AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles')
 # MEDIA_LOCATION = 'media'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -202,19 +202,7 @@ SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
 }
 
+#
+EMAIL_XAPI=os.getenv('EMAIL_XAPI')
 
 
-# Email configuration
-
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'your_email_host'  # e.g., 'smtp.gmail.com'
-# EMAIL_PORT = 587  # or 465 for SSL
-# EMAIL_USE_TLS = True  # or EMAIL_USE_SSL = True for port 465
-# EMAIL_HOST_USER = 'your_email@example.com'
-# EMAIL_HOST_PASSWORD = 'your_email_password'
-# EMAIL_FROM = 'your_default_from_email@example.com'
-
- # 'OPTIONS': {
-        #     'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        #     'auth_plugin': 'mysql_native_password',
-        # },

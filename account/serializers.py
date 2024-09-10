@@ -1,22 +1,23 @@
 from rest_framework import serializers
-from account.models import User
+from .models import User, Contact
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from account.utils import Util
+from django.core.cache import cache
+import random 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    # We are writing this because we need confirm password field in our Registration Request
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    otp = serializers.CharField(required=False)
     
     class Meta:
         model = User
-        fields = ['email', 'name', 'phone', 'location', 'password', 'password2', 'tc']
+        fields = ['email', 'name', 'phone', 'location', 'password', 'password2', 'tc', 'otp']
         extra_kwargs = {
             'password': {'write_only': True}
         }
 
-    # Validating Password and Confirm Password while Registration
     def validate(self, attrs):
         password = attrs.get('password')
         password2 = attrs.get('password2')
@@ -25,7 +26,24 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        otp = validated_data.pop('otp', None)
+        email = validated_data.get('email')
+        
+        # Check if OTP is valid
+        stored_otp = cache.get(f'registration_otp_{email}')
+        if not otp or otp != stored_otp:
+            raise serializers.ValidationError("Invalid OTP")
+        
+        # Clear the OTP from cache
+        cache.delete(f'registration_otp_{email}')
+        
         return User.objects.create_user(**validated_data)
+
+    @staticmethod
+    def generate_otp(email):
+        otp = str(random.randint(100000, 999999))
+        cache.set(f'registration_otp_{email}', otp, timeout=300)  # OTP valid for 5 minutes
+        return otp
 
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
@@ -109,3 +127,8 @@ class UserPasswordResetSerializer(serializers.Serializer):
         except DjangoUnicodeDecodeError as identifier:
             PasswordResetTokenGenerator().check_token(user, token)
             raise serializers.ValidationError('Token is not Valid or Expired')
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = ['id', 'name', 'contact', 'email', 'message']

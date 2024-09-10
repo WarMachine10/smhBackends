@@ -1,8 +1,9 @@
 from django.urls import path
-from account.views import SendPasswordResetEmailView, UserChangePasswordView, UserLoginView, UserProfileView, UserRegistrationView, UserPasswordResetView,UserLogoutView
+from account.views import *
 from rest_framework_simplejwt import views as jwt_views
 
 urlpatterns = [
+    path('contact/', ContactCreateView.as_view(), name='contact-create'),
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('login/', UserLoginView.as_view(), name='login'),
     path('profile/', UserProfileView.as_view(), name='profile'),

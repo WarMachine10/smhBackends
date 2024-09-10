@@ -1,19 +1,30 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from account.serializers import SendPasswordResetEmailSerializer, UserChangePasswordSerializer, UserLoginSerializer, UserPasswordResetSerializer, UserProfileSerializer, UserRegistrationSerializer
+from account.serializers import *
 from django.contrib.auth import authenticate, logout
 from account.renderers import UserRenderer
+import boto3,os,datetime
+from sib_api_v3_sdk import Configuration, ApiClient, TransactionalEmailsApi, SendSmtpEmail
+from dotenv import load_dotenv
+from botocore.exceptions import ClientError
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.urls import reverse
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.permissions import IsAuthenticated
 from .models import User
+from django.conf import settings
 from .utils import Util
+from loguru import logger
 from drf_yasg.utils import swagger_auto_schema
+
+load_dotenv()
 
 # Generate Token Manually
 def get_tokens_for_user(user):
@@ -23,16 +34,52 @@ def get_tokens_for_user(user):
       'access': str(refresh.access_token),
   }
 
-class UserRegistrationView(APIView):
-  renderer_classes = [UserRenderer]
-  @swagger_auto_schema(request_body=UserRegistrationSerializer)
-  def post(self, request, format=None):
-    serializer = UserRegistrationSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    user = serializer.save()
-    token = get_tokens_for_user(user)
-    return Response({'token':token, 'msg':'Registration Successful'}, status=status.HTTP_201_CREATED)
+def send_brevo_email(to_email, to_name, subject, html_content):
+    configuration = Configuration()
+    configuration.api_key['api-key'] = settings.EMAIL_XAPI
+    api_client = ApiClient(configuration)
+    api_instance = TransactionalEmailsApi(api_client)
 
+    send_smtp_email = SendSmtpEmail(
+        to=[{"email": to_email, "name": to_name}],
+        subject=subject,
+        html_content=html_content,
+        sender={"email": "server@sketchmyhome.ai", "name": "SketchMyHome.ai"}
+    )
+    try:
+        api_instance.send_transac_email(send_smtp_email)
+        return True
+    except Exception as e:
+        print(f"Error when sending email: {e}")
+        return False
+
+class UserRegistrationView(APIView):
+    renderer_classes = [UserRenderer]
+    @swagger_auto_schema(request_body=UserRegistrationSerializer)
+    def post(self, request, format=None):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            if 'otp' not in request.data:
+                # Generate and send OTP
+                email = serializer.validated_data['email']
+                otp = UserRegistrationSerializer.generate_otp(email)
+                name=serializer.data['name']
+                # Send OTP email
+                otp_html =render_to_string('otp_email.html', {'otp': otp,'name':name,'date':datetime.date.today()})
+                if send_brevo_email(email, serializer.validated_data['name'], "Verification OTP for SketchMyHome.AI", otp_html):
+                    return Response({'msg': 'OTP sent to your email'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Failed to send OTP'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                # Verify OTP and register user
+                user = serializer.save()
+                token = get_tokens_for_user(user)
+                # Send welcome email
+                welcome_html = render_to_string('welcome_email.html', {'name': user.name,'date':datetime.date.today()})
+                if send_brevo_email(user.email, user.name, "Welcome to SketchMyHome.AI", welcome_html):
+                    return Response({'token': token, 'msg': 'Registration Successful'}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({'token': token, 'msg': 'Registration Successful, but welcome email sending failed'}, status=status.HTTP_201_CREATED)
 
 class UserLoginView(APIView):
   renderer_classes = [UserRenderer]
@@ -55,6 +102,7 @@ class UserProfileView(APIView):
   authentication_classes = [JWTAuthentication]
   def get(self, request, format=None):
     serializer = UserProfileSerializer(request.user)
+    print(f"Authenticated user: {request.user.id}, {request.user.email}")
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UserChangePasswordView(APIView):
@@ -109,7 +157,23 @@ class UserLogoutView(APIView):
         return Response({'msg': 'Logout Successful'}, status=status.HTTP_200_OK)
 
 
+class ContactCreateView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ContactSerializer(data=request.data)
+        if serializer.is_valid():
+            contact = serializer.save()
+            # Prepare email content
+            to_email = contact.email
+            to_name = contact.name
+            revert_html = render_to_string('contact_revert_email.html', {'name': to_name,'date':datetime.date.today()})
+            # Send email using Brevo email function
+            email_sent = send_brevo_email(to_email, to_name, "Thank you for reaching us out!", revert_html)
+            if email_sent:
+                return Response({'message': 'Contact form submitted and email sent.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'Contact form submitted but failed to send email.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-  
+
 

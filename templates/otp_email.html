@@ -1,0 +1,69 @@
+
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMH's SMTP Handler</title>
+</head>
+<body style="margin-top:70px; padding: 0; font-family: Arial, sans-serif; background-color: black; color: #333; box-sizing: border-box;">
+  
+    <img 
+  alt="Company Logo"
+  src="https://smhmediabuck.s3.ap-southeast-1.amazonaws.com/serverAssets/EmailTemplateBanner.png"
+  style="display: block; max-width: 750px; margin: 0 auto 10px; width: 100%;"
+>
+    <div
+      class="container"
+      style="
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #eaeaea;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+      "
+    >
+    <h4>{{date}}</h4>
+      
+      <main style="text-align: center;">
+        <h1 style="font-size: 24px; margin-bottom: 10px; color: #ff6600;">Verify Your email</h1>
+        <p style="margin: 10px 0; font-size: 16px; color: #333;">Hello {{name}},</p>
+        <p style="font-size: 16px; line-height: 1.5; color: #333;">
+          Thank you for choosing SketchMyHome.AI. Please use the OTP below to verify your email. The OTP is valid for
+          <strong style="color: #7d476b;">5 minutes</strong>. Do not share this code with anyone.
+        </p>
+        <p
+          class="otp-code"
+          style="
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 10px;
+            color: #4195f6;
+            border: 2px dashed #ff6600;
+            display: inline-block;
+            background: #ffffff;
+            letter-spacing: 10px;
+          "
+        >
+          {{otp}}
+        </p>
+  
+        <p style="margin-top: 30px; font-size: 14px;">
+          Need help? Contact us at
+          <a href="mailto:server@sketchmyhome.ai" style="color: #ff6600; text-decoration: none;">support@sketchmyhome.ai</a>
+        </p>
+      </main>
+  
+      <footer style="margin-top: 30px; text-align: center; font-size: 12px; color: #777;">
+        <p style="margin: 5px 0; color: #333;font-weight: bold; ">SketchMyHome.AI</p>
+        <p style="margin: 5px 0;">278, PU4, Scheme No. 54, Indore [M.P], India</p>
+        <p style="margin: 5px 0;font-style: italic;font-size: 10px;">©️ 2024 Highnest Sustainable Pvt. Ltd. All rights reserved.</p>
+      </footer>
+    </div>
+  </body>
+</html>
+
+
