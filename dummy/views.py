@@ -211,23 +211,25 @@ class GenerateMapAndSoilDataView(APIView):
     def post(self, request, *args, **kwargs):
         latitude = request.data.get('latitude')
         longitude = request.data.get('longitude')
-        boundary_coords = request.data.get('boundary_coords')
+        front_of_house = request.data.get('front_of_house')
+        
+        if not latitude or not longitude or not front_of_house:
+            return Response({'error': 'Latitude, longitude, and front of house direction are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not latitude or not longitude or not boundary_coords:
-            return Response({'error': 'Latitude, longitude, and boundary coordinates are required.'}, status=status.HTTP_400_BAD_REQUEST)
-        if len(boundary_coords) != 4:
-            return Response({'error': 'Exactly 4 sets of boundary coordinates are required.'}, status=status.HTTP_400_BAD_REQUEST)
         # Generate a unique filename
         unique_filename = f'map_{generate_short_uuid()}.html'
+        
         try:
             latitude = float(latitude)
             longitude = float(longitude)
-            boundary_coords = [(float(coord['lat']), float(coord['lng'])) for coord in boundary_coords]
         except ValueError:
             return Response({'error': 'Invalid coordinate values.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Set the GIF path
+        gif_path = settings.BASE_DIR / 'assets' / 'GIF.gif'
+
         # Run the external script to generate the map and get soil data
-        map_file_rel_path = main(unique_filename, latitude, longitude, boundary_coords)
+        map_file_rel_path = main(unique_filename, front_of_house, latitude, longitude, str(gif_path))
         if not map_file_rel_path:
             logger.error("Map Generation Task Failed")
             return Response({'error': 'Failed to generate map.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -245,11 +247,13 @@ class GenerateMapAndSoilDataView(APIView):
         # Save only the path in the database
         map_file = MapFile.objects.create(user=request.user, map_path=s3_key)
         map_file_serializer = MapFileSerializer(map_file)
+        
         try:
             os.remove(local_file_path)
             print(f"Successfully deleted local file: {local_file_path}")
         except OSError as e:
             print(f"Error deleting local file {local_file_path}: {e}")
+        
         base_dir = settings.BASE_DIR / 'assets'
         excel_path = base_dir / 'soil_type.xlsx'    
 
@@ -262,6 +266,7 @@ class GenerateMapAndSoilDataView(APIView):
             foundation_type=soil_data['Foundation Type']
         )
         soil_data_serializer = SoilDataSerializer(soil_data_instance)
+        
         # Return the serialized data
         response_data = {
             'map_file': map_file_serializer.data,

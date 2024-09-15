@@ -251,8 +251,10 @@ def Similarity_fuc_main(new_point, filename):
     
     # Ensure the weights match the number of features in the combined data
     num_features = data_cont_S_DF.shape[1]
-    weights = np.ones(num_features)
-    weights /= weights.sum()
+    # weights = np.ones(num_features)
+    weights = np.array([1, 100,20, 1, 1, 1, 1, 1, 1, 1],dtype = 'float')
+
+    # weights /= weights.sum()
 
     # Manually compute the weighted distances
     new_data_point = new_data_cont_S_DF.values.flatten()
@@ -1365,31 +1367,77 @@ def find_pairs_with_shortest_distance(unclosed_points, existing_lines):
 def area_extraction(dataframe):
     layers = dataframe['Layer'].unique()
     layer_dict = {}
+    
     for idx, layer in enumerate(layers):
+        if "Door" in layer or "Main_gate" in layer:
+            continue 
+        try:
+            coord_df = np.round(dataframe[(dataframe['Type'] == 'LINE') & (dataframe['Layer'] == f'{layer}')][['X_start','Y_start','X_end','Y_end']], 4)
+            pts = [[Point(rows['X_start'], rows['Y_start']), Point(rows['X_end'], rows['Y_end'])] for idx, rows in coord_df.iterrows()]
+            ln = [LineString([i[0], i[-1]]) for i in pts]
+            start = [(x, y) for x, y in zip(coord_df['X_start'], coord_df['Y_start'])]
+            end = [(x, y) for x, y in zip(coord_df['X_end'], coord_df['Y_end'])]
+            comb = start + end
+            coord_counts = {}
+            for coord in comb:
+                if coord in coord_counts:
+                    coord_counts[coord] += 1
+                else:
+                    coord_counts[coord] = 1
+            unclosed = [val for val, idx in coord_counts.items() if idx == 1]
+            upts = [Point(i[0], i[1]) for i in unclosed]
+            imgpts = find_pairs_with_shortest_distance(upts, ln)
+            imgln = [LineString([i[0], i[-1]]) for i in imgpts]
+            linestrings = imgln + ln
+            merged_lines = linemerge(linestrings)
+            
+            if isinstance(merged_lines, LineString):
+                if merged_lines.is_closed and len(merged_lines.coords) >= 30:
+                    polygon = Polygon(merged_lines)
+                else:
+                    polygon = MultiPoint(merged_lines.coords).convex_hull
+            elif isinstance(merged_lines, MultiLineString):
+                polygon = unary_union(merged_lines)
+                if not isinstance(polygon, Polygon):
+                    endpoints = []
+                    for line in merged_lines.geoms:
+                        endpoints.extend(line.coords)
+                    polygon = MultiPoint(endpoints).convex_hull
+            else:
+                print(f"Unexpected geometry type after merging for layer {layer}")
+                layer_dict[f'{layer}'] = 0
+                continue
+            
+            layer_dict[f'{layer}'] = polygon.area / 144
+        
+        except Exception as e:
+            print(f"An error occurred while processing layer {layer}: {str(e)}")
+            layer_dict[f'{layer}'] = 0  # Assign 0 or any other default value for the layer that caused an error
+    
+    return layer_dict
+
+
+def area_extraction_for_layer(dataframe, layer):
+    try:
         coord_df = np.round(dataframe[(dataframe['Type'] == 'LINE') & (dataframe['Layer'] == f'{layer}')][['X_start','Y_start','X_end','Y_end']], 4)
         pts = [[Point(rows['X_start'], rows['Y_start']), Point(rows['X_end'], rows['Y_end'])] for idx, rows in coord_df.iterrows()]
         ln = [LineString([i[0], i[-1]]) for i in pts]
         start = [(x, y) for x, y in zip(coord_df['X_start'], coord_df['Y_start'])]
         end = [(x, y) for x, y in zip(coord_df['X_end'], coord_df['Y_end'])]
         comb = start + end
-
         coord_counts = {}
         for coord in comb:
             if coord in coord_counts:
                 coord_counts[coord] += 1
             else:
                 coord_counts[coord] = 1
-
         unclosed = [val for val, idx in coord_counts.items() if idx == 1]
         upts = [Point(i[0], i[1]) for i in unclosed]
-
         imgpts = find_pairs_with_shortest_distance(upts, ln)
         imgln = [LineString([i[0], i[-1]]) for i in imgpts]
-
         linestrings = imgln + ln
-
         merged_lines = linemerge(linestrings)
-
+        
         if isinstance(merged_lines, LineString):
             if merged_lines.is_closed and len(merged_lines.coords) >= 30:
                 polygon = Polygon(merged_lines)
@@ -1403,55 +1451,14 @@ def area_extraction(dataframe):
                     endpoints.extend(line.coords)
                 polygon = MultiPoint(endpoints).convex_hull
         else:
-            raise TypeError("Unexpected geometry type after merging")
-
-
-        layer_dict[f'{layer}'] = polygon.area/144
+            # Handle unexpected geometry type
+            print(f"Unexpected geometry type after merging for layer {layer}")
+            return 0
         
-    return layer_dict
-
-
-def area_extraction_for_layer(dataframe, layer):
-    coord_df = np.round(dataframe[(dataframe['Type'] == 'LINE') & (dataframe['Layer'] == f'{layer}')][['X_start','Y_start','X_end','Y_end']], 4)
-    pts = [[Point(rows['X_start'], rows['Y_start']), Point(rows['X_end'], rows['Y_end'])] for idx, rows in coord_df.iterrows()]
-    ln = [LineString([i[0], i[-1]]) for i in pts]
-    start = [(x, y) for x, y in zip(coord_df['X_start'], coord_df['Y_start'])]
-    end = [(x, y) for x, y in zip(coord_df['X_end'], coord_df['Y_end'])]
-    comb = start + end
-
-    coord_counts = {}
-    for coord in comb:
-        if coord in coord_counts:
-            coord_counts[coord] += 1
-        else:
-            coord_counts[coord] = 1
-
-    unclosed = [val for val, idx in coord_counts.items() if idx == 1]
-    upts = [Point(i[0], i[1]) for i in unclosed]
-
-    imgpts = find_pairs_with_shortest_distance(upts, ln)
-    imgln = [LineString([i[0], i[-1]]) for i in imgpts]
-
-    linestrings = imgln + ln
-
-    merged_lines = linemerge(linestrings)
-    
-    if isinstance(merged_lines, LineString):
-        if merged_lines.is_closed and len(merged_lines.coords) >= 30:
-            polygon = Polygon(merged_lines)
-        else:
-            polygon = MultiPoint(merged_lines.coords).convex_hull
-    elif isinstance(merged_lines, MultiLineString):
-        polygon = unary_union(merged_lines)
-        if not isinstance(polygon, Polygon):
-            endpoints = []
-            for line in merged_lines.geoms:
-                endpoints.extend(line.coords)
-            polygon = MultiPoint(endpoints).convex_hull
-    else:
-        raise TypeError("Unexpected geometry type after merging")
-    
-    return (polygon.area)/144
+        return (polygon.area) / 144
+    except Exception as e:
+        print(f"An error occurred while processing layer {layer}: {str(e)}")
+        return 0
 
 
 
@@ -1486,7 +1493,7 @@ def latest_build_area(dataframe):
 
 def area_main(dataframe):
     main_dict = area_extraction(dataframe)
-    to_add = {'Carpet Area': latest_carpet_area(dataframe), 'Build up Area': latest_build_area(dataframe)}
+    to_add = {'Carpet Area': latest_carpet_area(dataframe), 'Build up Area': latest_carpet_area(dataframe) * 1.3}
     main_dict.update(to_add)
     main_dict = {key: round(value, 2) for key, value in main_dict.items()}
     keys_to_remove = ['Boundary', '0']
@@ -1628,16 +1635,7 @@ def plot_dataframe(df,inmage_name):
     print('Hello',png_filepath1)
     return png_filepath1
 
-
-# png_folder = os.path.join(os.path.dirname(image_name), 'png')
-#     if not os.path.exists(png_folder):
-#         os.makedirs(png_folder)
-        
-#     png_filepath = os.path.join(png_folder, image_name)
-#     fig.savefig(png_filepath, bbox_inches='tight')
-#     plt.close(fig)
     
-    #return png_filepath
 # #########################################################################
 
 
@@ -1675,56 +1673,222 @@ def stairecase_manage(df):
     # Display the final DataFrame
     return staircase_layer
 
+def create_iron_main_gate(width=3, height=7, thickness=2, color='black'):
+    fig = go.Figure()
+
+    # Gate frame
+    frame_thickness = 2
+    for x in [0, width/2, width]:
+        fig.add_trace(go.Mesh3d(
+            x=[x, x, x, x],
+            y=[0, thickness, thickness, 0],
+            z=[0, 0, height, height],
+            i=[0, 0], j=[1, 2], k=[2, 3],
+            color=color, opacity=1
+        ))
+    for z in [0, height]:
+        fig.add_trace(go.Mesh3d(
+            x=[0, width, width, 0],
+            y=[0, 0, thickness, thickness],
+            z=[z, z, z, z],
+            i=[0, 0], j=[1, 2], k=[2, 3],
+            color=color, opacity=1
+        ))
+
+    # Vertical bars
+    num_bars = 8  # 4 bars per half
+    bar_width = 0.5
+    for i in range(num_bars):
+        x = width * (i + 0.5) / num_bars
+        fig.add_trace(go.Mesh3d(
+            x=[x-bar_width/2, x+bar_width/2, x+bar_width/2, x-bar_width/2],
+            y=[thickness/2, thickness/2, thickness/2, thickness/2],
+            z=[frame_thickness, frame_thickness, height-frame_thickness, height-frame_thickness],
+            i=[0, 0], j=[1, 2], k=[2, 3],
+            color='#964B00', opacity=1
+        ))
+
+    # Decorative elements (circles at the top)
+    circle_radius = 10
+    num_circles = num_bars - 1
+    for i in range(num_circles):
+        x = width * (i + 1) / num_bars
+        z = height - frame_thickness - circle_radius
+        theta = np.linspace(0, 2*np.pi, 20)
+        fig.add_trace(go.Mesh3d(
+            x=x + circle_radius*np.cos(theta),
+            y=[thickness/2]*20,
+            z=z + circle_radius*np.sin(theta),
+            i=[0]*18, j=list(range(1, 19)), k=list(range(2, 20)) + [1],
+            color='gold', opacity=1
+        ))
+
+    # Center handles
+    handle_radius = 10
+    handle_height = height / 2
+    handle_depth = thickness + 0.2
+    for x in [width/2 - 0.1, width/2 + 0.1]:  # Two handles, slightly offset from center
+        fig.add_trace(go.Mesh3d(
+            x=[x]*20 + [x-handle_radius]*20,
+            y=[handle_depth*np.cos(t) for t in np.linspace(0, 2*np.pi, 20)] + 
+              [handle_depth*np.cos(t) for t in np.linspace(0, 2*np.pi, 20)],
+            z=[handle_height + handle_radius*np.sin(t) for t in np.linspace(0, 2*np.pi, 20)] + 
+              [handle_height + handle_radius*np.sin(t) for t in np.linspace(0, 2*np.pi, 20)],
+            i=[0, 0] + list(range(20, 39)), j=[1, 20] + list(range(21, 40)),
+            k=[20, 21] + list(range(22, 41)),
+            color='gold', opacity=1
+        ))
+
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='Width',
+            yaxis_title='Thickness',
+            zaxis_title='Height',
+            aspectmode='data'
+        ),
+        title='3D Double Iron Main Gate',
+        margin=dict(l=0, r=0, b=0, t=40)
+    )
+    return fig
 
 
 
-
-
-def add_plane(fig, x1, y1, x2, y2, height_low, height_high, color,layer_name):
-    # Create the vertical plane
-    fig.add_trace(go.Mesh3d(
-        x=[x1, x2, x2, x1],
-        y=[y1, y2, y2, y1],
-        z=[height_low, height_low, height_high, height_high],
-        i=[0, 0],
-        j=[1, 2],
-        k=[2, 3],
-        color=color,
-        hoverinfo='text',
-        hovertext=f'Layer: {layer_name}',
-        opacity=1
+def create_wooden_door(width=3, height=7, thickness=0.2, color='saddlebrown'):
+    door_traces = []
+    # Door frame
+    frame_thickness = 0.3
+    for x in [0, width]:
+        door_traces.append(go.Mesh3d(
+            x=[x, x, x, x],
+            y=[0, thickness, thickness, 0],
+            z=[0, 0, height, height],
+            i=[0, 0], j=[1, 2], k=[2, 3],
+            color=color, opacity=1
+        ))
+    for z in [0, height]:
+        door_traces.append(go.Mesh3d(
+            x=[0, width, width, 0],
+            y=[0, 0, thickness, thickness],
+            z=[z, z, z, z],
+            i=[0, 0], j=[1, 2], k=[2, 3],
+            color=color, opacity=1
+        ))
+    # Door panel
+    door_traces.append(go.Mesh3d(
+        x=[frame_thickness, width-frame_thickness, width-frame_thickness, frame_thickness],
+        y=[thickness/2, thickness/2, thickness/2, thickness/2],
+        z=[frame_thickness, frame_thickness, height-frame_thickness, height-frame_thickness],
+        i=[0, 0], j=[1, 2], k=[2, 3],
+        color=color, opacity=1
     ))
-
-    # Add the edges of the plane for better visibility
-    fig.add_trace(go.Scatter3d(
-        x=[x1, x2, x2, x1, x1],
-        y=[y1, y2, y2, y1, y1],
-        z=[height_low, height_low, height_high, height_high, height_low],
-        mode='lines',
-        line=dict(color=color, width=2),
-        hoverinfo='text',
-        hovertext=f'Layer: {layer_name}',
-        showlegend=False
+    # Door handle
+    handle_radius = 0.1
+    handle_height = height / 2
+    handle_depth = thickness + 0.2
+    door_traces.append(go.Mesh3d(
+        x=[width-0.5]*20 + [width-0.5-handle_radius]*20,
+        y=[handle_depth*np.cos(t) for t in np.linspace(0, 2*np.pi, 20)] + 
+          [handle_depth*np.cos(t) for t in np.linspace(0, 2*np.pi, 20)],
+        z=[handle_height + handle_radius*np.sin(t) for t in np.linspace(0, 2*np.pi, 20)] + 
+          [handle_height + handle_radius*np.sin(t) for t in np.linspace(0, 2*np.pi, 20)],
+        i=[0, 0] + list(range(20, 39)), j=[1, 20] + list(range(21, 40)),
+        k=[20, 21] + list(range(22, 41)),
+        color='gold', opacity=1
     ))
+    # Wood grain lines
+    num_lines = 10
+    for i in range(num_lines):
+        z = height * (i + 1) / (num_lines + 1)
+        door_traces.append(go.Scatter3d(
+            x=[frame_thickness, width-frame_thickness],
+            y=[thickness/2, thickness/2],
+            z=[z, z],
+            mode='lines',
+            line=dict(color='sienna', width=2),
+            showlegend=False
+        ))
+    return door_traces
 
-    # Add vertical lines at the corners
-    for x, y in [(x1, y1), (x2, y2)]:
+def add_plane(fig, x1, y1, x2, y2, height_low, height_high, color, layer_name):
+    if layer_name in ['Garden', 'Parking', 'Entrance_Staircase', 'Garden_Staircase']:
+        # Add only the outline of the area at the base
         fig.add_trace(go.Scatter3d(
-            x=[x, x],
-            y=[y, y],
-            z=[height_low, height_high],
+            x=[x1, x2, x2, x1, x1],
+            y=[y1, y1, y2, y2, y1],
+            z=[height_low, height_low, height_low, height_low, height_low],
             mode='lines',
             line=dict(color=color, width=2),
             hoverinfo='text',
             hovertext=f'Layer: {layer_name}',
             showlegend=False
         ))
-
-
+    elif layer_name == 'Balcony' or layer_name == 'Main_gate':
+        # For balcony, show lines including height and 5 equally spaced horizontal lines
+        # Calculate heights for 5 equally spaced lines
+        heights = [height_low + i * (height_high - height_low) / 6 for i in range(7)]
         
-
+        for height in heights:
+            fig.add_trace(go.Scatter3d(
+                x=[x1, x2, x2, x1, x1],
+                y=[y1, y1, y2, y2, y1],
+                z=[height, height, height, height, height],
+                mode='lines',
+                line=dict(color=color, width=2),
+                hoverinfo='text',
+                hovertext=f'Layer: {layer_name}',
+                showlegend=False
+            ))
         
+        # Add vertical lines at the corners
+        for x, y in [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]:
+            fig.add_trace(go.Scatter3d(
+                x=[x, x],
+                y=[y, y],
+                z=[height_low, height_high],
+                mode='lines',
+                line=dict(color=color, width=2),
+                hoverinfo='text',
+                hovertext=f'Layer: {layer_name}',
+                showlegend=False
+            ))
 
+    else:
+        # Create the vertical plane for other layers
+        fig.add_trace(go.Mesh3d(
+            x=[x1, x2, x2, x1],
+            y=[y1, y2, y2, y1],
+            z=[height_low, height_low, height_high, height_high],
+            i=[0, 0],
+            j=[1, 2],
+            k=[2, 3],
+            color=color,
+            hoverinfo='text',
+            hovertext=f'Layer: {layer_name}',
+            opacity=1
+        ))
+        # Add the edges of the plane for better visibility
+        fig.add_trace(go.Scatter3d(
+            x=[x1, x2, x2, x1, x1],
+            y=[y1, y2, y2, y1, y1],
+            z=[height_low, height_low, height_high, height_high, height_low],
+            mode='lines',
+            line=dict(color=color, width=2),
+            hoverinfo='text',
+            hovertext=f'Layer: {layer_name}',
+            showlegend=False
+        ))
+        # Add vertical lines at the corners
+        for x, y in [(x1, y1), (x2, y2)]:
+            fig.add_trace(go.Scatter3d(
+                x=[x, x],
+                y=[y, y],
+                z=[height_low, height_high],
+                mode='lines',
+                line=dict(color=color, width=2),
+                hoverinfo='text',
+                hovertext=f'Layer: {layer_name}',
+                showlegend=False
+            ))
 
 def add_text(fig, x, y, z, text, color):
     fig.add_trace(go.Scatter3d(
@@ -1735,67 +1899,235 @@ def add_text(fig, x, y, z, text, color):
         showlegend=False
     ))
 
-def plot_2d_boundary(fig, floor, gap, z_value, i):
-    boundary_data = floor[floor['Layer'] == 'Boundary']
-    
-    if boundary_data.empty:
-        print(f"No boundary data found for floor {i}")
-        return
+def plot_2d_boundary(fig, floor, gap, z_value, i,no_of_floors):
+    if i == 0:
+        boundary_data = floor[floor['Layer'] == 'Boundary']
 
-    # Calculate the min and max coordinates for the boundary layer
-    min_x = boundary_data['X_start'].min()
-    max_x = boundary_data['X_start'].max()
-    min_y = boundary_data['Y_start'].min()
-    max_y = boundary_data['Y_start'].max()
-    
-    # Use the z_value and i to set the correct height for this floor's boundary
-    z = z_value * i
+        if boundary_data.empty:
+            print(f"No boundary data found for floor {i}")
+            return
 
-    # Plot boundary lines
-    for _, row in boundary_data.iterrows():
-        fig.add_trace(go.Scatter3d(
-            x=[row['X_start'], row['X_end']],
-            y=[row['Y_start'], row['Y_end']],
-            z=[z, z],  # Use the calculated z value for both start and end
-            mode='lines',
-            line=dict(color='#292323', width=2),
-            showlegend=False
+        # Calculate the min and max coordinates for the boundary layer
+        min_x = boundary_data['X_start'].min()
+        max_x = boundary_data['X_start'].max()
+        min_y = boundary_data['Y_start'].min()
+        max_y = boundary_data['Y_start'].max()
+
+        # Use the z_value and i to set the correct height for this floor's boundary
+        z = z_value * i
+
+        # Plot boundary lines
+        for _, row in boundary_data.iterrows():
+            fig.add_trace(go.Scatter3d(
+                x=[row['X_start'], row['X_end']],
+                y=[row['Y_start'], row['Y_end']],
+                z=[z, z],  # Use the calculated z value for both start and end
+                mode='lines',
+                line=dict(color='#292323', width=2),
+                showlegend=False
+            ))
+
+        # Optionally, you can add a floor plane
+        fig.add_trace(go.Mesh3d(
+            x=[min_x-100, max_x+100, max_x+100, min_x-100],
+            y=[min_y-100, min_y-100, max_y+100, max_y+100],
+            z=[z, z, z, z],
+            i=[0, 0],
+            j=[1, 2],
+            k=[2, 3],
+            color='#41980a',
+            opacity=0.4
         ))
+        for _, row in boundary_data.iterrows():
+            fig.add_trace(go.Scatter3d(
+                x=[row['X_start'], row['X_end']],
+                y=[row['Y_start'], row['Y_end']],
+                z=[z, z],  # Use the calculated z value for both start and end
+                mode='lines',
+                line=dict(color='#292323', width=2),
+                showlegend=False
+            ))
 
-    # Optionally, you can add a floor plane
-    fig.add_trace(go.Mesh3d(
-        x=[min_x, max_x, max_x, min_x],
-        y=[min_y, min_y, max_y, max_y],
-        z=[z, z, z, z],
-        i=[0, 0],
-        j=[1, 2],
-        k=[2, 3],
-        color='Black',
-        opacity=0.4
-    ))
+        # Optionally, you can add a floor plane
+        fig.add_trace(go.Mesh3d(
+            x=[min_x, max_x, max_x, min_x],
+            y=[min_y, min_y, max_y, max_y],
+            z=[z, z, z, z],
+            i=[0, 0],
+            j=[1, 2],
+            k=[2, 3],
+            color='Black',
+            opacity=0.6
+        ))
+    else:
+        boundary_data = floor[floor['Layer'] != 'Boundary']
+        if boundary_data.empty:
+            print(f"No boundary data found for floor {i}")
+            return
+        # Calculate the min and max coordinates for the boundary layer
+        min_x = boundary_data['X_start'].min()
+        max_x = boundary_data['X_start'].max()
+        min_y = boundary_data['Y_start'].min()
+        max_y = boundary_data['Y_start'].max()
+        # Use the z_value and i to set the correct height for this floor's boundary
+        z = z_value * i
+        z_up = z + 6  # Set the height of the cuboid to 8 units
+        z_up2 = z+102
+        z_up3 = z+108
+        # Plot boundary lines
+        for _, row in boundary_data.iterrows():
+            fig.add_trace(go.Scatter3d(
+                x=[row['X_start'], row['X_end']],
+                y=[row['Y_start'], row['Y_end']],
+                z=[z, z],  # Use the calculated z value for both start and end
+                mode='lines',
+                line=dict(color='#808080', width=2),
+                showlegend=False
+            ))
 
-def final_3d(df,number):
+        # Create a 3D cuboid instead of a 2D plane
+        vertices = np.array([
+            [min_x, min_y, z],
+            [max_x, min_y, z],
+            [max_x, max_y, z],
+            [min_x, max_y, z],
+            [min_x, min_y, z_up],
+            [max_x, min_y, z_up],
+            [max_x, max_y, z_up],
+            [min_x, max_y, z_up]
+        ])
+
+        I = [0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7]
+        J = [1, 2, 6, 5, 6, 5, 2, 3, 7, 6, 7, 6, 3, 0, 4, 7, 4, 7, 0, 1, 5, 4, 5, 4]
+        K = [0, 1, 5, 1, 4, 0, 1, 2, 6, 2, 5, 1, 2, 3, 7, 3, 6, 2, 3, 0, 4, 0, 7, 3]
+
+        fig.add_trace(go.Mesh3d(
+            x=vertices[:, 0],
+            y=vertices[:, 1],
+            z=vertices[:, 2],
+            i=I, j=J, k=K,
+            color='#808080',
+            opacity=1))
+        
+        for _, row in boundary_data.iterrows():
+            fig.add_trace(go.Scatter3d(
+                x=[row['X_start'], row['X_end']],
+                y=[row['Y_start'], row['Y_end']],
+                z=[z, z],  # Use the calculated z value for both start and end
+                mode='lines',
+                line=dict(color='#808080', width=2),
+                showlegend=False
+            ))
+
+        # Create a 3D cuboid instead of a 2D plane
+        vertices = np.array([
+            [min_x, min_y, z_up2],
+            [max_x, min_y, z_up2],
+            [max_x, max_y,z_up2],
+            [min_x, max_y, z_up2],
+            [min_x, min_y, z_up3],
+            [max_x, min_y, z_up3],
+            [max_x, max_y, z_up3],
+            [min_x, max_y, z_up3]
+        ])
+
+        I = [0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7]
+        J = [1, 2, 6, 5, 6, 5, 2, 3, 7, 6, 7, 6, 3, 0, 4, 7, 4, 7, 0, 1, 5, 4, 5, 4]
+        K = [0, 1, 5, 1, 4, 0, 1, 2, 6, 2, 5, 1, 2, 3, 7, 3, 6, 2, 3, 0, 4, 0, 7, 3]
+
+        fig.add_trace(go.Mesh3d(
+            x=vertices[:, 0],
+            y=vertices[:, 1],
+            z=vertices[:, 2],
+            i=I, j=J, k=K,
+            color='#808080',
+            opacity=1))
+        
+    if no_of_floors == 1:
+        print('no_of_floors',no_of_floors)
+        boundary_data = floor[floor['Layer'] == 'Boundary']
+        if boundary_data.empty:
+            print(f"No boundary data found for floor {i}")
+            return
+        # Calculate the min and max coordinates for the boundary layer
+        min_x = boundary_data['X_start'].min()
+        max_x = boundary_data['X_start'].max()
+        min_y = boundary_data['Y_start'].min()
+        max_y = boundary_data['Y_start'].max()
+        # Use the z_value and i to set the correct height for this floor's boundary
+        z = z_value * i  # Set the height of the cuboid to 8 units
+        z_up2 = z+108
+        z_up3 = z_up2+6
+        # Plot boundary lines
+        for _, row in boundary_data.iterrows():
+            fig.add_trace(go.Scatter3d(
+                x=[row['X_start'], row['X_end']],
+                y=[row['Y_start'], row['Y_end']],
+                z=[z, z],  # Use the calculated z value for both start and end
+                mode='lines',
+                line=dict(color='#808080', width=2),
+                showlegend=False
+            ))
+
+        # Create a 3D cuboid instead of a 2D plane
+        vertices = np.array([
+            [min_x, min_y, z_up2],
+            [max_x, min_y, z_up2],
+            [max_x, max_y, z_up2],
+            [min_x, max_y, z_up2],
+            [min_x, min_y, z_up3],
+            [max_x, min_y, z_up3],
+            [max_x, max_y, z_up3],
+            [min_x, max_y, z_up3]
+        ])
+
+        I = [0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7]
+        J = [1, 2, 6, 5, 6, 5, 2, 3, 7, 6, 7, 6, 3, 0, 4, 7, 4, 7, 0, 1, 5, 4, 5, 4]
+        K = [0, 1, 5, 1, 4, 0, 1, 2, 6, 2, 5, 1, 2, 3, 7, 3, 6, 2, 3, 0, 4, 0, 7, 3]
+
+        fig.add_trace(go.Mesh3d(
+            x=vertices[:, 0],
+            y=vertices[:, 1],
+            z=vertices[:, 2],
+            i=I, j=J, k=K,
+            color='#808080',
+            opacity=1))
+
+
+
+def final_3d(df, number):
     layer_colors = {
         'Garden': '#90EE90', 
-        'WashArea': '#ADD8E6',
-        'WashArea_Staircase': '#ADD8E6', 
+        'WashArea': '#C5C6C7',
+        'WashArea_Staircase': '#C5C6C7', 
         'Parking': '#964B00', 
-        'DiningRoom': '#e8e11c', 
-        'LivingRoom1': '#9e10e0', 
-        'BathRoom1': '#108de0', 
-        'BedRoom1': '#9e10e0', 
-        'Kitchen': '#e8e11c',
-        'PoojaRoom': '#e8e11c', 
-        'BedRoom3': '#9e10e0', 
-        'BedRoom2': '#9e10e0', 
+        'DiningRoom': '#C5C6C7', 
+        'LivingRoom1': '#C5C6C7', 
+        'BathRoom1': '#C5C6C7', 
+        'BedRoom1': '#C5C6C7', 
+        'Kitchen': '#C5C6C7',
+        'PoojaRoom': '#C5C6C7', 
+        'BedRoom3': '#C5C6C7', 
+        'BedRoom2': '#C5C6C7', 
         'Balcony': '#964B00', 
-        'BathRoom2a': '#108de0',
-        'BedRoom2a': '#9e10e0', 
-        'BathRoom2b': '#108de0',
-        'BathRoom2': '#108de0', 
-        'LivingRoom2': '#9e10e0', 
-        '0': '#964B00',
-        'Terrace': '#964B00'
+        'BathRoom2a': '#C5C6C7',
+        'BedRoom2a': '#C5C6C7', 
+        'BathRoom2b': '#C5C6C7',
+        'BathRoom2': '#C5C6C7', 
+        'LivingRoom2': '#C5C6C7', 
+        '0': 'Red',
+        'Terrace': '#C5C6C7',
+        'Door4fPanel': '#964B00', 
+        'Door3fPanel': '#964B00'
+        , 'Door2.6fPanel': '#964B00',
+        'Staircase_wall2':'#C5C6C7',
+        'Staircase_outertwall':'#C5C6C7',
+        'Main_gate': '#964B00',
+        'Pantry':'#C5C6C7',
+        'DrawingRoom':'#C5C6C7',
+        'Office':'#C5C6C7',
+        'StoreRoom':'#C5C6C7',
+        'BedRoom3a': '#C5C6C7'
     }
 
     df = floor_main(df)
@@ -1805,20 +2137,22 @@ def final_3d(df,number):
 
     fig = make_subplots(rows=1, cols=1, specs=[[{'type': 'scene'}]])
     for idx, i in enumerate(unique_floors):
+        no_of_floors = len(unique_floors)
+        print('no_of_floors2',no_of_floors)
         floor = df.loc[i]
         floor = floor.reset_index(drop=True)
+        floor['Length2'] = ((floor['X_end'] - floor['X_start'])**2 + (floor['Y_end'] - floor['Y_start'])**2)**0.5
+
+
         gap = floor['X_start'].min()
         Gaps.append(gap)
-        z_value = 150
+        z_value = 108
         floor[['X_start', 'X_end', 'X_insert']] = floor[['X_start', 'X_end', 'X_insert']] - gap
         floor[['Z_start', 'Z_end', 'Z_insert']] = floor[['Z_start', 'Z_end', 'Z_insert']] + (z_value * i)
-
-        # Sort the floor DataFrame by Y_start
-
+        floor = floor[floor['Layer'] != 'Staircase_innerwall']
         if (floor['Layer'] == 'Staircase').any():
             staircase_layer = floor[floor['Layer'] == 'Staircase']
             floor = floor[floor['Layer'] != 'Staircase']
-
             stairs_line = staircase_layer[staircase_layer['Type'] == 'LINE']
             stairs_MTEXT = staircase_layer[staircase_layer['Type'] == 'MTEXT']
             stairs_line['Length'] = ((stairs_line['X_end'] - stairs_line['X_start'])**2 + (stairs_line['Y_end'] - stairs_line['Y_start'])**2)**0.5
@@ -1826,16 +2160,24 @@ def final_3d(df,number):
             # Group lines by their length and filter groups with more than one line
             common_length_lines = stairs_line.groupby('Length').filter(lambda x: len(x) > 1)
             common_length_lines['Length'] = common_length_lines['Length'].round(2)
-
             length_counts = common_length_lines['Length'].value_counts()
+
             if not length_counts.empty:
                 max_count_length = length_counts.idxmax()
+                # Filter the DataFrame to keep only lines with the most common length
+                max_length_lines = common_length_lines[common_length_lines['Length'] == max_count_length]
+
+                # Save the rest of the lines
+                rest_lines = stairs_line[~stairs_line.index.isin(max_length_lines.index)]
+                rest_lines['Layer'] = rest_lines['Layer'].replace('Staircase','Staircase_wall2')
             else:
                 max_count_length = None 
+                max_length_lines = pd.DataFrame()  # Empty DataFrame
+                rest_lines = stairs_line  # All lines are in rest_lines if no common length
 
-            # Filter the DataFrame to keep only lines with the most common length
-            max_length_lines = common_length_lines[common_length_lines['Length'] == max_count_length]
             print('max_length_lines', max_length_lines)
+            print('*************************************************')
+            print('rest_lines', rest_lines)
 
             staires = pd.concat([max_length_lines, stairs_MTEXT])
             print('staires', staires)
@@ -1928,9 +2270,10 @@ def final_3d(df,number):
             # Convert the connecting lines list to a DataFrame and add to staircase_layer2
             connecting_lines_df = pd.DataFrame(connecting_lines)
             print('connecting_lines_df:',connecting_lines_df)
-            staircase_layer2 = pd.concat([staircase_layer2, duplicated_lines, connecting_lines_df])
+            staircase_layer2 = pd.concat([staircase_layer2, duplicated_lines, connecting_lines_df,rest_lines])
+            print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
             print('staircase_layer2:',staircase_layer2)
-            
+        
             # Add the updated staircase layer back to the floor DataFrame
             floor = pd.concat([floor, staircase_layer2])
             print('Floor_stairs:',floor[floor['Layer']=='Connected_staire_lines'])
@@ -1938,24 +2281,92 @@ def final_3d(df,number):
         if i == df.index.unique()[-1]:
             floor = floor[floor["Layer"] != "Staircase"]
             floor = floor[floor["Layer"] != "Connected_staire_lines"]
-#     for idx, i in enumerate(unique_floors):
-#         floor = df.loc[i].reset_index(drop=True)
+
         z_base = i * z_value  # Base height for this floor
-        z_ceiling = z_base + 18  # Ceiling height for this floor
-        plot_2d_boundary(fig, floor, gap, z_value, i)
+        z_ceiling = z_base + 108  # Ceiling height for this floor
+        plot_2d_boundary(fig, floor, gap, z_value, i,no_of_floors)
+        if i > 0:
+            floor = floor[floor['Layer'] != 'Boundary']
         for layer in floor['Layer'].unique():
             layer_data = floor[floor['Layer'] == layer]
             color = layer_colors.get(layer, '#808080')
-            
-            for _, row in layer_data[layer_data['Type'] == 'LINE'].iterrows():
-                if layer == 'Staircase' or layer == 'Connected_staire_lines':
-                    # For staircase, use the actual Z values from the data
-                    add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
-                              row['Z_start'], row['Z_end'], color,layer)
-                else:
-                    # For other layers, use the floor's base and ceiling
-                    add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
-                              z_base, z_ceiling, color,layer)
+            layer = str(layer)
+            if 'Door' in layer or layer == 'Main_gate':
+                for _, row in layer_data[layer_data['Type'] == 'LINE'].iterrows():
+                    # Calculate gate/door dimensions and position
+                    gate_width = np.sqrt((row['X_end'] - row['X_start'])**2 + (row['Y_end'] - row['Y_start'])**2)
+                    gate_height = 60 if layer == 'Main_gate' else 60  # You can adjust the main gate height if needed
+                    gate_thickness = 1  # Default thickness
+                    total_height = 108  # Total height of the wall/plane
+
+                    # Calculate gate/door position and rotation
+                    gate_x = (row['X_start'] + row['X_end']) / 2
+                    gate_y = (row['Y_start'] + row['Y_end']) / 2
+                    gate_z = z_base
+
+                    # Calculate rotation angle
+                    angle = np.arctan2(row['Y_end'] - row['Y_start'], row['X_end'] - row['X_start'])
+
+                    # Create and add the gate/door
+                    if layer == 'Main_gate':
+                        gate_fig = create_iron_main_gate(width=gate_width, height=gate_height, thickness=gate_thickness)
+                        gate_traces = gate_fig.data  # Extract traces from the Figure object
+                    else:
+                        gate_traces = create_wooden_door(width=gate_width, height=gate_height, thickness=gate_thickness)
+
+                    # Create a plane above the door (but not for the main gate)
+                    if layer != 'Main_gate':
+                        plane_height = total_height - gate_height
+                        plane_trace = go.Mesh3d(
+                            x=[0, gate_width, gate_width, 0, 0, gate_width, gate_width, 0],
+                            y=[0, 0, 0, 0, gate_thickness, gate_thickness, gate_thickness, gate_thickness],
+                            z=[gate_height, gate_height, gate_height + plane_height, gate_height + plane_height,
+                               gate_height, gate_height, gate_height + plane_height, gate_height + plane_height],
+                            i=[0, 0, 0, 1],
+                            j=[1, 2, 3, 2],
+                            k=[2, 3, 1, 3],
+                            color='#C5C6C7',
+                            opacity=1
+                        )
+                        gate_traces = list(gate_traces) + [plane_trace]
+
+                    # Rotate and translate gate/door (and plane if it exists)
+                    for trace in gate_traces:
+                        # Convert trace coordinates to numpy arrays
+                        x = np.array(trace.x)
+                        y = np.array(trace.y)
+                        z = np.array(trace.z)
+
+                        # Rotate
+                        rotated_x = np.cos(angle) * (x - gate_width/2) - np.sin(angle) * y
+                        rotated_y = np.sin(angle) * (x - gate_width/2) + np.cos(angle) * y
+
+                        # Translate
+                        trace.x = rotated_x + gate_x
+                        trace.y = rotated_y + gate_y
+                        trace.z = z + gate_z
+
+                        fig.add_trace(trace)
+
+            else:
+                for _, row in layer_data[layer_data['Type'] == 'LINE'].iterrows():
+                    if layer == 'Staircase' or layer == 'Connected_staire_lines':
+                        # For staircase, use the actual Z values from the data
+                        add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
+                                  row['Z_start'], row['Z_end'], 'Black', layer)
+                    elif layer == 'Staircase_wall2':
+                        add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
+                                  z_base, z_base + 10, color, layer)
+                    elif layer == 'Boundary' or layer == 'Main_gate':
+                        add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
+                                  z_base, z_base + 60, color, layer)
+                    elif layer == 'Balcony':
+                        add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
+                                  z_base, z_base + 36, color, layer)
+                    else:
+                        # For other layers, use the floor's base and ceiling
+                        add_plane(fig, row['X_start'], row['Y_start'], row['X_end'], row['Y_end'], 
+                                  z_base, z_ceiling, '#C5C6C7', layer)
 
             # Add text labels (keep this part the same)
             for _, row in layer_data[layer_data['Type'] == 'MTEXT'].iterrows():
@@ -1971,27 +2382,23 @@ def final_3d(df,number):
                     showlegend=False
                 ))
 
-
     # Update layout for better visualization
     fig.update_layout(
-    scene=dict(
-        xaxis_visible=False,
-        yaxis_visible=False,
-        zaxis=dict(
-            range=[0, 220],
-            title=dict(
-                text='Height',
-                font=dict(size=14, color='white')  # Change title color to white
-            ),
-            tickfont=dict(color='white'),  # Change tick label color to white
-            linecolor='white',  # Change axis line color to white
-            gridcolor='white'  # Change grid color to white
-        )
-    ),
+        scene=dict(
+            xaxis_visible=False,
+            yaxis_visible=False,
+            zaxis=dict(
+                visible=True,
+                range=[0, 250],
+                title='Height(inch)',
+                titlefont=dict(size=12),
+                dtick=108
+            )
+        ),
         title=f'3D Plot for All Floors',
-        height=800,
-        width=1000
+        autosize=True
     )
+
 
     # Show the plot
     # fig.show()
@@ -2006,7 +2413,7 @@ def final_3d(df,number):
 
 
 
-#gif part finish
+#3D
 
 # ########################################################
 

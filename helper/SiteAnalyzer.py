@@ -10,6 +10,12 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from PIL import Image
 from django.conf import settings
+from pathlib import Path
+from PIL import Image, ImageSequence
+from geopy.distance import geodesic
+from helper.uuidGenerator import generate_short_uuid
+import math
+from folium.raster_layers import ImageOverlay
 from dotenv import load_dotenv
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +41,67 @@ def get_user_input():
         except ValueError:
             print("Invalid input. Please enter numerical values for latitude and longitude.")
 
+def calculate_bearing(pointA, pointB):
+    """
+    Calculate the bearing between two points.
+    """
+    lat1 = math.radians(pointA[0])
+    lat2 = math.radians(pointB[0])
+    diffLong = math.radians(pointB[1] - pointA[1])
+
+    x = math.sin(diffLong) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1) * math.cos(lat2) * math.cos(diffLong))
+
+    initial_bearing = math.atan2(x, y)
+    initial_bearing = math.degrees(initial_bearing)
+    compass_bearing = (initial_bearing + 360) % 360
+
+    return compass_bearing
+
+
+def rotate_gif(input_path, output_path, rotation_angle):
+    """
+    Rotate the GIF by the specified angle and save it as a new file.
+    """
+    try:
+        with Image.open(input_path) as img:
+            frames = [frame.rotate(rotation_angle, expand=True) for frame in ImageSequence.Iterator(img)]
+            frames[0].save(
+                output_path, save_all=True, append_images=frames[1:], loop=img.info.get('loop', 0),
+                duration=img.info.get('duration', 100), disposal=img.info.get('disposal', 2)
+            )
+    except Exception as e:
+        logging.error(f"Error rotating GIF: {e}")
+
+
+def create_map_with_gif_overlay(latitude, longitude, gif_path, zoom=20, min_zoom=16):
+    """
+    Create a Folium map and overlay a GIF at specified coordinates.
+    """
+    # Create the base map
+    folium_map = folium.Map(location=[latitude, longitude], zoom_start=zoom, min_zoom=min_zoom, max_zoom=22)
+
+    # Define the bounds where the GIF will be overlaid
+    lat_offset = 0.0005  # Adjust these offsets based on the desired size and positioning
+    lon_offset = 0.0005
+    south = latitude - lat_offset
+    north = latitude + lat_offset
+    west = longitude - lon_offset
+    east = longitude + lon_offset
+
+    # Create the ImageOverlay using the rotated GIF path
+    image_overlay = ImageOverlay(
+        image=gif_path,
+        bounds=[[south, west], [north, east]],
+        interactive=True,
+        cross_origin=False,
+        zindex=1
+    )
+
+    # Add overlay to the map
+    image_overlay.add_to(folium_map)
+
+    return folium_map
 def create_map(latitude, longitude, zoom=22, min_zoom=16):
     folium_map = folium.Map(
         location=[latitude, longitude],
@@ -65,16 +132,6 @@ def add_marker(map_obj, latitude, longitude, color, popup, icon_path=None,place_
 def find_nearby_places(map_obj, latitude, longitude, place_types, radius):
     # Add marker for user's location with home icon
     add_marker(map_obj, latitude, longitude, 'red', 'Your Location', icon_path=str(homeIcon))
-    
-    # Add a translucent light blue circle around the user's location
-    folium.Circle(
-        location=(latitude, longitude),
-        radius=200,
-        color='blue',
-        fill=True,
-        fill_color='blue',
-        fill_opacity=0.1  # Adjust the opacity to make the circle translucent
-    ).add_to(map_obj)
     
     colors = {
         "park": "green",
@@ -215,47 +272,72 @@ def overlay_image_on_map(map_obj, latitude, longitude, image_path, size_factor=0
     add_zoom_handler(map_obj, latitude, longitude, size_factor)
 
     return map_obj
+def determine_rotation(front_of_house):
+    """
+    Determine rotation angle based on the front of the house.
+    """
+    direction_map = {
+        'n': 0, 'nne': 22.5, 'ne': 45, 'ene': 67.5,
+        'e': 90, 'ese': 112.5, 'se': 135, 'sse': 157.5,
+        's': 180, 'ssw': 202.5, 'sw': 225, 'wsw': 247.5,
+        'w': 270, 'wnw': 292.5, 'nw': 315, 'nnw': 337.5
+    }
 
-def add_boundary(map_obj, boundary_coords, fill_color, fill_opacity):
+    front_of_house = front_of_house.lower()
+    if front_of_house in direction_map:
+        return direction_map[front_of_house]
+    else:
+        raise ValueError(f"Unknown direction '{front_of_house}'")
+    
+def add_boundary(map_obj, latitude, longitude, offset=0.0001, fill_color='red', fill_opacity=0.02):
+    """
+    Add a boundary around the specified point with a defined offset.
+    """
+    boundary_coords = [
+        [latitude + offset, longitude - offset],  # Top-left
+        [latitude + offset, longitude + offset],  # Top-right
+        [latitude - offset, longitude + offset],  # Bottom-right
+        [latitude - offset, longitude - offset]   # Bottom-left
+    ]
+
     folium.Polygon(
         locations=boundary_coords,
         color='red',
-        weight=2,
-        opacity=1.5,
+        weight=0.5,
         fill=True,
         fill_color=fill_color,
-        fill_opacity=fill_opacity
+        fill_opacity=fill_opacity,
+        opacity=0.8
     ).add_to(map_obj)
 
-def main(output_file, latitude, longitude, boundary_coords):
-    image_path = str(img_path)
-    place_types = ["park", "shopping_mall", "bank", "hotel", "school"]  
-    search_radius = 2000  
-    
-    logging.info("Wind direction: South West to North East\nSun direction: East to West")
-    
-    folium_map = create_map(latitude, longitude, zoom=20)  
-    folium_map = find_nearby_places(folium_map, latitude, longitude, place_types, search_radius)
-    folium_map = overlay_image_on_map(folium_map, latitude, longitude, image_path, size_factor=0.0005)
-    
-    if folium_map is None:
-        logging.error("Failed to create map with image overlay. Exiting.")
-        return None
-    
-    # Add the boundary around the house
-    add_boundary(folium_map, boundary_coords, fill_color='red', fill_opacity=0.4)
-    
-    # Ensure the maps directory exists within media folder
+def main(output_file, front_of_house, latitude, longitude, gif_path):
+    # Determine rotation based on the front of the house
+    rotation_needed = determine_rotation(front_of_house)
+    logging.info(f"Rotation needed: {rotation_needed} degrees")
+
+    # Rotate the GIF and save it as a temporary file
+    shortID=generate_short_uuid()
+    rotated_gif_path = str(settings.BASE_DIR/'Temp'/'mapgifCache'/f'rotated_direction_{shortID}.gif')
+    rotate_gif(gif_path, rotated_gif_path, rotation_needed)
+
+    # Create the map with the rotated GIF overlay
+    folium_map = create_map_with_gif_overlay(latitude, longitude, rotated_gif_path)
+
+    # Add a boundary around the house
+    add_boundary(folium_map, latitude, longitude, offset=0.001, fill_color='red', fill_opacity=0.2)
+
+    # Find nearby places
+    place_types = ["park", "shopping_mall", "bank", "hotel", "school"]
+    find_nearby_places(folium_map, latitude, longitude, place_types, radius=2000)
+
     media_maps_dir = os.path.join(settings.MEDIA_ROOT, 'maps')
-    if not os.path.exists(media_maps_dir):
-        os.makedirs(media_maps_dir)
     
     # Save the map file within media/maps directory
     map_file_path = os.path.join(media_maps_dir, output_file)
     folium_map.save(map_file_path)
     
     logging.info(f"Map saved as '{map_file_path}'")
-    
+    os.remove(rotated_gif_path)
     # Return the relative path to be stored in the database
     return os.path.relpath(map_file_path, settings.MEDIA_ROOT)
 

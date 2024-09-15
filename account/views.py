@@ -36,7 +36,7 @@ def get_tokens_for_user(user):
 
 def send_brevo_email(to_email, to_name, subject, html_content):
     configuration = Configuration()
-    configuration.api_key['api-key'] = settings.EMAIL_XAPI
+    configuration.api_key['api-key'] = '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'
     api_client = ApiClient(configuration)
     api_instance = TransactionalEmailsApi(api_client)
 
@@ -166,14 +166,13 @@ class ContactCreateView(APIView):
             to_email = contact.email
             to_name = contact.name
             revert_html = render_to_string('contact_revert_email.html', {'name': to_name,'date':datetime.date.today()})
+
             # Send email using Brevo email function
             email_sent = send_brevo_email(to_email, to_name, "Thank you for reaching us out!", revert_html)
+
             if email_sent:
                 return Response({'message': 'Contact form submitted and email sent.'}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'message': 'Contact form submitted but failed to send email.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 
