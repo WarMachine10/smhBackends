@@ -17,7 +17,7 @@ from helper.SiteAnalyzer import main, soil_type
 from helper.uuidGenerator import generate_short_uuid
 from helper.CacheCleaner import cleanup_temp_files
 from drf_yasg.utils import swagger_auto_schema
-
+from loguru import logger
 
 class CreateProjectView(CreateAPIView):
     serializer_class = ProjectSerializer
@@ -212,7 +212,7 @@ class GenerateMapAndSoilDataView(APIView):
         latitude = request.data.get('latitude')
         longitude = request.data.get('longitude')
         front_of_house = request.data.get('front_of_house')
-        
+        boundary_coords = request.data.get('boundary_coords')
         if not latitude or not longitude or not front_of_house:
             return Response({'error': 'Latitude, longitude, and front of house direction are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -222,6 +222,7 @@ class GenerateMapAndSoilDataView(APIView):
         try:
             latitude = float(latitude)
             longitude = float(longitude)
+            boundary_coords = [(float(coord['lat']), float(coord['lng'])) for coord in boundary_coords]
         except ValueError:
             return Response({'error': 'Invalid coordinate values.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -229,10 +230,11 @@ class GenerateMapAndSoilDataView(APIView):
         gif_path = settings.BASE_DIR / 'assets' / 'GIF.gif'
 
         # Run the external script to generate the map and get soil data
-        map_file_rel_path = main(unique_filename, front_of_house, latitude, longitude, str(gif_path))
+        map_file_rel_path = main(unique_filename, front_of_house, latitude, longitude, boundary_coords, str(gif_path))
         if not map_file_rel_path:
             logger.error("Map Generation Task Failed")
             return Response({'error': 'Failed to generate map.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
         # Define the local file path
         local_file_path = os.path.join(settings.BASE_DIR, 'media', map_file_rel_path)

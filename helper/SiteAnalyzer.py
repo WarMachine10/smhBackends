@@ -79,7 +79,7 @@ def create_map_with_gif_overlay(latitude, longitude, gif_path, zoom=20, min_zoom
     Create a Folium map and overlay a GIF at specified coordinates.
     """
     # Create the base map
-    folium_map = folium.Map(location=[latitude, longitude], zoom_start=zoom, min_zoom=min_zoom, max_zoom=22)
+    folium_map = folium.Map(location=[latitude, longitude], zoom_start=zoom, min_zoom=min_zoom, max_zoom=22,tiles='CartoDB positron', mapattr='CartoDB positron')
 
     # Define the bounds where the GIF will be overlaid
     lat_offset = 0.0005  # Adjust these offsets based on the desired size and positioning
@@ -95,7 +95,8 @@ def create_map_with_gif_overlay(latitude, longitude, gif_path, zoom=20, min_zoom
         bounds=[[south, west], [north, east]],
         interactive=True,
         cross_origin=False,
-        zindex=1
+        zindex=1,
+        
     )
 
     # Add overlay to the map
@@ -131,7 +132,7 @@ def add_marker(map_obj, latitude, longitude, color, popup, icon_path=None,place_
 
 def find_nearby_places(map_obj, latitude, longitude, place_types, radius):
     # Add marker for user's location with home icon
-    add_marker(map_obj, latitude, longitude, 'red', 'Your Location', icon_path=str(homeIcon))
+    # add_marker(map_obj, latitude, longitude, 'red', 'Your Location', icon_path=str(homeIcon))
     
     colors = {
         "park": "green",
@@ -289,16 +290,10 @@ def determine_rotation(front_of_house):
     else:
         raise ValueError(f"Unknown direction '{front_of_house}'")
     
-def add_boundary(map_obj, latitude, longitude, offset=0.0001, fill_color='red', fill_opacity=0.02):
+def add_boundary(map_obj, latitude, longitude, boundary_coords, fill_color='red', fill_opacity=0.02):
     """
     Add a boundary around the specified point with a defined offset.
     """
-    boundary_coords = [
-        [latitude + offset, longitude - offset],  # Top-left
-        [latitude + offset, longitude + offset],  # Top-right
-        [latitude - offset, longitude + offset],  # Bottom-right
-        [latitude - offset, longitude - offset]   # Bottom-left
-    ]
 
     folium.Polygon(
         locations=boundary_coords,
@@ -310,7 +305,7 @@ def add_boundary(map_obj, latitude, longitude, offset=0.0001, fill_color='red', 
         opacity=0.8
     ).add_to(map_obj)
 
-def main(output_file, front_of_house, latitude, longitude, gif_path):
+def main(output_file, front_of_house, latitude, longitude, boundary_coords, gif_path):
     # Determine rotation based on the front of the house
     rotation_needed = determine_rotation(front_of_house)
     logging.info(f"Rotation needed: {rotation_needed} degrees")
@@ -324,7 +319,7 @@ def main(output_file, front_of_house, latitude, longitude, gif_path):
     folium_map = create_map_with_gif_overlay(latitude, longitude, rotated_gif_path)
 
     # Add a boundary around the house
-    add_boundary(folium_map, latitude, longitude, offset=0.001, fill_color='red', fill_opacity=0.2)
+    add_boundary(folium_map, latitude, longitude, boundary_coords, fill_color='red', fill_opacity=0.2)
 
     # Find nearby places
     place_types = ["park", "shopping_mall", "bank", "hotel", "school"]
