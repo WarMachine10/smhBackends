@@ -1497,12 +1497,12 @@ def area_main(dataframe):
     build_up_area = round((latest_carpet_area(dataframe)  * 1.3),2)
     
     major_area_dict = {
-        'Carpet Area': carpet_area,
-        'Build up Area': build_up_area
+        'Carpet_Area': carpet_area,
+        'Build_up_Area': build_up_area
     }
     
     main_dict = {key: round(value, 2) for key, value in main_dict.items()}
-    main_dict['Major Areas'] = major_area_dict
+    main_dict['Major_Areas'] = major_area_dict
     keys_to_remove = ['Boundary', '0']
     for key in keys_to_remove:
         if key in main_dict:

@@ -36,7 +36,7 @@ def get_tokens_for_user(user):
 
 def send_brevo_email(to_email, to_name, subject, html_content):
     configuration = Configuration()
-    configuration.api_key['api-key'] = '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'
+    configuration.api_key['api-key'] = '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'
     api_client = ApiClient(configuration)
     api_instance = TransactionalEmailsApi(api_client)
 

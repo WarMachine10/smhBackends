@@ -2,22 +2,38 @@ from pathlib import Path
 from datetime import timedelta
 import os , boto3
 from drf_yasg import openapi
-import pymysql
+import pymysql,json
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 pymysql.install_as_MySQLdb()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 load_dotenv()
+
+def get_secret(secret_name):
+    region_name = os.getenv('AWS_REGION')
+    # Create a Secrets Manager client
+    client = boto3.client('secretsmanager', region_name=region_name)
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    except ClientError as e:
+        raise Exception(f"Error fetching secret {secret_name}: {str(e)}")
+    # Decrypts secret using the associated KMS key
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+secret_arn = os.getenv('SECRET_ARN')
+secrets = get_secret(secret_arn)
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = secrets['SECRET_KEY']
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
-# Application definition
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -82,22 +98,13 @@ REST_FRAMEWORK = {
     ),
 }
 
-
-# Database
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'Development', #This will be Production on server
         'USER': 'admin',
-        'PASSWORD': os.getenv('RDS_KEY'),
-        'HOST': os.getenv('RDS_HOST_URL'),
+        'PASSWORD': secrets['RDS_KEY'],
+        'HOST': secrets['RDS_HOST_URL'],
         'PORT': '3306',
        
     }
@@ -133,10 +140,10 @@ USE_I18N = True
 USE_TZ = True
 
 #S3 Settings
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = secrets['AWS_ACCESS_KEY_ID']
+AWS_SECRET_ACCESS_KEY = secrets['AWS_SECRET_ACCESS_KEY']
+AWS_S3_REGION_NAME = secrets['AWS_S3_REGION_NAME']
+AWS_STORAGE_BUCKET_NAME = secrets['AWS_STORAGE_BUCKET_NAME']
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
@@ -203,6 +210,6 @@ SWAGGER_SETTINGS = {
 }
 
 #
-EMAIL_XAPI=os.getenv('EMAIL_XAPI')
+EMAIL_XAPI=secrets['EMAIL_XAPI']
 
 
