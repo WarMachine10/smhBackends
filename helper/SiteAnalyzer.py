@@ -1,4 +1,5 @@
-import logging
+# import logger
+from loguru import logger
 import folium
 from geopy.distance import geodesic
 import googlemaps
@@ -18,10 +19,12 @@ import math
 from folium.raster_layers import ImageOverlay
 from dotenv import load_dotenv
 load_dotenv()
-logging.basicConfig(level=logging.INFO)
-
+# logger.basicConfig(level=logger.INFO)
+from django.conf import settings
+# settings.
 # Replace with your Google Maps API key
-GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+
+GOOGLE_MAPS_API_KEY = settings.GOOGLE_MAPS_API_KEY
 base_dir = settings.BASE_DIR / 'assets'
 excel_path = base_dir / 'soil_type.xlsx'
 img_path = base_dir / 'sitemapanaloverlay.png'
@@ -71,7 +74,7 @@ def rotate_gif(input_path, output_path, rotation_angle):
                 duration=img.info.get('duration', 100), disposal=img.info.get('disposal', 2)
             )
     except Exception as e:
-        logging.error(f"Error rotating GIF: {e}")
+        logger.error(f"Error rotating GIF: {e}")
 
 
 def create_map_with_gif_overlay(latitude, longitude, gif_path, zoom=20, min_zoom=16):
@@ -112,20 +115,21 @@ def create_map(latitude, longitude, zoom=22, min_zoom=16):
     )
     return folium_map
 
-def add_marker(map_obj, latitude, longitude, color, popup, icon_path=None,place_type=None):
-    icons={"park":"tree-conifer",
-           "shopping_mall":"shopping-cart",
-           "bank":"usd",
-           "school":"book",
-           "hotel":"briefcase"
-           }
-    if icon_path:
-        icon = folium.CustomIcon(icon_path, icon_size=(30, 30))
-    else:
-        icon = folium.Icon(color=color, icon=icons.get(place_type, 'info-sign'),prefix='glyphicon')
+def add_marker(map_obj, latitude, longitude, color, popup, icon_path=None):
+    """
+    Add a marker to the map.
+    """
+    try:
+        if icon_path and os.path.exists(icon_path):
+            icon = folium.CustomIcon(icon_path, icon_size=(30, 30))
+        else:
+            icon = folium.Icon(color=color, icon='info-sign', prefix='glyphicon')
+    except FileNotFoundError:
+        logger.error(f"Icon file '{icon_path}' not found. Using default icon.")
+        icon = folium.Icon(color=color, icon='info-sign', prefix='glyphicon')
 
     folium.Marker(
-        [latitude, longitude], 
+        [latitude, longitude],
         icon=icon,
         popup=popup
     ).add_to(map_obj)
@@ -194,10 +198,10 @@ def load_image(image_path):
         img = mpimg.imread(image_path)
         return img
     except FileNotFoundError:
-        logging.error(f"Error: Image file '{image_path}' not found.")
+        logger.error(f"Error: Image file '{image_path}' not found.")
         return None
     except Exception as e:
-        logging.error(f"Error loading image '{image_path}': {e}")
+        logger.error(f"Error loading image '{image_path}': {e}")
         return None
 
 def add_image_overlay(map_obj, img, latitude, longitude, size_factor=0.0005):
@@ -308,7 +312,7 @@ def add_boundary(map_obj, latitude, longitude, boundary_coords, fill_color='red'
 def main(output_file, front_of_house, latitude, longitude, boundary_coords, gif_path):
     # Determine rotation based on the front of the house
     rotation_needed = determine_rotation(front_of_house)
-    logging.info(f"Rotation needed: {rotation_needed} degrees")
+    logger.info(f"Rotation needed: {rotation_needed} degrees")
 
     # Rotate the GIF and save it as a temporary file
     shortID=generate_short_uuid()
@@ -323,7 +327,7 @@ def main(output_file, front_of_house, latitude, longitude, boundary_coords, gif_
 
     # Find nearby places
     place_types = ["park", "shopping_mall", "bank", "hotel", "school"]
-    find_nearby_places(folium_map, latitude, longitude, place_types, radius=2000)
+    # find_nearby_places(folium_map, latitude, longitude, place_types, radius=2000)
 
     media_maps_dir = os.path.join(settings.MEDIA_ROOT, 'maps')
     
@@ -331,7 +335,7 @@ def main(output_file, front_of_house, latitude, longitude, boundary_coords, gif_
     map_file_path = os.path.join(media_maps_dir, output_file)
     folium_map.save(map_file_path)
     
-    logging.info(f"Map saved as '{map_file_path}'")
+    logger.info(f"Map saved as '{map_file_path}'")
     os.remove(rotated_gif_path)
     # Return the relative path to be stored in the database
     return os.path.relpath(map_file_path, settings.MEDIA_ROOT)
