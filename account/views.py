@@ -5,6 +5,9 @@ from account.serializers import *
 from django.contrib.auth import authenticate, logout
 from account.renderers import UserRenderer
 import boto3,os,datetime
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.encoding import force_bytes, force_str
 from sib_api_v3_sdk import Configuration, ApiClient, TransactionalEmailsApi, SendSmtpEmail
 from dotenv import load_dotenv
 from botocore.exceptions import ClientError
@@ -36,7 +39,7 @@ def get_tokens_for_user(user):
 
 def send_brevo_email(to_email, to_name, subject, html_content):
     configuration = Configuration()
-    configuration.api_key['api-key'] = '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'
+    configuration.api_key['api-key'] = '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'
     api_client = ApiClient(configuration)
     api_instance = TransactionalEmailsApi(api_client)
 
@@ -147,6 +150,56 @@ class UserPasswordResetView(APIView):
     serializer.is_valid(raise_exception=True)
     return Response({'msg':'Password Reset Successfully'}, status=status.HTTP_200_OK)
   
+
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                user = User.objects.get(email=email)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = PasswordResetTokenGenerator().make_token(user)
+                # Pointing to your React frontend URL
+                frontend_url = 'https://sketchmyhome.ai/reset-password/'
+                reset_link = f'{frontend_url}{uid}/{token}'
+                
+                # Email body and sending
+                email_body = render_to_string('forgot_password_email.html', {
+                    'user': user,
+                    'reset_link': reset_link,
+                })
+                if send_brevo_email(user.email, user.name, "Password Reset for SketchMyHome.ai", email_body):
+                    return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Failed to send reset email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except User.DoesNotExist:
+                return Response({'error': 'User with this email does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordView(APIView):
+    def post(self, request, uidb64, token):
+        try:
+            # Decode the user ID
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=user_id)
+
+            # Check if the token is valid
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                return Response({'error': 'Token is invalid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Validate and reset the password
+            serializer = ResetPasswordSerializer(data=request.data)
+            if serializer.is_valid():
+                user.set_password(serializer.validated_data['password'])
+                user.save()
+                return Response({'success': 'Password reset successful'}, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': 'Token is invalid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]

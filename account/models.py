@@ -4,20 +4,14 @@ from django.core.validators import RegexValidator
 
 # Custom User Manager
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, tc, phone, location, password=None, password2=None):
+    def create_user(self, email, name, password=None):
         """Creates and saves a User with the given email, name, tc, phone, location, and password"""
         if not email:
             raise ValueError('User must have an email address')
-        if not phone:
-            raise ValueError('User must have a phone number')
 
         user = self.model(
             email=self.normalize_email(email),
-            name=name,
-            tc=tc,
-            phone=phone,
-            location=location,
-        )
+            name=name,)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -50,10 +44,11 @@ class User(AbstractBaseUser):
         validators=[RegexValidator(r'^\d{10}$')],
         unique=True,
         verbose_name='Phone Number',
-        default='0000000000'  # Default value for existing rows
+        default='0000000000',
+        blank=True, null=True  # Default value for existing rows
     )
-    name = models.CharField(max_length=200)
-    tc = models.BooleanField()
+    name = models.CharField(max_length=200,null=False)
+    tc = models.BooleanField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)  # New field
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -63,7 +58,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'tc', 'phone', 'location']
+    REQUIRED_FIELDS = ['name']
 
     def __str__(self):
         return self.email
@@ -94,3 +89,7 @@ class Contact(models.Model):
     message = models.TextField()
     def __str__(self):
         return self.name
+
+
+
+        

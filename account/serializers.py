@@ -8,22 +8,15 @@ from django.core.cache import cache
 import random 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    # password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     otp = serializers.CharField(required=False)
     
     class Meta:
         model = User
-        fields = ['email', 'name', 'phone', 'location', 'password', 'password2', 'tc', 'otp']
+        fields = ['email', 'name', 'password', 'otp']
         extra_kwargs = {
             'password': {'write_only': True}
         }
-
-    def validate(self, attrs):
-        password = attrs.get('password')
-        password2 = attrs.get('password2')
-        if password != password2:
-            raise serializers.ValidationError("Password and Confirm Password doesn't match")
-        return attrs
 
     def create(self, validated_data):
         otp = validated_data.pop('otp', None)
@@ -132,3 +125,17 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = ['id', 'name', 'contact', 'email', 'message']
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class ResetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(min_length=6, max_length=68, write_only=True)
+    password2 = serializers.CharField(min_length=6, max_length=68, write_only=True)
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+        if password != password2:
+            raise serializers.ValidationError("Passwords do not match")
+        return attrs
