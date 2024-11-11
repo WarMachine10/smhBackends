@@ -16,16 +16,13 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, name, tc, phone, location, password=None):
+    def create_superuser(self, email, name, password=None):
         """
         Creates and saves a superuser with the given email, name, tc, phone, location, and password.
         """
         user = self.create_user(
             email,
             name=name,
-            tc=tc,
-            phone=phone,
-            location=location,
             password=password,
         )
         user.is_admin = True
@@ -44,7 +41,7 @@ class User(AbstractBaseUser):
         validators=[RegexValidator(r'^\d{10}$')],
         unique=True,
         verbose_name='Phone Number',
-        default='0000000000',
+        # default='0000000000',
         blank=True, null=True  # Default value for existing rows
     )
     name = models.CharField(max_length=200,null=False)
