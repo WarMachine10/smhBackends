@@ -1,30 +1,22 @@
-
-import ezdxf
-import pandas as pd
-from shapely.geometry import Polygon, LineString, JOIN_STYLE
-import matplotlib.pyplot as plt
-import math
-
 # %%
-import ezdxf
-import pandas as pd
-from shapely.geometry import Polygon, Point, LineString
-from shapely.ops import nearest_points
-from shapely.geometry import Polygon, LineString, MultiPolygon
-from shapely.ops import unary_union
-from shapely.geometry import Point
-import pandas as pd
-import math
-
-import sys
+# Required Libraries:
+# ezdxf==0.15.2 (for DXF file reading and manipulation)
+# pandas==1.5.3 (for data manipulation in DataFrames)
+# shapely==2.0.1 (for geometric operations on shapes and lines)
+# matplotlib==3.7.2 (for plotting DXF file contents)
+from shapely.geometry import LineString,Polygon
 import os
-import ezdxf
-import matplotlib.pyplot as plt
-from ezdxf import recover
-from ezdxf.addons.drawing import RenderContext, Frontend
-from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
-
-
+from django.conf import settings
+import ezdxf  # For reading and writing DXF files
+from loguru import logger
+import pandas as pd  # For organizing polyline data in a DataFrame
+from shapely.geometry import Polygon, LineString, MultiPolygon, JOIN_STYLE  # For geometry manipulations
+from shapely.ops import unary_union  # For geometry operations
+import matplotlib.pyplot as plt  # For visualizing DXF contents
+import math  # For calculating Euclidean distances
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 # Function to calculate the Euclidean distance between two points
 def calculate_distance(coord1, coord2):
     x1, y1 = coord1
@@ -43,7 +35,7 @@ def dxf_to_dataframe(dxf_file):
     doc = ezdxf.readfile(dxf_file)
     msp = doc.modelspace()
     polyline_data = []
-
+    # Query all polyline entities (LWPOLYLINE and POLYLINE)
     for entity in msp.query('LWPOLYLINE POLYLINE'):
         coords = [(point[0], point[1]) for point in entity.get_points()]
         length = calculate_length(coords)
@@ -60,11 +52,11 @@ def dxf_to_dataframe(dxf_file):
 # Preprocess polylines into structured columns for vertices and lengths
 def preprocess_polylines(df):
     processed_data = []
-
+   
     for index, row in df.iterrows():
         data = {'layer': row['Layer']}
         coords = row['Coordinates']
-        
+        # Add coordinates for each vertex and lengths between consecutive vertices
         for i, (x, y) in enumerate(coords):
             data[f'vertex_{i+1}_x_coordinate'] = x
             data[f'vertex_{i+1}_y_coordinate'] = y
@@ -75,17 +67,25 @@ def preprocess_polylines(df):
         processed_data.append(data)
         
     processed_df = pd.DataFrame(processed_data)
+    
+    # Ensure it's a DataFrame with at least one row, even if empty
+    if processed_df.empty:
+        processed_df = pd.DataFrame(columns=['layer'] + [f'vertex_{i+1}_x_coordinate' for i in range(len(coords))] + [f'vertex_{i+1}_y_coordinate' for i in range(len(coords))])
+    
     return processed_df
+
+
+from shapely.geometry import Point
 
 
 def calculate_distance(point1, point2):
     """ Calculate Euclidean distance between two points. """
     return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
-
-def create_offset(df, offset_distance=2):
+# Create offset polygons/lines from input DataFrame containing polyline coordinates
+def create_offset(df, offset_distance=4):
     offset_entities = []
     offsets_data = []
-
+ # Generates offset geometry from a polyline (Polygon or LineString) for a specified distance
     def generate_offset(polyline_coords, offset_distance, layer):
         polygon = Polygon(polyline_coords)
         if polygon.is_valid:
@@ -97,7 +97,7 @@ def create_offset(df, offset_distance=2):
                 # If offset creates invalid geometry, return original polygon
                 return polygon
         return None
-
+    # Splits complex polygons into multiple rectangles (or retains as single rectangle)
     def break_into_rectangles(polygon):
         """ Break a complex polygon (more than 4 sides) into simpler boxes/rectangles """
         if isinstance(polygon, MultiPolygon):
@@ -108,7 +108,7 @@ def create_offset(df, offset_distance=2):
             return polygon.minimum_rotated_rectangle
         else:
             return polygon
-
+     # Moves side lines away if too close to original polyline
     def move_side_lines_away(polygon, side_lines, offset_distance, direction='right'):
         """
         Move side lines away from the original polyline if they are too close (either parallel or perpendicular).
@@ -200,7 +200,7 @@ def create_offset(df, offset_distance=2):
 
     offsets_df = pd.DataFrame(offsets_data)
     return offset_entities, offsets_df
-
+# Function to save offset entities (polygons/lines) into a DXF file
 def save_offsets_to_dxf(offset_entities, doc):
     msp = doc.modelspace()
 
@@ -222,6 +222,7 @@ def save_offsets_to_dxf(offset_entities, doc):
 def plot_dxf(dxf_file):
     doc = ezdxf.readfile(dxf_file)
     msp = doc.modelspace()
+
     fig, ax = plt.subplots(figsize=(18, 15))
 
     for entity in msp.query('LWPOLYLINE'):
@@ -242,93 +243,7 @@ def plot_dxf(dxf_file):
     ax.set_title('DXF Plot')
     plt.show()
 
-# Main function to run the process
-def main(dxf_file, offset_distance=2):
-    # Step 1: Convert DXF to DataFrame
-    df = dxf_to_dataframe(dxf_file)
-    
-    # Preprocess the DataFrame to add vertices and lengths
-    processed_df = preprocess_polylines(df)
-    
-    # Step 2: Create offsets with structured columns
-    offsets, offsets_df = create_offset(df, offset_distance)
-    
-    # Step 3: Save offsets to a new DXF file
-    doc = ezdxf.readfile(dxf_file)
-    save_offsets_to_dxf(offsets, doc)
-
-# Specify the DXF file and offset distance
-dxf_file = 'Test6.dxf'  # Update with your DXF file path
-main(dxf_file, offset_distance=24)
-
-
-# First, create or load the necessary dataframes
-df = dxf_to_dataframe(dxf_file)  # Assuming df is created from the DXF file
-
-# Preprocess the polylines to get the processed dataframe
-processed_df = preprocess_polylines(df)
-
-# Generate offsets and their dataframe
-offsets, offsets_df = create_offset(df, offset_distance=24)
-
-import pandas as pd
-
-def calculate_polygon_area(row):
-    # Extract the coordinates dynamically based on the column pattern
-    coordinates = []
-    for i in range(1, 10):  # Since you have vertex_1_x to vertex_9_x
-        x_coord = row.get(f'vertex_{i}_x_coordinate', None)
-        y_coord = row.get(f'vertex_{i}_y_coordinate', None)
-        
-        if pd.notna(x_coord) and pd.notna(y_coord):
-            coordinates.append((x_coord, y_coord))
-
-    if len(coordinates) < 3:  # Need at least 3 vertices for a polygon
-        return 0
-
-    # Apply Shoelace Theorem to calculate the area of the polygon
-    n = len(coordinates)
-    area = 0
-    for i in range(n):
-        x1, y1 = coordinates[i]
-        x2, y2 = coordinates[(i + 1) % n]
-        area += x1 * y2 - x2 * y1
-    area = abs(area) / 2.0
-    
-    # Convert area to square feet (if coordinates are in inches)
-    area_in_sqfeet = area / 144  # If coordinates are in inches, divide by 144 to convert to square feet
-    
-    return area_in_sqfeet
-
-# Assuming your dataframe is named 'processed_df'
-processed_df['Carpet Area'] = processed_df.apply(calculate_polygon_area, axis=1)
-
-#print(processed_df[['layer', 'Carpet Area']])
-
-
-def calculate_bulbs_required(row):
-    carpet_area = row['Carpet Area']
-    lux_requirement = 500  # average lux requirement for each space
-    lumens_per_bulb = 1300  # lumens for each 15W LED bulb
-
-    # Calculate required lumens based on carpet area
-    required_lumens = carpet_area * lux_requirement * 0.092903
-
-    # Calculate number of bulbs required, rounding up to ensure enough light
-    bulbs_required = required_lumens / lumens_per_bulb
-    return int(bulbs_required) if bulbs_required.is_integer() else int(bulbs_required) + 1
-
-# Apply the function to processed_df and create a new column for bulbs required
-processed_df['Bulbs Required'] = processed_df.apply(calculate_bulbs_required, axis=1)
-
-# Display the layer, carpet area, and bulbs required
-#print(processed_df[['layer', 'Carpet Area', 'Bulbs Required']])
-
 # %%
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-
 # Function to calculate midpoint of two points
 def midpoint(x1, y1, x2, y2):
     return (x1 + x2) / 2, (y1 + y2) / 2
@@ -462,13 +377,10 @@ def plot_offsets_with_points(offsets_df, min_distance=0.1):
     return labels_df  # Return the DataFrame containing non-overlapping label coordinates
 
 # Example usage with your offsets_df
-labels_df = plot_offsets_with_points(offsets_df)
+#labels_df = plot_offsets_with_points(offsets_df)
 
 # Display the cleaned labels DataFrame
 #print(labels_df)
-
-
-# %%
 
 
 # %%
@@ -477,53 +389,34 @@ import matplotlib.pyplot as plt
 from ezdxf.addons.drawing import RenderContext, Frontend
 from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 
-# Load the source DXF (bulbs) and target DXF (lines)
-source_dxf = ezdxf.readfile("15W.dxf")
-target_dxf = ezdxf.readfile("Test6.dxf")  # Replace with the actual target file name
-
-# Define the block name for bulbs
-bulb_block_name = "15w"
-
-# Ensure the "15w" layer exists in the target DXF
-if "15w" not in target_dxf.layers:
-    target_dxf.layers.new(name="15w", dxfattribs={'color': 7})  # Adjust color if needed
-
-# Check if the bulb block exists in the source DXF
-if bulb_block_name in source_dxf.blocks:
-    # Copy the block definition to the target DXF if it doesn't exist
-    if bulb_block_name not in target_dxf.blocks:
+# Helper function to ensure layers and blocks exist
+def ensure_layers_and_blocks(target_dxf, source_dxf, bulb_block_name):
+    if "15w" not in target_dxf.layers:
+        target_dxf.layers.new(name="15w", dxfattribs={'color': 7})
+    
+    if bulb_block_name in source_dxf.blocks and bulb_block_name not in target_dxf.blocks:
         target_dxf.blocks.new(name=bulb_block_name)
         for entity in source_dxf.blocks[bulb_block_name]:
             target_dxf.blocks[bulb_block_name].add_entity(entity.copy())
-else:
-    print(f"Block '{bulb_block_name}' not found in the source DXF.")
 
-# Insert bulbs at each position in labels_df (assumes labels_df is already available)
-target_msp = target_dxf.modelspace()
-for index, row in labels_df.iterrows():
-    x, y = row['X_Coordinate'], row['Y_Coordinate']  # Use correct column names
-    bulb_ref = target_msp.add_blockref(bulb_block_name, insert=(x, y))
-    bulb_ref.dxf.layer = "15w"  # Explicitly set the layer to "15w"
+def ensure_switch_block(target_dxf, sw_doc):
+    if "SW" not in sw_doc.blocks:
+        raise ValueError("The block 'SW' was not found in the SW.dxf file.")
+    sw_block = sw_doc.blocks.get("SW")
+    
+    if "SW" not in target_dxf.blocks:
+        target_dxf.blocks.new(name="SW")
+        for entity in sw_block:
+            target_dxf.blocks["SW"].add_entity(entity.copy())
 
-# Now, let's load the switch block from another DXF file and place switches
-sw_doc = ezdxf.readfile("SW.dxf")
-if "SW" not in sw_doc.blocks:
-    raise ValueError("The block 'SW' was not found in the SW.dxf file.")
-sw_block = sw_doc.blocks.get("SW")
+# Bulb placement function
+def place_bulbs(target_msp, labels_df, bulb_block_name):
+    for index, row in labels_df.iterrows():
+        x, y = row['X_Coordinate'], row['Y_Coordinate']
+        bulb_ref = target_msp.add_blockref(bulb_block_name, insert=(x, y))
+        bulb_ref.dxf.layer = "15w"
 
-# Ensure the switch block definition exists in the main document
-if "SW" not in target_dxf.blocks:
-    target_dxf.blocks.new(name="SW")
-    for entity in sw_block:
-        target_dxf.blocks["SW"].add_entity(entity.copy())
-
-# Distance thresholds in inches
-distances = [5 / 12, 9 / 12]  # Convert inches to feet for consistency
-
-# Track layers where a switch has been placed
-placed_layers = set()
-
-# Helper functions for parallelism, rotation, and position adjustment
+# Switch placement helper functions
 def are_parallel(line1, line2, distance):
     if abs(line1[0][0] - line1[1][0]) < 1e-6 and abs(line2[0][0] - line2[1][0]) < 1e-6:
         return abs(line1[0][0] - line2[0][0]) <= distance
@@ -533,9 +426,9 @@ def are_parallel(line1, line2, distance):
 
 def calculate_rotation(line_start, line_end):
     if abs(line_start[1] - line_end[1]) < 1e-6:
-        return 0  # Horizontal line
+        return 0
     elif abs(line_start[0] - line_end[0]) < 1e-6:
-        return 90  # Vertical line
+        return 90
     return 0
 
 def calculate_adjusted_position(layer_line, non_layer_line, midpoint):
@@ -544,82 +437,86 @@ def calculate_adjusted_position(layer_line, non_layer_line, midpoint):
     layer_mid_x = (layer_line[0][0] + layer_line[1][0]) / 2
     non_layer_mid_x = (non_layer_line[0][0] + non_layer_line[1][0]) / 2
     
-    offset_distance = 0.5  # Adjust the distance as needed
+    offset_distance = 0.5
     if abs(layer_mid_y - non_layer_mid_y) > abs(layer_mid_x - non_layer_mid_x):
-        if non_layer_mid_y > layer_mid_y:
-            return (midpoint[0], midpoint[1] - offset_distance)  # Place switch below
-        else:
-            return (midpoint[0], midpoint[1] + offset_distance)  # Place switch above
+        return (midpoint[0], midpoint[1] - offset_distance) if non_layer_mid_y > layer_mid_y else (midpoint[0], midpoint[1] + offset_distance)
     else:
-        if non_layer_mid_x > layer_mid_x:
-            return (midpoint[0] - offset_distance, midpoint[1])  # Place switch to the left
-        else:
-            return (midpoint[0] + offset_distance, midpoint[1])  # Place switch to the right
+        return (midpoint[0] - offset_distance, midpoint[1]) if non_layer_mid_x > layer_mid_x else (midpoint[0] + offset_distance, midpoint[1])
 
-# Loop through each polyline entity to place switches
-for polyline in target_msp.query("POLYLINE LWPOLYLINE"):
-    polyline_layer = polyline.dxf.layer
-    if polyline_layer in placed_layers:
-        continue
+# Switch placement function
+def place_switches(target_msp, distances):
+    placed_layers = set()
+    for polyline in target_msp.query("POLYLINE LWPOLYLINE"):
+        polyline_layer = polyline.dxf.layer
+        if polyline_layer in placed_layers:
+            continue
 
-    same_layer_lines = [line for line in target_msp.query("LINE") if line.dxf.layer == polyline_layer]
-    other_layer_lines = [line for line in target_msp.query("LINE") if line.dxf.layer != polyline_layer]
+        same_layer_lines = [line for line in target_msp.query("LINE") if line.dxf.layer == polyline_layer]
+        other_layer_lines = [line for line in target_msp.query("LINE") if line.dxf.layer != polyline_layer]
 
-    switch_placed = False
-    for line in same_layer_lines:
-        start1, end1 = (line.dxf.start.x, line.dxf.start.y), (line.dxf.end.x, line.dxf.end.y)
-        
-        for other_line in other_layer_lines:
-            start2, end2 = (other_line.dxf.start.x, other_line.dxf.start.y), (other_line.dxf.end.x, other_line.dxf.end.y)
+        switch_placed = False
+        for line in same_layer_lines:
+            start1, end1 = (line.dxf.start.x, line.dxf.start.y), (line.dxf.end.x, line.dxf.end.y)
             
-            if any(are_parallel((start1, end1), (start2, end2), d) for d in distances):
-                midpoint_x = (start1[0] + end1[0]) / 2
-                midpoint_y = (start1[1] + end1[1]) / 2
-                midpoint = (midpoint_x, midpoint_y)
+            for other_line in other_layer_lines:
+                start2, end2 = (other_line.dxf.start.x, other_line.dxf.start.y), (other_line.dxf.end.x, other_line.dxf.end.y)
                 
-                # Calculate rotation and position
-                rotation = calculate_rotation(start1, end1)
-                adjusted_position = calculate_adjusted_position((start1, end1), (start2, end2), midpoint)
+                if any(are_parallel((start1, end1), (start2, end2), d) for d in distances):
+                    midpoint_x = (start1[0] + end1[0]) / 2
+                    midpoint_y = (start1[1] + end1[1]) / 2
+                    midpoint = (midpoint_x, midpoint_y)
+                    
+                    rotation = calculate_rotation(start1, end1)
+                    adjusted_position = calculate_adjusted_position((start1, end1), (start2, end2), midpoint)
 
-                # Place the switch with calculated position and rotation
-                block_ref = target_msp.add_blockref("SW", adjusted_position)
-                block_ref.dxf.layer = "SW"
-                block_ref.dxf.rotation = rotation
+                    block_ref = target_msp.add_blockref("SW", adjusted_position)
+                    block_ref.dxf.layer = "SW"
+                    block_ref.dxf.rotation = rotation
 
-                placed_layers.add(polyline_layer)
-                switch_placed = True
+                    placed_layers.add(polyline_layer)
+                    switch_placed = True
+                    break
+            if switch_placed:
                 break
-        if switch_placed:
-            break
 
-# Save the modified DXF file with both bulbs and switches
-target_dxf.saveas("Electrical.dxf")
-print("DXF file saved with bulbs and switches.")
+# Function to save and plot the updated DXF
+def save_and_plot_dxf(target_dxf, target_msp, bulb_block_name):
+    try:
+        # Save the DXF file
+        savePath=os.path.join(settings.BASE_DIR,'Temp','crap','Electrical.dxf')
+        target_dxf.saveas(savePath)
+        print("DXF file saved as 'Electrical.dxf'.")
+        return target_dxf
+    except Exception as e:
+        print(f"Error saving DXF file: {e}")
+        # return target_dxf
 
-# Plotting the updated DXF file with both bulbs and switches
-fig, ax = plt.subplots(figsize=(20, 15))
-ax.set_aspect('equal')
-ax.set_title('DXF Plot with Bulbs and Switches')
+    # Plotting the updated DXF file with both bulbs and switches
+    fig, ax = plt.subplots(figsize=(20, 15))
+    ax.set_aspect('equal')
+    ax.set_title('DXF Plot with Bulbs and Switches')
 
-# Plot the lines
-for entity in target_msp.query("LINE"):
-    x_coords = [entity.dxf.start.x, entity.dxf.end.x]
-    y_coords = [entity.dxf.start.y, entity.dxf.end.y]
-    ax.plot(x_coords, y_coords, color="black")
+    # Plot the lines
+    for entity in target_msp.query("LINE"):
+        x_coords = [entity.dxf.start.x, entity.dxf.end.x]
+        y_coords = [entity.dxf.start.y, entity.dxf.end.y]
+        ax.plot(x_coords, y_coords, color="black")
 
-# Plot the bulbs (as blue circles) and switches (as red squares)
-for block_ref in target_msp.query("INSERT"):
-    if block_ref.dxf.name == bulb_block_name:
-        mid_x, mid_y = block_ref.dxf.insert.x, block_ref.dxf.insert.y
-        ax.plot(mid_x, mid_y, 'bo', markersize=8)  # Blue circles for bulbs
-    elif block_ref.dxf.name == "SW":
-        mid_x, mid_y = block_ref.dxf.insert.x, block_ref.dxf.insert.y
-        ax.plot(mid_x, mid_y, 'rs', markersize=8)  # Red squares for switches
+    # Plot the bulbs (as blue circles) and switches (as red squares)
+    for block_ref in target_msp.query("INSERT"):
+        if block_ref.dxf.name == bulb_block_name:
+            mid_x, mid_y = block_ref.dxf.insert.x, block_ref.dxf.insert.y
+            ax.plot(mid_x, mid_y, 'bo', markersize=8)  # Blue circles for bulbs
+        elif block_ref.dxf.name == "SW":
+            mid_x, mid_y = block_ref.dxf.insert.x, block_ref.dxf.insert.y
+            ax.plot(mid_x, mid_y, 'rs', markersize=8)  # Red squares for switches
 
-plt.show()
+    plt.show()
 
 
-
+# %%
+from shapely.geometry import Polygon, Point
+from shapely.ops import nearest_points
 def extract_polylines_and_blocks(dxf_path):
     # Load the DXF file
     doc = ezdxf.readfile(dxf_path)
@@ -656,7 +553,45 @@ def extract_polylines_and_blocks(dxf_path):
 
     return pd.DataFrame(polylines_data), pd.DataFrame(blocks_data)
 
-def extract_and_group_blocks(dxf_path, polyline_df, block_df, tolerance=0.01):
+def extract_and_group_blocks(dxf_path, polyline_df, block_df):
+    # Group blocks by the polyline they fall within
+    results = []
+    for _, poly in polyline_df.iterrows():
+        poly_polygon = poly["Polygon"]
+        sw_block_coords = None
+        light_15w_coords = []
+
+        for _, block in block_df.iterrows():
+            block_point = Point(block["Insert Point"])
+
+            # For "SW" blocks, snap to the polyline boundary if close enough
+            if block["Layer"] == "SW":
+                nearest_point_on_polyline = nearest_points(poly_polygon, block_point)[0]
+
+                # Place the SW block exactly on the boundary if it's not already there
+                if not block_point.equals(nearest_point_on_polyline):
+                    # Snap the SW block to the nearest point on the polyline boundary
+                    sw_block_coords = (nearest_point_on_polyline.x, nearest_point_on_polyline.y)
+                else:
+                    # Keep original insertion point if it's already on the boundary
+                    sw_block_coords = block["Insert Point"]
+
+            # For "15w" blocks, retain the original within check
+            elif block["Layer"] == "15w" and block_point.within(poly_polygon):
+                light_15w_coords.append(block["Insert Point"])
+
+        # Store the results for this polyline
+        results.append({
+            "Polyline Layer": poly["Layer"],
+            "Polygon": poly_polygon,
+            "SW Block Coordinates": sw_block_coords,
+            "15w Block Coordinates": light_15w_coords,
+            "Number of 15w Blocks": len(light_15w_coords)
+        })
+
+    return pd.DataFrame(results)
+
+def extract_and_group_blocks(dxf_path, polyline_df, block_df):
     # Group blocks by the polyline they fall within
     results = []
     for _, poly in polyline_df.iterrows():
@@ -668,7 +603,7 @@ def extract_and_group_blocks(dxf_path, polyline_df, block_df, tolerance=0.01):
             block_point = Point(block["Insert Point"])
             if block["Layer"] == "SW":
                 nearest_point_on_polyline = nearest_points(poly_polygon, block_point)[0]
-                if block_point.distance(nearest_point_on_polyline) <= tolerance:
+                if block_point.distance(nearest_point_on_polyline) <= 0.01:  # Tolerance distance check
                     sw_block_coords = block["Insert Point"]
             elif block["Layer"] == "15w":
                 if block_point.within(poly_polygon):
@@ -688,101 +623,121 @@ def create_bulb_to_switch_connections(dxf_path, output_path, df):
     # Load the original DXF file
     doc = ezdxf.readfile(dxf_path)
     msp = doc.modelspace()
-    
+
     # Create a new layer for wires with green color and line weight of 3 mm
     if "Wires" not in doc.layers:
         doc.layers.new(name="Wires", dxfattribs={"color": 3, "lineweight": 30})
 
-    def create_straight_line_within_boundary(start, end, boundary, layer_name):
-        # Create a LineString from the start to end points
-        line = LineString([start, end])
-
-        # Check if the entire line is within the boundary polygon
-        if boundary.contains(line):
-            # Draw the line in DXF if it fits within the boundary
-            msp.add_line(start, end, dxfattribs={"layer": layer_name})
-            return True
-        else:
-            return False
+    # Gather all SW switch coordinates in a list for finding nearest ones when needed
+    all_switch_coords = [row["SW Block Coordinates"] for _, row in df.iterrows() if row["SW Block Coordinates"] is not None]
 
     # Iterate through each row of the DataFrame to connect bulbs to switches
     for _, row in df.iterrows():
         sw_coords = row["SW Block Coordinates"]
-        poly_boundary = row["Polygon"]
-        
-        # Only proceed if there's an SW block in the polyline
+        bulbs_coords = row["15w Block Coordinates"]
+
         if sw_coords is not None:
-            for bulb_coords in row["15w Block Coordinates"]:
-                # Attempt to create a straight line within the boundary
-                create_straight_line_within_boundary(bulb_coords, sw_coords, poly_boundary, "Wires")
+            # Connect each bulb to the existing switch in this polyline
+            for bulb_coords in bulbs_coords:
+                msp.add_line(bulb_coords, sw_coords, dxfattribs={"layer": "Wires"})
+        else:
+            # If no SW switch is found, find the nearest SW switch from all other polylines
+            if all_switch_coords:
+                # Find the single nearest switch to all the bulbs in this polyline
+                nearest_sw_coords = min(
+                    all_switch_coords,
+                    key=lambda sw: min([Point(bulb_coords).distance(Point(sw)) for bulb_coords in bulbs_coords])
+                )
+                
+                # Connect all the bulbs in this polyline to the nearest switch
+                for bulb_coords in bulbs_coords:
+                    msp.add_line(bulb_coords, nearest_sw_coords, dxfattribs={"layer": "Wires"})
 
     # Save the modified DXF file
     doc.saveas(output_path)
 
-def main(dxf_path, output_path):
-    # Extract polylines and blocks data
-    polyline_df, block_df = extract_polylines_and_blocks(dxf_path)
-   # print(polyline_df)
-   # print(block_df)
-
-    # Group blocks by polylines
-    grouped_df = extract_and_group_blocks(dxf_path, polyline_df, block_df)
-    #print(grouped_df)
-
-    # Create bulb-to-switch connections and save to new DXF
-    create_bulb_to_switch_connections(dxf_path, output_path, grouped_df)
-   # print(f"Connections saved in {output_path}")
-
-# Path to your DXF file and output file
-dxf_path = "Electrical.dxf"
-output_path = "output_with_lines.dxf"
-main(dxf_path, output_path)
-
-
-
-
-try:
-    dxf_file = 'Test3.dxf'  
-    doc, auditor = recover.readfile(dxf_file)
-except IOError:
-    print(f'Not a DXF file or a generic I/O error.')
-    sys.exit(1)
-except ezdxf.DXFStructureError:
-    print(f'Invalid or corrupted DXF file.')
-    sys.exit(2)
-
-
-if not auditor.has_errors:
-    fig = plt.figure()
-    ax = fig.add_axes([0, 0, 1, 1])
-    ctx = RenderContext(doc)
-    out = MatplotlibBackend(ax)
-    Frontend(ctx, out).draw_layout(doc.modelspace(), finalize=True)
     
-   
-    png_file = os.path.splitext(dxf_file)[0] + '.png'
+def main_final(dxf_file, offset_distance=24):
+    fifteenW = os.path.join(settings.BASE_DIR, 'assets', '15W.dxf')
+    dynamicSW = os.path.join(settings.BASE_DIR, 'assets', 'SW.dxf')
     
+    df = dxf_to_dataframe(dxf_file)
+    if isinstance(df, pd.Series):
+        df = df.to_frame().T
+    processed_df = preprocess_polylines(df)
+
+    # Ensure "is_closed" column exists if needed
+    if 'is_closed' not in processed_df.columns:
+        processed_df['is_closed'] = processed_df.apply(
+            lambda row: getattr(row.geometry, 'is_ring', False) if hasattr(row, 'geometry') else False, axis=1
+        )
+
+    # Offset creation without skipping
+    offsets, offsets_df = [], pd.DataFrame()
+    for _, row in processed_df.iterrows():
+        offset, offset_df = create_offset(row, offset_distance)
+        if isinstance(offset_df, pd.Series):
+            offset_df = offset_df.to_frame().T
+        offsets.append(offset)
+        offsets_df = pd.concat([offsets_df, offset_df])
+
+    labels_df = plot_offsets_with_points(offsets_df)
+
+
+    # Load DXF documents and continue processing
+    target_dxf = ezdxf.readfile(dxf_file)
+    source_dxf = ezdxf.readfile(fifteenW)
+    sw_doc = ezdxf.readfile(dynamicSW)
+    bulb_block_name = "15w"
+    target_msp = target_dxf.modelspace()
+
+    save_and_plot_dxf(target_dxf, target_msp, bulb_block_name)
+
+    # Define paths for output
+    savePath = os.path.join(settings.BASE_DIR, 'Temp', 'crap', 'Electrical.dxf')
+    dxf_path_electrical = savePath
+    output_path_final = "Electrical_drawing.dxf"
+
+    ensure_layers_and_blocks(target_dxf, source_dxf, bulb_block_name)
+    ensure_switch_block(target_dxf, sw_doc)
+
+    # Place bulbs and switches
+    place_bulbs(target_msp, labels_df, bulb_block_name)
+    place_switches(target_msp, distances=[5 / 12, 9 / 12])
+
+    # Process and create final output
+    polyline_df, block_df = extract_polylines_and_blocks(dxf_path_electrical)
+    grouped_df = extract_and_group_blocks(dxf_path_electrical, polyline_df, block_df)
+    create_bulb_to_switch_connections(dxf_path_electrical, output_path_final, grouped_df)
+
+    # Count block occurrences
+    dwg = ezdxf.readfile(dxf_path_electrical)
+    target_blocks = ["15w", "SW"]
+    block_counts = {name: 0 for name in target_blocks}
+    for entity in dwg.modelspace():
+        if entity.dxftype() == "INSERT":
+            block_name = entity.dxf.name
+            if block_name in block_counts:
+                block_counts[block_name] += 1
+
+    for block, count in block_counts.items():
+        print(f"{block}: {count} occurrences")
     
-    ezdxf.addons.drawing.matplotlib.qsave(layout=doc.modelspace(), 
-                                          filename=png_file, 
-                                          bg='#FFFFFF',  # White background color
-                                          dpi=300)
+    # Load and match materials from Excel
+    excel_file_path = os.path.join(settings.BASE_DIR, 'assets', 'price_of_electrical.xlsx')
+    df = pd.read_excel(excel_file_path)
+    df.columns = df.columns.str.strip()
+    df['Material_Name_lower'] = df['Material Name'].str.lower()
+    block_counts_lower = {key.lower(): count for key, count in block_counts.items()}
+    result = {}
+    for block, count in block_counts_lower.items():
+        match = df[df['Material_Name_lower'].str.contains(block)]
+        if not match.empty:
+            material_id = match.iloc[0]['Material ID']
+            result[material_id] = count
 
+    
+    # Display the result in the desired format
+    print("Material ID and Counts:", result)
 
-img = plt.imread(png_file)
-
-
-plt.figure(figsize=(50, 40))  
-
-
-plt.imshow(img, alpha=1.0) 
-plt.axis('off')  
-plt.show()
-
-# %%
-
-
-# %%
-
-
-
+    return output_path_final, result

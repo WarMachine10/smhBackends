@@ -1,3 +1,4 @@
+from django.conf import settings
 import pandas as pd
 import numpy as np
 import json
@@ -220,45 +221,34 @@ def plot_dataframe(df):
     plt.savefig(image_name, dpi=300)
     plt.show()
     
-def lwpolyline_to_lines(dxf_path, output_path):
+def remove_polylines(dxf_path, output_path):
     """
-    Convert LWPOLYLINE entities in a DXF file to LINE entities and save to a new file.
-
+    Remove all LWPOLYLINE and POLYLINE entities from a DXF file and save to a new file.
+    
     Parameters:
     dxf_path (str): Path to the original DXF file.
-    output_path (str): Path to save the modified DXF file with converted LINE entities.
+    output_path (str): Path to save the modified DXF file without LWPOLYLINE and POLYLINE entities.
     """
     try:
         # Read the DXF file
         doc = ezdxf.readfile(dxf_path)
         modelspace = doc.modelspace()
         
-        # List to store new LINE entities
-        new_lines = []
-        
-        # Loop through all LWPOLYLINE entities in the modelspace
-        for lwpolyline in modelspace.query('LWPOLYLINE'):
-            # Get points from LWPOLYLINE
-            points = [(point[0], point[1]) for point in lwpolyline.get_points()]
-            
-            # Create LINE segments for each consecutive pair of points in the lwpolyline
-            for i in range(len(points) - 1):
-                start_point = points[i]
-                end_point = points[i + 1]
-                new_line = modelspace.add_line(start=start_point, end=end_point)
-                new_lines.append(new_line)
-                
-            # If the lwpolyline is closed, add a final line connecting the last and first points
-            if lwpolyline.closed:
-                new_line = modelspace.add_line(start=points[-1], end=points[0])
-                new_lines.append(new_line)
-            
-            # Delete the original lwpolyline after conversion
+        # Delete all LWPOLYLINE entities
+        lwpolylines = list(modelspace.query('LWPOLYLINE'))
+        print(f"Found {len(lwpolylines)} LWPOLYLINE entities. Deleting them...")
+        for lwpolyline in lwpolylines:
             modelspace.delete_entity(lwpolyline)
+        
+        # Delete all POLYLINE entities
+        polylines = list(modelspace.query('POLYLINE'))
+        print(f"Found {len(polylines)} POLYLINE entities. Deleting them...")
+        for polyline in polylines:
+            modelspace.delete_entity(polyline)
         
         # Save the modified DXF file
         doc.saveas(output_path)
-        print(f"Converted {len(new_lines)} lines from lwpolylines and saved to {output_path}")
+        print(f"Removed all LWPOLYLINE and POLYLINE entities and saved to {output_path}")
     
     except ezdxf.DXFStructureError:
         print("Invalid or corrupted DXF file")
@@ -2219,55 +2209,38 @@ def create_dxf_from_dataframe_special(df,filename ,output_filename):
     return output_filename
 
 
-# In[127]:
-
-
-
-
-# In[134]:
-
 
 def process_dxf_file(input_path, output_path, temp_dir=None):
     try:
         logger.info("Starting DXF file processing")
-        
         # Step 1: Convert DXF to lines (process polyline to lines)
-        conversion_result = lwpolyline_to_lines(input_path, output_path)
+        conversion_result = remove_polylines(input_path, output_path)
         logger.info(f"Conversion result: {conversion_result}")
-        
+        remove_lines_keep_blocks(output_path, 'blocks_only.dxf')
         # Step 2: Load DXF data into a DataFrame
         df = Dxf_to_DF(output_path)
         blocks = extract_blocks_to_df(output_path)
-        
         # Step 3: Adjust the X and Y coordinates for proper alignment
-        step2 = adjust_Xstart_ystart(df)
-        
+        step1 = adjust_Xstart_ystart(df)
         # Step 4: Filter the data for 'MTEXT' type
-        step3 = step2[step2['Type'] == 'MTEXT']
-        
+        step2 = step1[step1['Type'] == 'MTEXT']
         # Step 5: Process the DXF data for connections
-        connected_df, overlapped_df, overlapped_lines = process_dxf_dataframe_with_connections(step2)
-        
+        connected_df, overlapped_df, overlapped_lines = process_dxf_dataframe_with_connections(step1)
         # Step 6: Optionally, split lines at intersections (if needed)
-        split_lines = split_lines_at_intersections(connected_df)
-        
+        # split_lines = split_lines_at_intersections(connected_df)
         # Step 7: Remove duplicates and combine the processed data
         connected_df.drop_duplicates(inplace=True)
-        
         # Combine processed dataframes (connected lines, blocks, and MTEXT)
-        step6 = pd.concat([connected_df, step3]).drop_duplicates()
-        final_df = pd.concat([step6, blocks]).drop_duplicates()
-        
+        step3 = pd.concat((connected_df,step2))
+        step3.drop_duplicates(inplace=True) 
+        final_df = pd.concat([step3, blocks]).drop_duplicates()
         # Extract unique layer names for final output
         layer_list = final_df['Layer'].unique().tolist()
-        
         # Step 8: Generate the final DXF file (save as a new file)
         output_filename = 'Final_output.dxf'
-        final_output_path = os.path.join(temp_dir if temp_dir else os.path.dirname(output_path), output_filename)
-        
+        final_output_path = os.path.join(settings.BASE_DIR,'Temp',output_filename) 
         # Generate final DXF with combined data
-        combine_and_create_dxf(connected_df, blocks, final_output_path)
-        
+        create_dxf_from_dataframe_special(step3,'blocks_only.dxf' ,output_filename)
         # Prepare response data
         final_dict = {
             'Dxf_path': input_path,
@@ -2282,45 +2255,3 @@ def process_dxf_file(input_path, output_path, temp_dir=None):
     except Exception as e:
         logger.error(f"Error processing DXF file: {str(e)}")
         return None
-
-
-
-# def process_dxf_file(input_path, output_path,temp_dir=None):
-#     try:
-#         logger.info("Starting DXF file processing")
-#         # Process the DXF file
-#         conversion_result = lwpolyline_to_lines(input_path, output_path)
-#         logger.info(f"Conversion result: {conversion_result}")
-        
-#         df = Dxf_to_DF(output_path)
-#         blocks = extract_blocks_to_df(output_path)
-
-#         # Additional processing steps
-#         step2 = adjust_Xstart_ystart(df)
-#         step3 = step2[step2['Type'] == 'MTEXT']
-#         connected_df, overlapped_df, overlapped_lines = process_dxf_dataframe_with_connections(step2)
-#         split_lines = split_lines_at_intersections(connected_df)
-
-#         # Combine processed data
-#         #step6 = pd.concat([split_lines, step3])
-#         connected_df.drop_duplicates(inplace=True)
-#         final_df = pd.concat([split_lines, blocks,step3])
-#         layer_list = final_df['Layer'].unique().tolist()
-
-#         # Save final DXF
-#         output_filename = 'Final_output.dxf'
-#         final_output_path = os.path.join(temp_dir if temp_dir else os.path.dirname(output_path), output_filename)
-#         combine_and_create_dxf(connected_df, blocks, final_output_path)
-
-#         # Prepare response data
-#         final_dict = {
-#             'Dxf_path': input_path,
-#             'Layer_names': layer_list,
-#             'Number_overlapped_lines': overlapped_lines
-#         }
-
-#         return final_dict, output_filename
-
-#     except Exception as e:
-#         logger.error(f"Error processing DXF file: {str(e)}")
-#         return None

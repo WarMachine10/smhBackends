@@ -16,6 +16,8 @@ import tempfile
 from .serializers import *
 from .Scripts.WorkingDrawings.AutoSOP.SopGenerator import process_dxf_file
 from .Scripts.WorkingDrawings.Plumbing.Plumb import complete_pipeline
+from .Scripts.WorkingDrawings.Electrical.Lights import main_final
+from .Scripts.WorkingDrawings.Structural.Struct import pipeline_main
 import pandas as pd
 import numpy as np
 import json
@@ -28,7 +30,6 @@ TEMP_FOLDER = os.path.join(settings.BASE_DIR,'Temp','crap')  # Replace with a re
 # Set up a StringIO log capture stream
 log_stream = StringIO()
 # logger.basicConfig(stream=log_stream, level=logger.INFO)
-
 class ProcessDXFView(APIView):
     parser_classes = [MultiPartParser]
     authentication_classes = [JWTAuthentication]
@@ -36,24 +37,17 @@ class ProcessDXFView(APIView):
 
     def post(self, request, *args, **kwargs):
         dxf_file = request.FILES.get('file')
-        project_name = request.data.get('project_name')
-        process_plumbing = request.data.get('process_plumbing', False)
-        process_electrical = request.data.get('process_electrical', False)
-        process_structural = request.data.get('process_structural', False)
+        project_name = request.data.get('project_name', '').strip()
+        process_plumbing = request.data.get('process_plumbing', 'false').lower() == 'true'
+        process_electrical = request.data.get('process_electrical', 'false').lower() == 'true'
+        process_structural = request.data.get('process_structural', 'false').lower() == 'true'
 
         if not dxf_file:
-            return Response(
-                {"error": "No file provided"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not project_name:
-            return Response(
-                {"error": "Project name is required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Project name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Initialize the S3 client
         try:
             s3_client = boto3.client(
                 's3',
@@ -64,46 +58,34 @@ class ProcessDXFView(APIView):
             bucket_name = settings.AWS_STORAGE_BUCKET_NAME
         except Exception as e:
             logger.error(f"Failed to initialize S3 client: {str(e)}")
-            return Response(
-                {"error": "Failed to initialize S3 connection"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        # Ensure the temp directory exists
-        temp_dir = os.path.join(TEMP_FOLDER, project_name)
+            return Response({"error": "Failed to initialize S3 connection"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        temp_dir = os.path.join(TEMP_FOLDER)
         os.makedirs(temp_dir, exist_ok=True)
-
         try:
-            # Save input file to the temp directory
+            # Save the uploaded file temporarily
             input_temp_path = os.path.join(temp_dir, 'input.dxf')
             with open(input_temp_path, 'wb') as temp_file:
                 for chunk in dxf_file.chunks():
                     temp_file.write(chunk)
 
-            # Define output path in the temp directory
+            # Process DXF file
             output_temp_path = os.path.join(temp_dir, 'output.dxf')
+            processing_result, final_output_path = process_dxf_file(input_temp_path, output_temp_path, temp_dir)
+            
+            if not processing_result:
+                return Response({"error": "DXF processing failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # Upload input file to S3
+            # Upload original file to S3
             input_file_key = f"uploads/{project_name}/{dxf_file.name}"
             with open(input_temp_path, 'rb') as file_obj:
                 s3_client.upload_fileobj(file_obj, bucket_name, input_file_key)
             input_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{input_file_key}"
 
-            logger.info(f"Processing DXF file for project: {project_name}")
-            # Process the file and get material_counts
-            material_counts = complete_pipeline(
-                input_temp_path,
-                output_temp_path,
-                block_file=os.path.join(settings.BASE_DIR,'assets','SMH-Blocks.dxf'),
-                excel_file_path=os.path.join(settings.BASE_DIR,'assets','PlumbingPrices.xlsx')
-            )
-
-            if not material_counts:
-                logger.error(f"DXF processing failed for project: {project_name}")
-                return Response(
-                    {"error": "DXF processing failed"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+            # Upload processed file to S3
+            output_file_key = f"processed/{project_name}/Final_output.dxf"
+            with open(final_output_path, 'rb') as file_obj:
+                s3_client.upload_fileobj(file_obj, bucket_name, output_file_key)
+            output_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{output_file_key}"
 
             # Prepare plumbing processing if requested
             plumbing_result = None
@@ -113,7 +95,7 @@ class ProcessDXFView(APIView):
                     plumbing_output_filename = 'Final_Floor_Plan_with_Drainage_Pipes.dxf'
                     blocksDxf = os.path.join(settings.BASE_DIR, 'assets', 'SMH-Blocks.dxf')
                     plumbExcel = os.path.join(settings.BASE_DIR, 'assets', 'PlumbingPrices.xlsx')
-                    material=complete_pipeline(input_temp_path, output_temp_path, blocksDxf, plumbExcel)
+                    material = complete_pipeline(final_output_path, output_temp_path, blocksDxf, plumbExcel)
 
                     # Upload plumbing result to S3
                     plumbing_file_key = f"processed/{project_name}/{plumbing_output_filename}"
@@ -131,16 +113,70 @@ class ProcessDXFView(APIView):
                 except Exception as e:
                     logger.error(f"Plumbing processing failed for project: {project_name}: {str(e)}")
 
+
+
+
+
+            # Prepare electrical processing if requested
+            electrical_result = None
+            if process_electrical:
+                logger.info(f"Processing electrical for project: {project_name}")
+                try:
+                    # Set paths
+                    electrical_output_path, material_result = main_final(input_temp_path, offset_distance=24)
+
+                    # Upload electrical output to S3
+                    electrical_file_key = f"processed/{project_name}/Final_Electrical_Plan.dxf"
+                    with open(electrical_output_path, 'rb') as file_obj:
+                        s3_client.upload_fileobj(file_obj, bucket_name, electrical_file_key)
+                    electrical_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{electrical_file_key}"
+
+                    electrical_result = {
+                        "output_file_url": electrical_file_url,
+                        "output_file_name": os.path.basename(electrical_output_path),
+                        "material_result": material_result
+                    }
+
+                except Exception as e:
+                    logger.error(f"Electrical processing failed for project: {project_name}: {str(e)}")
+                    return Response(
+                        {"error": "Electrical processing failed", "details": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+            structural_result = None
+            if process_structural :
+                logger.info(f"Processing structural components for project: {project_name}")
+                try:
+                    column_info_df, beam_info_df = pipeline_main(final_output_path, output_temp_path)
+                    
+                    # Upload output file to S3
+                    output_file_key = f"processed/{project_name}/structural_output.dxf"
+                    with open(output_temp_path, 'rb') as file_obj:
+                        s3_client.upload_fileobj(file_obj, bucket_name, output_file_key)
+                    output_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{output_file_key}"
+                    
+                    structural_result = {
+                        "output_file_url": output_file_url,
+                        "column_info": column_info_df.to_dict(),
+                        "beam_info": beam_info_df.to_dict()
+                    }   
+                except Exception as e:
+                    logger.error(f"Structural processing failed: {str(e)}")
+                    return Response(
+                        {"error": "Structural processing failed", "details": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
             # Create or update the project instance
             project, created = Project.objects.update_or_create(
                 project_name=project_name,
                 defaults={
                     'created_by': request.user,
                     'input_file_url': input_file_url,
-                    'output_file_url': f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/processed/{project_name}/Final_output.dxf",
-                    'plumbing': plumbing_result,  # Store plumbing result here
-                    'electrical': None,  # Set default values
-                    'structural': None,  # Set default values
+                    'output_file_url': output_file_url,
+                    'plumbing': plumbing_result,
+                    'electrical': electrical_result,
+                    'structural': structural_result,
                 }
             )
 
@@ -150,10 +186,11 @@ class ProcessDXFView(APIView):
                 "project": {
                     **project_data,
                     "plumbing": plumbing_result if plumbing_result else {"output_file_url": None, "required": process_plumbing},
-                    "electrical": {"output_file_url": None, "required": process_electrical},
-                    "structural": {"output_file_url": None, "required": process_structural},
-                    "layer_names": material_counts.get('Layer_names', []),
-                    "number_overlapped_lines": material_counts.get('Number_overlapped_lines', 0),
+                    # "electrical": electrical_result if electrical_result else {"output_file_url": None, "required": process_electrical},
+                    "electrical": electrical_result if electrical_result else {"output_file_url": None, "required": process_electrical},
+                    "structural": structural_result if structural_result else {"output_file_url": None, "required": process_structural},
+                    "layer_names": processing_result['Layer_names'],
+                    "number_overlapped_lines": processing_result['Number_overlapped_lines'],
                 }
             }
 
@@ -166,10 +203,12 @@ class ProcessDXFView(APIView):
                 {"error": f"Processing failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        finally:
-            # Clean up the temp directory
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
+        # finally:
+        #     # Clean up the temp directory
+        #     if os.path.exists(temp_dir):
+        #         shutil.rmtree(temp_dir)
+
+
 
 class ProjectListView(APIView):
     permission_classes = [IsAuthenticated]
