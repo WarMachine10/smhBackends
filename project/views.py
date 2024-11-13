@@ -18,6 +18,7 @@ from .Scripts.WorkingDrawings.AutoSOP.SopGenerator import process_dxf_file
 from .Scripts.WorkingDrawings.Plumbing.Plumb import complete_pipeline
 from .Scripts.WorkingDrawings.Electrical.Lights import main_final
 from .Scripts.WorkingDrawings.Structural.Struct import pipeline_main
+from .Scripts.WorkingDrawings.BOQs.boq import main_electrical,main_plumbing,main_structure
 import pandas as pd
 import numpy as np
 import json
@@ -94,7 +95,7 @@ class ProcessDXFView(APIView):
                 try:
                     plumbing_output_filename = 'Final_Floor_Plan_with_Drainage_Pipes.dxf'
                     blocksDxf = os.path.join(settings.BASE_DIR, 'assets', 'SMH-Blocks.dxf')
-                    plumbExcel = os.path.join(settings.BASE_DIR, 'assets', 'PlumbingPrices.xlsx')
+                    plumbExcel = os.path.join(settings.BASE_DIR, 'assets', 'price_of_plumbing_material.xlsx')
                     material = complete_pipeline(final_output_path, output_temp_path, blocksDxf, plumbExcel)
 
                     # Upload plumbing result to S3
@@ -103,27 +104,49 @@ class ProcessDXFView(APIView):
                         s3_client.upload_fileobj(file_obj, bucket_name, plumbing_file_key)
                     plumbing_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{plumbing_file_key}"
                     
+                    boq_filename = "Plumbing_BOQ.xlsx"
+                    main_plumbing(material)
+
+                    boq_file_key = f"processed/{project_name}/{boq_filename}"
+                    with open(boq_filename, 'rb') as boq_file:
+                        s3_client.upload_fileobj(boq_file, bucket_name, boq_file_key)
+                    boq_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{boq_file_key}"
+
                     plumbing_result = {
                         "output_file_url": plumbing_file_url,
                         "output_file_name": plumbing_output_filename,
+                        "boq_file_url": boq_file_url,
                         "additional_result": {
                             "MaterialList": material
                         }
                     }
+                    
                 except Exception as e:
                     logger.error(f"Plumbing processing failed for project: {project_name}: {str(e)}")
-
-
-
-
 
             # Prepare electrical processing if requested
             electrical_result = None
             if process_electrical:
                 logger.info(f"Processing electrical for project: {project_name}")
                 try:
-                    # Set paths
-                    electrical_output_path, material_result = main_final(input_temp_path, offset_distance=24)
+                    # Define paths for input DXF, source DXF, SW DXF, electrical DXF, and Excel file
+                    input_dxf_file = input_temp_path
+                    source_dxf_path = os.path.join(settings.BASE_DIR, 'assets', '15W.dxf')
+                    sw_dxf_path = os.path.join(settings.BASE_DIR, 'assets', 'SW.dxf')
+                    dxf_path_electrical = os.path.join(settings.BASE_DIR, 'Electrical.dxf')
+                    excel_file_path = os.path.join(settings.BASE_DIR, 'assets', 'price_of_electrical.xlsx')
+                    output_path_final = os.path.join(settings.BASE_DIR, 'Electrical_drawing.dxf')
+
+                    # Call main_final with all required parameters
+                    electrical_output_path, material_result = main_final(
+                        input_dxf_file=input_dxf_file,
+                        source_dxf_path=source_dxf_path,
+                        sw_dxf_path=sw_dxf_path,
+                        dxf_path_electrical=dxf_path_electrical,
+                        excel_file_path=excel_file_path,
+                        output_path_final=output_path_final,
+                        offset_distance=24
+                    )
 
                     # Upload electrical output to S3
                     electrical_file_key = f"processed/{project_name}/Final_Electrical_Plan.dxf"
@@ -131,9 +154,20 @@ class ProcessDXFView(APIView):
                         s3_client.upload_fileobj(file_obj, bucket_name, electrical_file_key)
                     electrical_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{electrical_file_key}"
 
+                    # Generate BOQ for electrical
+                    boq_filename = "Electrical_BOQ.xlsx"
+                    main_electrical(material_result)
+
+                    # Upload the BOQ file to S3
+                    boq_file_key = f"processed/{project_name}/{boq_filename}"
+                    with open(boq_filename, 'rb') as boq_file:
+                        s3_client.upload_fileobj(boq_file, bucket_name, boq_file_key)
+                    boq_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{boq_file_key}"
+
                     electrical_result = {
                         "output_file_url": electrical_file_url,
                         "output_file_name": os.path.basename(electrical_output_path),
+                        "boq_file_url": boq_file_url,  # URL for the BOQ file
                         "material_result": material_result
                     }
 
@@ -145,28 +179,51 @@ class ProcessDXFView(APIView):
                     )
 
             structural_result = None
-            if process_structural :
+            if process_structural:
                 logger.info(f"Processing structural components for project: {project_name}")
                 try:
-                    column_info_df, beam_info_df = pipeline_main(final_output_path, output_temp_path)
-                    
-                    # Upload output file to S3
+                    xl = os.path.join(settings.BASE_DIR, 'assets', 'price_of_material_new.xlsx')
+
+                    # Call pipeline_main and verify if data is returned correctly
+                    try:
+                        column_info_df, beam_info_df = pipeline_main(final_output_path, output_temp_path)
+                        logger.info("Successfully retrieved column and beam info.")
+                    except Exception as e:
+                        logger.error(f"Error in pipeline_main: {str(e)}")
+                        return Response(
+                            {"error": "Failed to process structural components", "details": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                        )
+
+                    # Upload the output DXF file to S3
                     output_file_key = f"processed/{project_name}/structural_output.dxf"
                     with open(output_temp_path, 'rb') as file_obj:
                         s3_client.upload_fileobj(file_obj, bucket_name, output_file_key)
                     output_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{output_file_key}"
-                    
+
+                    # Generate and upload BOQ file for structural components
+                    boq_filename = "Structural_BOQ.xlsx"
+                    main_structure(column_info_df, beam_info_df, xl)
+                    boq_file_key = f"processed/{project_name}/{boq_filename}"
+                    with open(boq_filename, 'rb') as boq_file:
+                        s3_client.upload_fileobj(boq_file, bucket_name, boq_file_key)
+                    boq_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{boq_file_key}"
+
+                    # Prepare structural result response data
                     structural_result = {
                         "output_file_url": output_file_url,
+                        "boq_file_url": boq_file_url,
                         "column_info": column_info_df.to_dict(),
                         "beam_info": beam_info_df.to_dict()
-                    }   
+                    }
+
                 except Exception as e:
                     logger.error(f"Structural processing failed: {str(e)}")
                     return Response(
                         {"error": "Structural processing failed", "details": str(e)},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR
                     )
+                
             # Create or update the project instance
             project, created = Project.objects.update_or_create(
                 project_name=project_name,
