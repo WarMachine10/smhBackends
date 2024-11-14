@@ -1,8 +1,3 @@
-# %% [markdown]
-# # Nested functions
-
-# %%
-import ezdxf
 import math
 import pandas as pd
 import numpy as np
@@ -10,12 +5,16 @@ from typing import Tuple
 import warnings
 from collections import Counter
 from math import sqrt
-
+import pandas as pd
+from math import sqrt
+import ezdxf
+from sklearn.decomposition import PCA
 # Suppress SettingWithCopyWarning from pandas
 warnings.filterwarnings("ignore", category=pd.errors.SettingWithCopyWarning)
 
 
 # %%
+
 def adjust_dxf_coordinates_to00(filename, output_filename):
     # Read the DXF file
     try:
@@ -230,7 +229,7 @@ def calculate_max_along_x_y(df):
     return max_along_x, max_along_y
 
 # %%
-import ezdxf
+
 
 def four_corners(input_file, output_file, max_along_x, max_along_y, width=9, height=12):
     '''
@@ -364,10 +363,10 @@ def Boundary_1(input_file, output_file, target_x=9, tolerance=1, width=9, height
     # Check if new_y_coordinates is empty
     if not new_y_coordinates:
         # Calculate the number of boxes
-        num_boxes = max(0, math.ceil((max_along_y - 9) / 144) - 2)
+        num_boxes = max(0, math.ceil((max_along_y) / 144) - 2)
 
         # Initial start point for the first box
-        start_point = (0, 153)
+        start_point = (0, 144)
 
         # Draw boxes based on num_boxes
         for _ in range(int(num_boxes)):
@@ -386,7 +385,7 @@ def Boundary_1(input_file, output_file, target_x=9, tolerance=1, width=9, height
             hatch.paths.add_polyline_path(points, is_closed=True)
 
             # Update start_point for the next box
-            start_point = (start_point[0], start_point[1] + 156)
+            start_point = (start_point[0], start_point[1] + 144)
 
 
     else:
@@ -517,11 +516,11 @@ def Boundary_2(input_file, output_file, width=12, height=9, tolerance=1, max_alo
     # Step 5: Draw boxes based on x-coordinates or default layout if empty
     if not new_x_coordinates:
         # Calculate the number of boxes to draw
-        num_boxes = max(0, math.ceil((max_along_x - 9) / 144) - 2)
+        num_boxes = max(0, math.ceil((max_along_x) / 144) - 2)
 
 
         # Initial start point for the first box
-        start_point = (153, max_along_y)
+        start_point = (148, max_along_y)
 
         # Draw boxes based on num_boxes
         for _ in range(int(num_boxes)):
@@ -540,7 +539,7 @@ def Boundary_2(input_file, output_file, width=12, height=9, tolerance=1, max_alo
             hatch.paths.add_polyline_path(points, is_closed=True)
 
             # Update start_point for the next box
-            start_point = (start_point[0] + 156, start_point[1])
+            start_point = (start_point[0] + 148, start_point[1])
 
     else:
         # Draw boxes at the provided x-coordinates
@@ -650,10 +649,10 @@ def Boundary_3(input_file, output_file, width=9, height=12, tolerance=1, max_alo
     # Step 5: Draw boxes based on y-coordinates or default layout if empty
     if not new_y_coordinates:
         # Calculate the number of boxes to draw
-        num_boxes = math.ceil((max_along_y - 9) // 144)- 2
+        num_boxes = math.ceil(max_along_y - 9) // 144- 2
 
         # Initial start point for the first box
-        start_point = (max_along_x, 153)
+        start_point = (max_along_x, 148)
 
         # Draw boxes based on num_boxes
         for _ in range(int(num_boxes)):
@@ -672,7 +671,7 @@ def Boundary_3(input_file, output_file, width=9, height=12, tolerance=1, max_alo
             hatch.paths.add_polyline_path(points, is_closed=True)
 
             # Update start_point for the next box
-            start_point = (start_point[0], start_point[1] + 144)
+            start_point = (start_point[0], start_point[1] + 148)
 
     else:
         # Draw boxes at the provided y-coordinates
@@ -922,10 +921,7 @@ def Boundary_4(input_file, output_file, width=12, height=9, tolerance=1, max_alo
 # ## Helper function
 
 # %%
-import numpy as np
-import pandas as pd
-import ezdxf
-from sklearn.decomposition import PCA
+
 
 def filter_horizontal_lines(df, max_along_x, max_along_y, variance_threshold=0.95):
     '''
@@ -1018,33 +1014,7 @@ def extract_matching_line_pairs(df):
 # %%
 def process_single_walls_left(df, max_along_x, max_along_y, dxf_file, new_dxf_name, width=12, height=9, variance_threshold=0.95, tolerance=1e-3):
     '''
-    Upstream Libraries:
-    - numpy 
-    - pandas 
-    - ezdxf 
-
-    Upstream Functions needed:
-    - filter_horizontal_lines: Filters horizontal lines based on PCA.
-    - extract_matching_line_pairs: Extracts pairs of matching lines.
-
-    Function Description:
-    This function processes single walls on the left side of a DXF file. It filters horizontal lines, extracts 
-    matching pairs of lines, and creates boxes in the specified DXF file based on those lines. 
-    The boxes are filled with red color.
-
-    Parameters:
-    - df: Input DataFrame containing line data.
-    - max_along_x: Maximum x-coordinate value (float).
-    - max_along_y: Maximum y-coordinate value (float).
-    - dxf_file: Path to the original DXF file (string).
-    - new_dxf_name: Name of the new DXF file to save (string).
-    - width: Width of the box to create (float, default is 12).
-    - height: Height of the box to create (float, default is 9).
-    - variance_threshold: Threshold (float) for PCA variance to consider a line horizontal. Default is 0.95.
-    - tolerance: Tolerance for comparing floating-point values (float, default is 1e-3).
-
-    Returns:
-    None: This function does not return any values but saves the modified DXF file to the specified output path.
+    (Function docstring remains the same)
     '''
 
     # Step 1: Filter horizontal lines using the refactored helper function
@@ -1052,6 +1022,24 @@ def process_single_walls_left(df, max_along_x, max_along_y, dxf_file, new_dxf_na
 
     # Step 2: Extract matching line pairs using the refactored helper function
     df_pairs = extract_matching_line_pairs(df_filtered)
+
+    # Step 2.1: Filter pairs by line length (only proceed if length is 60 or more)
+    def filter_by_length(df_pairs, min_length=60):
+        valid_pairs = []
+        for _, pair in df_pairs.iterrows():
+            # Calculate the length of both lines in the pair
+            length1 = np.sqrt((pair['line1']['X_end'] - pair['line1']['X_start'])**2 + 
+                              (pair['line1']['Y_end'] - pair['line1']['Y_start'])**2)
+            length2 = np.sqrt((pair['line2']['X_end'] - pair['line2']['X_start'])**2 + 
+                              (pair['line2']['Y_end'] - pair['line2']['Y_start'])**2)
+
+            # Check if both lines meet the minimum length requirement
+            if length1 >= min_length and length2 >= min_length:
+                valid_pairs.append(pair)
+
+        return pd.DataFrame(valid_pairs)
+
+    df_pairs = filter_by_length(df_pairs)
 
     # Step 3: Extract X and Y values for creating boxes
     def extract_other_x_and_y_start(df_pairs, target_x=9, tolerance=1e-6):
@@ -1138,7 +1126,6 @@ def process_single_walls_left(df, max_along_x, max_along_y, dxf_file, new_dxf_na
 
     create_box_from_df(df_extracted, width, height, dxf_file, new_dxf_name)
 
-
 # %%
 def process_single_walls_right(df, max_along_x, max_along_y, dxf_file, modified_dxf_file, width=12, height=9, variance_threshold=0.95, tolerance=1e-3):
     '''
@@ -1176,6 +1163,24 @@ def process_single_walls_right(df, max_along_x, max_along_y, dxf_file, modified_
 
     # Step 2: Extract matching line pairs
     df_pairs = extract_matching_line_pairs(df_filtered)
+
+    # Step 2.1: Filter pairs by line length (only proceed if length is 60 or more)
+    def filter_by_length(df_pairs, min_length=60):
+        valid_pairs = []
+        for _, pair in df_pairs.iterrows():
+            # Calculate the length of both lines in the pair
+            length1 = np.sqrt((pair['line1']['X_end'] - pair['line1']['X_start'])**2 + 
+                              (pair['line1']['Y_end'] - pair['line1']['Y_start'])**2)
+            length2 = np.sqrt((pair['line2']['X_end'] - pair['line2']['X_start'])**2 + 
+                              (pair['line2']['Y_end'] - pair['line2']['Y_start'])**2)
+
+            # Check if both lines meet the minimum length requirement
+            if length1 >= min_length and length2 >= min_length:
+                valid_pairs.append(pair)
+
+        return pd.DataFrame(valid_pairs)
+
+    df_pairs = filter_by_length(df_pairs)
 
     # Step 3: Extract other X and Y coordinates for right-side walls
     def extract_other_x_and_y_start_right(df_pairs, max_along_x, tolerance=1e-6):
@@ -1273,12 +1278,6 @@ def process_single_walls_right(df, max_along_x, max_along_y, dxf_file, modified_
 
     create_box_from_df_extracted_right(df_extracted_right, width, height, dxf_file, modified_dxf_file)
 
-
-# %%
-import numpy as np
-import pandas as pd
-from sklearn.decomposition import PCA
-import ezdxf
 
 def filter_vertical_lines_by_pca(df, max_along_y, min_y=9, variance_threshold=0.95, tolerance=1e-6):
     if df.empty:
@@ -1408,13 +1407,7 @@ def single_wall_up(df, max_along_x, max_along_y, input_dxf_file, output_dxf_file
     df_paired_lines, y_coor_up, x_coor_up = pair_lines_by_x_difference(df_extracted_lines, df_filtered_vertical, max_along_y=max_along_y)
     create_boxes_on_dxf(input_dxf_file, output_dxf_file, x_coor_up, y_coor_up)
 
-# %% [markdown]
-# # For all inner columns
 
-# %%
-import numpy as np
-import pandas as pd
-from sklearn.decomposition import PCA
 
 def filter_lines_by_pca(df, max_along_x, max_along_y, variance_threshold=0.95, tolerance=1):
     '''
@@ -1775,40 +1768,21 @@ def semi_main_columns(df1, max_along_x, max_along_y):
         "temp_v": temp_v
     }
 
-# %%
-import ezdxf
-import math
-
-def create_boxes_in_df_x_equal(df_x_equal, temp_v, temp_h, input_dxf_file, output_dxf_file, width=9, height=12, tolerance_v=0.5, tolerance_h=0.5, tolerance_y=0.1, buffer=24, radius=12):
+def create_boxes_in_df_x_equal(df_x_equal, temp_v, input_dxf_file, output_dxf_file, width=9, height=12, tolerance_v=0.5, radius=12):
     """
-    Matches rows in `df_x_equal` against `temp_v` and `temp_h` with specified tolerance thresholds,
-    and draws boxes based on matched conditions. Modifies an input DXF file and saves an updated version.
-    
-    Parameters:
-    - df_x_equal (DataFrame): DataFrame containing X1, X2, Y1, Y2 columns for matching conditions.
-    - temp_v (DataFrame): DataFrame containing X_start, Y_start, Y_end for vertical alignment checking.
-    - temp_h (DataFrame): DataFrame containing X_start, X_end, Y_start for horizontal alignment checking.
-    - input_dxf_file (str): Path to the input DXF file.
-    - output_dxf_file (str): Path to save the output DXF file with added boxes.
-    - width (float): Width of the box to be drawn (default is 12).
-    - height (float): Height of the box to be drawn (default is 12).
-    - tolerance_v (float): Vertical tolerance for matching X coordinates.
-    - tolerance_h (float): Horizontal tolerance for matching Y coordinates.
-    - tolerance_y (float): Tolerance for matching Y coordinates with temp_h.
-    - buffer (float): Additional spacing around each box to avoid overlap (default is 24).
-    - radius (float): Minimum radius to avoid overlapping with nearby boxes.
+    Creates boxes in the DXF file based on matching conditions in df_x_equal and temp_v, and checks for overlapping.
     """
-    
     # Load the input DXF file
     doc = ezdxf.readfile(input_dxf_file)
     msp = doc.modelspace()
 
-    # To track created box positions and prevent overlapping
+    # Track created box positions to prevent overlapping
     created_boxes = []
 
     for idx, row in df_x_equal.iterrows():
         X1, X2, Y1, Y2 = row['X1'], row['X2'], row['Y1'], row.get('Y2', None)
         match_found = False
+        box_points = []
 
         # Step 1: Check X1 +5 and X1 +9 matches in `temp_v`
         for offset in [5, 9]:
@@ -1816,6 +1790,14 @@ def create_boxes_in_df_x_equal(df_x_equal, temp_v, temp_h, input_dxf_file, outpu
                 X_start_temp = temp_v_row['X_start']
                 if abs((X1 + offset) - X_start_temp) <= tolerance_v:
                     match_found = True
+                    Y = min(Y1, Y2)
+                    X = X1
+                    box_points = [
+                        (X, Y),
+                        (X + width, Y),
+                        (X + width, Y + height),
+                        (X, Y + height)
+                    ]
                     break
             if match_found:
                 break
@@ -1827,21 +1809,21 @@ def create_boxes_in_df_x_equal(df_x_equal, temp_v, temp_h, input_dxf_file, outpu
                     X_start_temp = temp_v_row['X_start']
                     if abs((X1 + offset) - X_start_temp) <= tolerance_v:
                         match_found = True
+                        Y = min(Y1, Y2)
+                        X = X1
+                        box_points = [
+                            (X, Y),
+                            (X - width, Y),
+                            (X - width, Y + height),
+                            (X, Y + height)
+                        ]
                         break
                 if match_found:
                     break
 
         # Only create the box if a match was found and no overlapping occurs
-        if match_found:
-            Y = min(Y1, Y2)
-            X = X1
-            center_point = (X + width / 2, Y + height / 2)
-            box_points = [
-                (X, Y),
-                (X + width, Y),
-                (X + width, Y + height),
-                (X, Y + height)
-            ]
+        if match_found and box_points:
+            center_point = (box_points[0][0] + width / 2, box_points[0][1] + height / 2)
             
             # Check for nearby boxes within the radius
             too_close = False
@@ -1870,29 +1852,10 @@ def create_boxes_in_df_x_equal(df_x_equal, temp_v, temp_h, input_dxf_file, outpu
     doc.saveas(output_dxf_file)
 
 
-# %%
-import ezdxf
-import math
-
-def create_boxes_in_df_y_equal(input_dxf_path, output_dxf_path, df_y_equal, temp_h, temp_v, tolerance_h=0.5, tolerance_v=0.5, width=12, height=9, radius=12):
+def create_boxes_in_df_y_equal(input_dxf_path, output_dxf_path, df_y_equal, temp_h, tolerance_h=0.5, width=12, height=9, radius=12):
     """
-    Matches rows in `df_y_equal` against `temp_h` with specified tolerance thresholds,
-    and draws boxes based on matched conditions. Prevents overlapping boxes within
-    a specified radius and ensures no box is created if neither check is fulfilled.
-    
-    Parameters:
-    - input_dxf_path (str): Path to the input DXF file.
-    - output_dxf_path (str): Path to save the output DXF file with added boxes.
-    - df_y_equal (DataFrame): DataFrame containing Y1, X1, X2 columns for matching conditions.
-    - temp_h (DataFrame): DataFrame containing Y_start for horizontal alignment checking.
-    - temp_v (DataFrame): DataFrame containing X_start, Y_start, Y_end for vertical alignment checking.
-    - tolerance_h (float): Horizontal tolerance for matching Y coordinates.
-    - tolerance_v (float): Vertical tolerance for matching X coordinates.
-    - width (float): Width of the box to be drawn (default is 12).
-    - height (float): Height of the box to be drawn (default is 12).
-    - radius (float): Minimum radius to avoid overlapping with nearby boxes.
+    Creates boxes in the DXF file based on matching conditions in df_y_equal and temp_h, and prevents overlapping.
     """
-    
     # Open the input DXF file
     doc = ezdxf.readfile(input_dxf_path)
     msp = doc.modelspace()
@@ -1904,39 +1867,48 @@ def create_boxes_in_df_y_equal(input_dxf_path, output_dxf_path, df_y_equal, temp
     for idx, row in df_y_equal.iterrows():
         Y1, X1, X2 = row['Y1'], row['X1'], row['X2']
         match_found = False
+        box_points = []
 
-        # First check: matches in temp_h for Y1 + 5 and Y1 + 9 within tolerance
+        # Check Y1 +5 and Y1 +9 for matches in `temp_h`
         for offset in [5, 9]:
             for _, temp_h_row in temp_h.iterrows():
                 Y_start_temp = temp_h_row['Y_start']
                 if abs((Y1 + offset) - Y_start_temp) <= tolerance_h:
                     match_found = True
+                    X = min(X1, X2)
+                    Y = Y1
+                    box_points = [
+                        (X, Y),
+                        (X + width, Y),
+                        (X + width, Y + height),
+                        (X, Y + height)
+                    ]
                     break
             if match_found:
                 break
 
-        # Second check: matches in temp_h for Y1 - 5 and Y1 - 9 within tolerance, if no match found
+        # Check Y1 -5 and Y1 -9 for matches in `temp_h` if no match was found in the positive offset check
         if not match_found:
             for offset in [-5, -9]:
                 for _, temp_h_row in temp_h.iterrows():
                     Y_start_temp = temp_h_row['Y_start']
                     if abs((Y1 + offset) - Y_start_temp) <= tolerance_h:
                         match_found = True
+                        X = min(X1, X2)
+                        Y = Y1
+                        box_points = [
+                            (X, Y),
+                            (X + width, Y),
+                            (X + width, Y - height),
+                            (X, Y - height)
+                        ]
                         break
                 if match_found:
                     break
 
         # Only create the box if a match was found and no overlapping occurs
-        if match_found:
-            X = min(X1, X2)
-            Y = Y1
-            center_point = (X + width / 2, Y + height / 2)
-            box_points = [
-                (X, Y),
-                (X + width, Y),
-                (X + width, Y + height),
-                (X, Y + height)
-            ]
+        if match_found and box_points:
+            center_point = (box_points[0][0] + width / 2, box_points[0][1] + height / 2)
             
             # Check for overlap with existing boxes within a radius of 12 units
             too_close = False
@@ -1952,14 +1924,7 @@ def create_boxes_in_df_y_equal(input_dxf_path, output_dxf_path, df_y_equal, temp
 
             if not too_close:
                 # Add the box to the DXF file
-                points = [
-                    (X, Y),
-                    (X + width, Y),
-                    (X + width, Y + height),
-                    (X, Y + height),
-                    (X, Y)  # Closing the loop for polyline
-                ]
-                
+                points = box_points + [box_points[0]]  # Closing the loop for polyline
                 msp.add_lwpolyline(points, close=True)
                 
                 hatch = msp.add_hatch(color=1)  # Red color
@@ -2001,8 +1966,6 @@ def group_by_x(df_other):
     return df_other_groupA, df_other_groupB
 
 
-# %%
-from math import sqrt
 
 def create_boxes_in_df_other_groupA(df_other_groupA, width, height, input_dxf_file, output_dxf_file):
     """
@@ -2065,8 +2028,6 @@ def create_boxes_in_df_other_groupA(df_other_groupA, width, height, input_dxf_fi
     doc.saveas(output_dxf_file)
 
 
-# %%
-import math
 
 def create_boxes_in_df_other_groupB(df_other_groupB, width, height, input_dxf_file, output_dxf_file):
     """
@@ -2212,6 +2173,68 @@ def add_mtext(msp, text, position, height=1, color=7):
 
 
 # %%
+def detect_and_remove_overlapping_columns(dxf_file_path, output_file_path, tolerance=5):
+    # Open the DXF file
+    doc = ezdxf.readfile(dxf_file_path)
+    msp = doc.modelspace()
+
+    # Initializing lists to store box properties
+    column_names = []
+    x_centers = []
+    y_centers = []
+    lengths = []
+    widths = []
+    entities = []  # Store entity references for deletion
+
+    # Collect all labels that start with "C" (e.g., "C1", "C2", etc.)
+    for entity in msp.query('MTEXT TEXT'):
+        if entity.dxftype() in ['MTEXT', 'TEXT']:
+            label = entity.dxf.text.strip()
+            if label.startswith('C'):
+                column_names.append(label)
+                entities.append(entity)  # Save entity reference
+                
+                # Assuming `entity.dxf.insert` represents the starting point
+                start_x, start_y = entity.dxf.insert.x, entity.dxf.insert.y
+
+                # Define corners for the box based on start point
+                p1 = (start_x, start_y)
+                p2 = (p1[0] + 12, p1[1])   # Default box width of 12
+                p3 = (p2[0], p1[1] - 9)    # Default box height of 9
+                p4 = (p1[0], p3[1])
+
+                # Calculate the center of the box
+                x_center = (p1[0] + p3[0]) / 2
+                y_center = (p1[1] + p3[1]) / 2
+                x_centers.append(x_center)
+                y_centers.append(y_center)
+                lengths.append(abs(p2[0] - p1[0]))
+                widths.append(abs(p1[1] - p3[1]))
+
+    # Create a DataFrame with the box properties
+    df = pd.DataFrame({
+        'Column': column_names,
+        'X Center': x_centers,
+        'Y Center': y_centers,
+        'Width': lengths,
+        'Height': widths,
+        'Entity': entities  # Store entity reference for deletion
+    })
+
+    # Detect and remove overlapping boxes
+    to_remove = set()
+    for i, (x1, y1, name1, entity1) in df[['X Center', 'Y Center', 'Column', 'Entity']].iterrows():
+        for j, (x2, y2, name2, entity2) in df[['X Center', 'Y Center', 'Column', 'Entity']].iterrows():
+            if i < j and j not in to_remove:  # Avoid duplicate pairs and self-comparison
+                if abs(x1 - x2) <= tolerance and abs(y1 - y2) <= tolerance:
+                    # Mark the second box (entity2) for removal
+                    to_remove.add(j)
+                    msp.delete_entity(entity2)
+
+    # Save the modified DXF file
+    doc.saveas(output_file_path)
+
+# %%
 def create_column_schedule_dataframe(filename, max_along_x, max_along_y):
     """
     Creates a DataFrame for 'Schedule of Column at Ground Floor' with column names,
@@ -2309,8 +2332,8 @@ def change_line_color_to_light_gray(filename, output_dxf):
         print(f"Invalid or corrupt DXF file: {filename}")
         return
 
-    # Set the light gray color using RGB values (240, 240, 240)
-    R, G, B = 240, 240, 240
+    # Set the light gray color using RGB values 
+    R, G, B = 128, 128, 128
     light_gray_color = (R << 16) | (G << 8) | B  # Convert RGB to a single integer
 
     # Modify the color of all lines in the modelspace
@@ -2405,10 +2428,6 @@ def extract_columns(filename):
 
     return C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col
 
-# %%
-import pandas as pd
-import ezdxf
-import math
 
 def calculate_edges(entity):
     points = entity.get_points('xy') if entity.dxftype() == 'LWPOLYLINE' else [vertex.dxf.location for vertex in entity.vertices]
@@ -2485,11 +2504,7 @@ def connect_edges_vertically_boundary_1(input_file, output_dxf, aligned_boxes_df
 
 
 # %%
-import pandas as pd
-import ezdxf
-import math
-
-def connect_edges_horizontally_boundary_2(input_file, output_dxf, aligned_boxes_df, beam_count, beam_info_df):
+def connect_edges_horizontally_boundary_2(input_file, output_dxf, max_along_y, aligned_boxes_df, beam_count, beam_info_df):
     """
     Connect horizontally aligned boxes by drawing green lines between their edge points and labeling pairs.
 
@@ -2534,17 +2549,22 @@ def connect_edges_horizontally_boundary_2(input_file, output_dxf, aligned_boxes_
         label_right = aligned_boxes_df.iloc[i + 1, 0]
         right_edge_left_box = box_edges[label_left]['right']
         left_edge_right_box = box_edges[label_right]['left']
-        y_coord = right_edge_left_box[1]
         beam_length = abs(left_edge_right_box[0] - right_edge_left_box[0])
 
-        # Draw the connecting lines
-        line1 = msp.add_line((right_edge_left_box[0], y_coord), (left_edge_right_box[0], y_coord), dxfattribs={'color': 3})
-        right_edge_left_box_offset = (right_edge_left_box[0], y_coord + height)
-        left_edge_right_box_offset = (left_edge_right_box[0], y_coord + height)
-        line2 = msp.add_line(right_edge_left_box_offset, left_edge_right_box_offset, dxfattribs={'color': 3})
+        # Draw the connecting lines with adjusted y-coordinates
+        line1 = msp.add_line(
+            (right_edge_left_box[0], max_along_y),
+            (left_edge_right_box[0], max_along_y),
+            dxfattribs={'color': 3}
+        )
+        line2 = msp.add_line(
+            (right_edge_left_box[0], max_along_y - 9),
+            (left_edge_right_box[0], max_along_y - 9),
+            dxfattribs={'color': 3}
+        )
 
         midpoint_x = (right_edge_left_box[0] + left_edge_right_box[0]) / 2
-        midpoint_y = y_coord + height
+        midpoint_y = max_along_y - 9
         label_text = f"B{label_counter}"
 
         text_entity = msp.add_text(label_text, dxfattribs={'color': 2, 'height': 0.5})
@@ -2560,10 +2580,6 @@ def connect_edges_horizontally_boundary_2(input_file, output_dxf, aligned_boxes_
     doc.saveas(output_dxf)
     return label_counter, beam_info_df
 
-
-# %%
-import pandas as pd
-import ezdxf
 
 def connect_edges_vertically_boundary_3(filename, output_dxf, aligned_boxes_df, beam_count, beam_info_df):
     """
@@ -2640,28 +2656,7 @@ def connect_edges_vertically_boundary_3(filename, output_dxf, aligned_boxes_df, 
     return label_counter, beam_info_df
 
 
-# %%
-import pandas as pd
-import ezdxf
-
 def check_horizontal_alignment_boundary_1(filename, max_along_x, C1_ver_col, beam_count, tolerance=15, output_filename=None, beam_info_df=None):
-    """
-    Check horizontally aligned boxes and verify if any pair of parallel horizontal lines connect specific boxes.
-    If a pair is found, draw green parallel horizontal lines on the DXF, label them, and update beam_count.
-
-    Parameters:
-        filename (str): The path to the input DXF file.
-        max_along_x (int or float): The maximum x-coordinate to limit the search range.
-        C1_ver_col (pd.DataFrame): DataFrame containing box coordinates and labels.
-        beam_count (int): Initial beam count for labeling pairs of parallel lines.
-        tolerance (int or float): The allowable deviation in y-coordinates for horizontal alignment.
-        output_filename (str, optional): The name of the output DXF file with green lines added.
-        beam_info_df (pd.DataFrame): DataFrame to store beam names and lengths.
-
-    Returns:
-        int: Updated beam count after labeling all detected pairs of parallel lines.
-        pd.DataFrame: Updated beam_info_df with new rows for each beam.
-    """
     try:
         # Read the DXF file
         doc = ezdxf.readfile(filename)
@@ -2704,7 +2699,7 @@ def check_horizontal_alignment_boundary_1(filename, max_along_x, C1_ver_col, bea
                 continue  # Skip comparing the box with itself
 
             # Check if aligned within the x-range and y-tolerance
-            if abs(center[1] - current_center[1]) <= tolerance and current_center[0] < center[0] <= max_along_x - 24:
+            if abs(center[1] - current_center[1]) <= tolerance and current_center[0] < center[0] <= max_along_x:
                 aligned_boxes.append((label, center[0]))  # Store label and x-coordinate for sorting
 
         # Sort aligned boxes by x-coordinate for left-to-right order
@@ -2718,89 +2713,50 @@ def check_horizontal_alignment_boundary_1(filename, max_along_x, C1_ver_col, bea
 
     # Convert to DataFrame
     Boundary_1_connection = pd.DataFrame(alignment_data)
-    
-    # Detect a single horizontal line between selected box pairs and search for a parallel line
+
+    # Detect a single horizontal line between selected box pairs and search for parallel lines
     for index, row in Boundary_1_connection.iterrows():
         boundary_box = row['Boundary column']
         if row['Horizontal aligned column']:
-            target_box = row['Horizontal aligned column'][0]  # Get the first aligned box
-            
-            if boundary_box in centers:
-                midpoint_y = centers[boundary_box][1]  # Y coordinate of the boundary box's midpoint
-                line_found = False
-                first_line_y = None
-                first_line_x_min = None
-                first_line_x_max = None
+            x_start = centers[boundary_box][0]
+            y_center = centers[boundary_box][1]
 
-                # Search for a single horizontal line that matches criteria
-                for entity in msp:
-                    if entity.dxftype() == 'LINE':
-                        x_start, y_start = entity.dxf.start.x, entity.dxf.start.y
-                        x_end, y_end = entity.dxf.end.x, entity.dxf.end.y
+            # Iterate over each aligned box, sketching lines to each in sequence
+            for target_label in row['Horizontal aligned column']:
+                target_x = centers[target_label][0]
 
-                        # Ensure the line is horizontal and check with tolerance
-                        if abs(y_start - y_end) <= 0.01:
-                            x_min, x_max = min(x_start, x_end), max(x_start, x_end)
-                            y_coord = y_start  # since y_start == y_end for a horizontal line
+                # Draw first horizontal line
+                msp.add_line((x_start, y_center), (target_x, y_center), dxfattribs={'color': 3})
+                # Draw second parallel horizontal line offset by 5 units vertically
+                msp.add_line((x_start, y_center + 5), (target_x, y_center + 5), dxfattribs={'color': 3})
 
-                            # Check if the Y is within tolerance of midpoint_y
-                            if abs(y_coord - midpoint_y) <= 10:
-                                # Confirm the X range overlaps the expected position (around 9 ± 1)
-                                if (abs(x_min - 9) <= 1 or abs(x_max - 9) <= 1):
-                                    line_found = True
-                                    first_line_y = y_coord
-                                    first_line_x_min, first_line_x_max = x_min, x_max
-                                    break
-                                  
-                # If a first line was detected, search for the second parallel line
-                if line_found and first_line_y is not None:
-                    parallel_line_found = False
-                    for entity in msp:
-                        if entity.dxftype() == 'LINE':
-                            x_start, y_start = entity.dxf.start.x, entity.dxf.start.y
-                            x_end, y_end = entity.dxf.end.x, entity.dxf.end.y
+                # Label the beam with the current beam count
+                beam_label = f"B{beam_count}"
+                label_x = (x_start + target_x) / 2
+                label_y = y_center + 7  # Adjust this value to position the label
 
-                            # Ensure the line is horizontal
-                            if abs(y_start - y_end) <= 0.01:
-                                x_min, x_max = min(x_start, x_end), max(x_start, x_end)
-                                y_coord = y_start  # since y_start == y_end for a horizontal line
+                msp.add_text(
+                    beam_label, 
+                    dxfattribs={'height': 2.5, 'color': 3}
+                ).set_dxf_attrib("insert", (label_x, label_y))
 
-                                # Check for parallel conditions: X around 9 ± 1, Y difference of 5 or 9 with ±0.5 tolerance
-                                if (abs(x_min - 9) <= 1 or abs(x_max - 9) <= 1) and \
-                                   (abs(y_coord - first_line_y - 5) <= 0.5 or abs(y_coord - first_line_y - 9) <= 0.5):
-                                    parallel_line_found = True
-        
-                                    # Draw the green parallel lines and add labels
-                                    msp.add_line((first_line_x_min, first_line_y), (first_line_x_max, first_line_y), dxfattribs={'color': 3})
-                                    msp.add_line((x_min, y_coord), (x_max, y_coord), dxfattribs={'color': 3})
+                # Append the beam information to beam_info_df
+                beam_info_df = pd.concat([beam_info_df, pd.DataFrame([[beam_label, abs(target_x - x_start)]], columns=['beam names', 'length'])], ignore_index=True)
 
-                                   # Label the beam with the current beam count
-                                    beam_label = f"B{beam_count}"
-                                    label_x = (first_line_x_min + first_line_x_max) / 2
-                                    label_y = (first_line_y + y_coord) / 2
+                # Increment the beam count for the next pair
+                beam_count += 1
 
-                                    offset_y = 7  # Adjust this value to shift the text vertically
+                # Move x_start 10 units further for the next segment
+                x_start = target_x + 3
 
-                                    msp.add_text(
-                                        beam_label, 
-                                        dxfattribs={'height': 2.5, 'color': 3}
-                                    ).set_dxf_attrib("insert", (label_x, label_y + offset_y))
-
-                                    # Use pd.concat to update beam_info_df
-                                    new_row = pd.DataFrame([[beam_label, abs(first_line_x_max - first_line_x_min)]], columns=['beam names', 'length'])
-                                    beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-
-                                    # Increment the beam count for the next pair
-                                    beam_count += 1
-                                    break
-                    if not parallel_line_found:
-                        pass
+                # Stop drawing lines if we reach or exceed max_along_x
+                if x_start >= max_along_x:
+                    break
 
     # Save the modified DXF with added green lines and labels
     doc.saveas(output_filename)
     
     return beam_count, beam_info_df
-
 
 # %%
 def check_vertical_alignment_boundary_2(filename, C2_hor_col, max_along_y, beam_count, tolerance=15, output_filename=None, beam_info_df=None):
@@ -2891,7 +2847,9 @@ def check_vertical_alignment_boundary_2(filename, C2_hor_col, max_along_y, beam_
                 
                 # Add the new beam information to the DataFrame
                 beam_length = max_y - min_y  # Calculate the length of the beam (the vertical line length)
-                new_row = pd.DataFrame([[beam_label,beam_length]], columns = ['beam names', 'length'])
+                # new_row = {'beam names': beam_label, 'length': beam_length}
+                new_row = pd.DataFrame([[beam_label, beam_length]], columns=['beam names', 'length'])
+                #beam_info_df = beam_info_df.append(new_row, ignore_index=True)
                 beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
 
                 # Increment beam count
@@ -2905,10 +2863,10 @@ def check_vertical_alignment_boundary_2(filename, C2_hor_col, max_along_y, beam_
 
 
 # %%
-def check_horizontal_alignment_boundary_3(filename, max_along_x, C3_ver_col, beam_count, output_filename, beam_info_df, tolerance=10): 
+def check_horizontal_alignment_boundary_3(filename, max_along_x, C3_ver_col, beam_count, output_filename, beam_info_df, tolerance=10):
     """
     Check horizontally aligned boxes and verify if any pair of parallel horizontal lines connect specific boxes.
-    If a pair is found, draw green parallel horizontal lines on the DXF, label them, and update beam_count.
+    If a pair is found, check for an existing green line. If not present, draw green parallel horizontal lines on the DXF, label them, and update beam_count.
 
     Parameters:
         filename (str): The path to the input DXF file.
@@ -2964,7 +2922,7 @@ def check_horizontal_alignment_boundary_3(filename, max_along_x, C3_ver_col, bea
                 continue  # Skip comparing the box with itself
 
             # Check if aligned within the x-range and y-tolerance
-            if abs(center[1] - current_center[1]) <= tolerance and 24 < center[0] <= max_along_x - 24:
+            if abs(center[1] - current_center[1]) <= tolerance and 0 < center[0] <= max_along_x - 24:
                 aligned_boxes.append((label, center[0]))  # Store label and x-coordinate for sorting
 
         # Sort aligned boxes by x-coordinate for right-to-left order
@@ -2979,99 +2937,92 @@ def check_horizontal_alignment_boundary_3(filename, max_along_x, C3_ver_col, bea
     # Convert to DataFrame
     Boundary_3_connection = pd.DataFrame(alignment_data)
 
-    # Detect a single horizontal line between selected box pairs and search for a parallel line
+    # Detect and draw green parallel lines between consecutive boundary boxes
     for index, row in Boundary_3_connection.iterrows():
         boundary_box = row['Boundary column']
-        if row['Horizontal aligned column']:
-            target_box = row['Horizontal aligned column'][0]  # Get the first aligned box
+        aligned_boxes = row['Horizontal aligned column']
 
-            if boundary_box in centers:
-                midpoint_y = centers[boundary_box][1]  # Y coordinate of the boundary box's midpoint
-                line_found = False
-                first_line_y = None
-                first_line_x_min = None
-                first_line_x_max = None
+        if aligned_boxes:
+            # Iterate through each aligned pair, drawing green parallel lines if they do not already exist
+            for next_box in aligned_boxes:
+                if boundary_box in centers and next_box in centers:
+                    x_min = min(centers[boundary_box][0], centers[next_box][0])
+                    x_max = max(centers[boundary_box][0], centers[next_box][0])
+                    y_center = centers[boundary_box][1]
 
-                # Search for a single horizontal line that matches criteria
-                for entity in msp:
-                    if entity.dxftype() == 'LINE':
-                        x_start, y_start = entity.dxf.start.x, entity.dxf.start.y
-                        x_end, y_end = entity.dxf.end.x, entity.dxf.end.y
+                    # Check if a green line already exists in this range
+                    green_line_exists = False
+                    for entity in msp.query('LINE[color==3]'):
+                        existing_x_start = min(entity.dxf.start.x, entity.dxf.end.x)
+                        existing_x_end = max(entity.dxf.start.x, entity.dxf.end.x)
+                        existing_y = entity.dxf.start.y  # Since it is horizontal, y is the same for start and end
 
-                        # Ensure the line is horizontal and check with tolerance
-                        if abs(y_start - y_end) <= 0.01:
-                            x_min, x_max = min(x_start, x_end), max(x_start, x_end)
-                            y_coord = y_start  # since y_start == y_end for a horizontal line
+                        # Check x-range and y-coordinate with tolerance
+                        if (existing_x_start <= x_min and existing_x_end >= x_max) and \
+                           (y_center - tolerance <= existing_y <= y_center + tolerance):
+                            green_line_exists = True
+                            break
 
-                            # Check if the Y is within tolerance of midpoint_y
-                            if abs(y_coord - midpoint_y) <= 10:
-                                if (abs(x_min - (max_along_x - 9)) <= 1 or abs(x_max - (max_along_x - 9)) <= 1):
-                                    line_found = True
-                                    first_line_y = y_coord
-                                    first_line_x_min, first_line_x_max = x_min, x_max
-        
-                                    break
+                    # If no green line exists, add a pair of parallel green lines
+                    if not green_line_exists:
+                        # Draw the first green line
+                        msp.add_line((x_min, y_center), (x_max, y_center), dxfattribs={'color': 3})
+                        # Draw the second green line 5 units below
+                        msp.add_line((x_min, y_center - 5), (x_max, y_center - 5), dxfattribs={'color': 3})
 
-                # If a first line was detected, search for the second parallel line
-                if line_found and first_line_y is not None:
-                    parallel_line_found = False  # Initialize here to avoid UnboundLocalError
-                    for entity in msp:
-                        if entity.dxftype() == 'LINE':
-                            x_start, y_start = entity.dxf.start.x, entity.dxf.start.y
-                            x_end, y_end = entity.dxf.end.x, entity.dxf.end.y
+                        # Label the beam with the current beam count
+                        beam_label = f"B{beam_count}"
+                        label_x = (x_min + x_max) / 2
+                        label_y = y_center + 7  # Offset for visibility
 
-                            # Ensure the line is horizontal
-                            if abs(y_start - y_end) <= 0.01:
-                                x_min, x_max = min(x_start, x_end), max(x_start, x_end)
-                                y_coord = y_start  # since y_start == y_end for a horizontal line
+                        # Create the text label with the desired attributes and position
+                        text_entity = msp.add_text(beam_label, dxfattribs={'color': 2, 'height': 0.5})
+                        text_entity.dxf.insert = (label_x, label_y)
+                        text_entity.dxf.rotation = 90
 
-                                # Check for parallel conditions: X around (max_along_x - 9) ±1, Y difference of 5 or 9 with ±1 tolerance
-                                if (abs(x_start - (max_along_x - 9)) <= 1 or abs(x_end - (max_along_x - 9)) <= 1) and \
-                                   (abs(y_coord - first_line_y - 5) <= 1 or abs(y_coord - first_line_y - 9) <= 1):
-                                    parallel_line_found = True
-    
+                        # Increment the beam count for the next pair
+                        beam_count += 1
 
-                                    # Draw the green parallel lines and add labels
-                                    msp.add_line((first_line_x_min, first_line_y), (first_line_x_max, first_line_y), dxfattribs={'color': 3})
-                                    msp.add_line((x_min, y_coord), (x_max, y_coord), dxfattribs={'color': 3})
+                        # Add beam information to the DataFrame
+                        length = x_max - x_min  # Calculate the length of the beam (horizontal line)
+                        beam_info_df = pd.concat([beam_info_df, pd.DataFrame([{
+                            'beam names': beam_label,
+                            'length': length
+                        }])], ignore_index=True)
 
-                                    # Label the beam with the current beam count
-                                    beam_label = f"B{beam_count}"
-                                    label_x = (first_line_x_min + first_line_x_max) / 2
-                                    label_y = (first_line_y + y_coord) / 2
+                    # Update boundary_box to be the next aligned box in the sequence
+                    boundary_box = next_box
 
-                                    # Create the text label with the desired attributes and position
-                                    text_entity = msp.add_text(beam_label, dxfattribs={'color': 2, 'height': 0.5})
-                                    text_entity.dxf.insert = (label_x, label_y + 7)  # Apply the offset to y-coordinate
-                                    text_entity.dxf.rotation = 90
+            # For the last aligned box, add green line from last aligned box to x=0
+            x_min = 0
+            x_max = centers[boundary_box][0]
+            y_center = centers[boundary_box][1]
 
-                                    # Increment the beam count for the next pair
-                                    beam_count += 1
+            # Check if a green line already exists in this range
+            green_line_exists = False
+            for entity in msp.query('LINE[color==3]'):
+                existing_x_start = min(entity.dxf.start.x, entity.dxf.end.x)
+                existing_x_end = max(entity.dxf.start.x, entity.dxf.end.x)
+                existing_y = entity.dxf.start.y  # Since it is horizontal, y is the same for start and end
 
-                                    # Add beam information to the DataFrame
-                                    length = x_max - x_min  # Calculate the length of the beam (horizontal line)
-                                    beam_info_df = pd.concat([beam_info_df, pd.DataFrame([{
-                                        'beam names': beam_label,
-                                        'length': length
-                                    }])], ignore_index=True)
+                # Check x-range and y-coordinate with tolerance of 15
+                if (existing_x_start <= x_min and existing_x_end >= x_max) and \
+                   (y_center - 15 <= existing_y <= y_center + 15):
+                    green_line_exists = True
+                    break
 
-                                    break
+            # If no green line exists, add the pair of parallel green lines
+            if not green_line_exists:
+                msp.add_line((x_min, y_center), (x_max, y_center), dxfattribs={'color': 3})
+                msp.add_line((x_min, y_center - 5), (x_max, y_center - 5), dxfattribs={'color': 3})
 
-                if not parallel_line_found:
-                    pass
-                
     # Save the modified DXF with added green lines and labels
     doc.saveas(output_filename)
     
-    
-    # Return the updated beam_count and the updated beam_info_df
     return beam_count, beam_info_df
 
 
-# %%
-import pandas as pd
-from math import sqrt
-import ezdxf
+
 
 def check_vertical_alignment_boundary_4(filename, C4_hor_col, max_along_y, beam_count, beam_info_df, tolerance=15, output_filename=None):
     """
@@ -3179,7 +3130,7 @@ def check_vertical_alignment_boundary_4(filename, C4_hor_col, max_along_y, beam_
                             'color': 2,  # Optional: specify a different color for the text
                             'height': 0.5  # Adjust text size as needed
                         })
-                        text_entity.dxf.insert = (midpoint_x - label_offset_x, midpoint_y)
+                        text_entity.dxf.insert = (midpoint_y - label_offset_y, midpoint_y)
                         text_entity.dxf.rotation = 90
                         
                         # Update beam_info_df with the new beam label and length using pd.concat
@@ -3196,11 +3147,6 @@ def check_vertical_alignment_boundary_4(filename, C4_hor_col, max_along_y, beam_
     
     return beam_count, beam_info_df
 
-
-# %% [markdown]
-# # Main function 
-
-# %%
 def pipeline_main(input_file, output_filename):
     """
     Main pipeline function to process a DXF file through multiple steps.
@@ -3212,7 +3158,7 @@ def pipeline_main(input_file, output_filename):
 
     # Define the number of intermediate files
     num_intermediates = 22
-    intermediate_files = [f'SMH_Single_Floor_DXF1.{i}.dxf' for i in range(num_intermediates + 1)]
+    intermediate_files = [f'SMH_DXF1.{i}.dxf' for i in range(num_intermediates + 1)]
 
     # Step 1: adjust dxf coordinates to zero
     adjust_dxf_coordinates_to00(input_file, intermediate_files[0])
@@ -3240,54 +3186,56 @@ def pipeline_main(input_file, output_filename):
     temp_h = pipeline_results['temp_h']
     temp_v = pipeline_results['temp_v']
 
-    create_boxes_in_df_x_equal(df_x_equal, temp_v, temp_h, intermediate_files[8], intermediate_files[9], width=9, height=12, tolerance_v=0.5, tolerance_h=0.5, tolerance_y=0.1, buffer=24, radius=84)
-    create_boxes_in_df_y_equal(intermediate_files[9], intermediate_files[10], df_y_equal, temp_h, temp_v, tolerance_h=0.5, tolerance_v=0.5, width=12, height=9,radius=84)
+    create_boxes_in_df_x_equal(df_x_equal, temp_v, intermediate_files[8], intermediate_files[9], width=9, height=12, tolerance_v=0.5, radius=84)
+    
+    create_boxes_in_df_y_equal(intermediate_files[9], intermediate_files[10], df_y_equal, temp_h, tolerance_h=0.5, width=12, height=9,radius=84)
     
     df_other_groupA, df_other_groupB = group_by_x(df_other)
     create_boxes_in_df_other_groupA(df_other_groupA, width=12, height=9, input_dxf_file=intermediate_files[10], output_dxf_file=intermediate_files[11])
     create_boxes_in_df_other_groupB(df_other_groupB, width=12, height=9, input_dxf_file=intermediate_files[11], output_dxf_file=intermediate_files[12])
 
     detect_and_label_boxes(intermediate_files[12], intermediate_files[13], label_position='right', offset=1, text_height=2, text_color=3, shift=0.5)
+    detect_and_remove_overlapping_columns(intermediate_files[13], intermediate_files[14])
     
-    column_info_df = create_column_schedule_dataframe(intermediate_files[13], max_along_x, max_along_y)
-    change_line_color_to_light_gray(intermediate_files[13], intermediate_files[14])
-    C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col = extract_columns(intermediate_files[14])
+    column_info_df = create_column_schedule_dataframe(intermediate_files[14], max_along_x, max_along_y)
+    change_line_color_to_light_gray(intermediate_files[14], intermediate_files[15])
+    C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col = extract_columns(intermediate_files[15])
 
     beam_count = 0
-    beam_count, beam_info_df = connect_edges_vertically_boundary_1(intermediate_files[14], intermediate_files[15], C1_ver_col, beam_count)
-    
-    beam_count, beam_info_df = connect_edges_horizontally_boundary_2(intermediate_files[15], intermediate_files[16], C2_hor_col, beam_count, beam_info_df)
-    beam_count, beam_info_df = connect_edges_vertically_boundary_3(intermediate_files[16], intermediate_files[17], C3_ver_col, beam_count, beam_info_df)
+    beam_count, beam_info_df = connect_edges_vertically_boundary_1(intermediate_files[15], intermediate_files[16], C1_ver_col, beam_count)
+
+    beam_count, beam_info_df = connect_edges_horizontally_boundary_2(intermediate_files[16], intermediate_files[17], max_along_y, C2_hor_col, beam_count, beam_info_df)
+    beam_count, beam_info_df = connect_edges_vertically_boundary_3(intermediate_files[17], intermediate_files[18], C3_ver_col, beam_count, beam_info_df)
     
     beam_count, beam_info_df = check_horizontal_alignment_boundary_1(
-        filename=intermediate_files[17],      
+        filename=intermediate_files[18],      
         max_along_x=max_along_x,              
         C1_ver_col=C1_ver_col,         
         beam_count=beam_count,       
         tolerance=15,                  
-        output_filename=intermediate_files[18],  
+        output_filename=intermediate_files[19],  
         beam_info_df=beam_info_df
     )
     beam_count, beam_info_df = check_vertical_alignment_boundary_2(
-        filename=intermediate_files[18],
+        filename=intermediate_files[19],
         C2_hor_col=C2_hor_col,
         max_along_y=max_along_y, 
         beam_count=beam_count, 
         tolerance=15, 
-        output_filename=intermediate_files[19], 
+        output_filename=intermediate_files[20], 
         beam_info_df=beam_info_df
     )
     beam_count, beam_info_df = check_horizontal_alignment_boundary_3(
-        filename=intermediate_files[19], 
+        filename=intermediate_files[20], 
         max_along_x=max_along_x, 
         C3_ver_col=C3_ver_col, 
         beam_count=beam_count, 
-        output_filename=intermediate_files[20], 
+        output_filename=intermediate_files[21], 
         beam_info_df=beam_info_df, 
         tolerance=15
     )
     beam_count, beam_info_df = check_vertical_alignment_boundary_4(
-        filename= intermediate_files[20], 
+        filename= intermediate_files[21], 
         C4_hor_col = C4_hor_col, 
         max_along_y = max_along_y, 
         beam_count=beam_count, 
@@ -3303,4 +3251,4 @@ def pipeline_main(input_file, output_filename):
 
 
 
-# %%
+
