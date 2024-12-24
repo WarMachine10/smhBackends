@@ -14,8 +14,3 @@ urlpatterns = [
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name ='token_refresh'),
     path('logout/', UserLogoutView.as_view(), name='logout'),  # New endpoint for logout
 ]
-
-
-
-
-

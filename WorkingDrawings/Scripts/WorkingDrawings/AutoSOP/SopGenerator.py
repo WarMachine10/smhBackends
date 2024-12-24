@@ -2247,11 +2247,8 @@ def process_dxf_file(input_path, output_path, temp_dir=None):
             'Layer_names': layer_list,
             'Number_overlapped_lines': overlapped_lines
         }
-        
         logger.info(f"DXF processing completed. Final file saved to {final_output_path}")
-        
         return final_dict, output_filename
-
     except Exception as e:
         logger.error(f"Error processing DXF file: {str(e)}")
         return None

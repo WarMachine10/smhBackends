@@ -17,7 +17,7 @@ ANSI_1252
   9
 $LASTSAVEDBY
   1
-Shruti
+Asus
   9
 $REQUIREDVERSIONS
 160
@@ -33,17 +33,17 @@ $INSBASE
   9
 $EXTMIN
  10
-21.3105313502258
+-740.1846150380533
  20
-5.384411280023299
+-35.85192509859485
  30
 0.0
   9
 $EXTMAX
  10
-384.3105313502256
+1491.973270247352
  20
-517.3844112800232
+670.6554082364155
  30
 0.0
   9
@@ -101,7 +101,7 @@ Standard
   9
 $CLAYER
   8
-0
+Entrance_Staircase
   9
 $CELTYPE
   6
@@ -157,7 +157,7 @@ $DIMTM
   9
 $DIMTXT
  40
-6.0
+0.18
   9
 $DIMCEN
  40
@@ -201,7 +201,7 @@ $DIMZIN
   9
 $DIMBLK
   1
-ArchTick
+
   9
 $DIMASO
  70
@@ -321,11 +321,11 @@ $DIMUPT
   9
 $DIMDEC
  70
-0
+4
   9
 $DIMTDEC
  70
-0
+4
   9
 $DIMALTU
  70
@@ -369,11 +369,11 @@ $DIMFRAC
   9
 $DIMLDRBLK
   1
-ArchTick
+
   9
 $DIMLUNIT
  70
-4
+2
   9
 $DIMLWD
  70
@@ -493,27 +493,27 @@ $SKPOLY
   9
 $TDCREATE
  40
-2460630.0035185185
+2460669.681064815
   9
 $TDUCREATE
  40
-2460608.260185185
+2460624.544988426
   9
 $TDUPDATE
  40
-2460630.0035185185
+2460669.681064815
   9
 $TDUUPDATE
  40
-2460626.579386574
+2460625.378171297
   9
 $TDINDWG
  40
-0.0059490741
+0.0835416667
   9
 $TDUSRTIMER
  40
-0.0059490741
+0.0835416667
   9
 $USRTIMER
  70
@@ -553,7 +553,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-534
+690
   9
 $SURFTAB1
  70
@@ -909,7 +909,7 @@ $LWDISPLAY
   9
 $INSUNITS
  70
-2
+1
   9
 $HYPERLINKBASE
   1
@@ -933,11 +933,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{3B72451C-397D-6541-865C-133637C98F6B}
+{E2AE8CAF-32AF-724D-A6C1-85E8000AF5EC}
   9
 $VERSIONGUID
   2
-{7A82DDF1-AB50-48B5-BB3F-AE1FD1022EF1}
+{0B964F53-F955-4330-A250-DA710D639094}
   9
 $EXTNAMES
 290
@@ -1247,7 +1247,7 @@ ObjectDBX Classes
  90
 1152
  91
-4
+2
 280
 0
 281
@@ -1367,22 +1367,6 @@ ObjectDBX Classes
   0
 CLASS
   1
-MULTILEADER
-  2
-AcDbMLeader
-  3
-ACDB_MLEADER_CLASS
- 90
-1025
- 91
-3
-280
-0
-281
-1
-  0
-CLASS
-  1
 SORTENTSTABLE
   2
 AcDbSortentsTable
@@ -1391,7 +1375,7 @@ ObjectDBX Classes
  90
 0
  91
-0
+12
 280
 0
 281
@@ -1447,9 +1431,9 @@ ISM
   0
 CLASS
   1
-ACDBPLACEHOLDER
+LAYOUT
   2
-AcDbPlaceHolder
+AcDbLayout
   3
 ObjectDBX Classes
  90
@@ -1463,9 +1447,9 @@ ObjectDBX Classes
   0
 CLASS
   1
-LAYOUT
+ACDBPLACEHOLDER
   2
-AcDbLayout
+AcDbPlaceHolder
   3
 ObjectDBX Classes
  90
@@ -1517,9 +1501,9 @@ AcDbViewportTableRecord
  21
 1.0
  12
-634.8681623760094
+675.6403652563826
  22
-296.437715967216
+215.4062022084659
  13
 0.0
  23
@@ -1545,9 +1529,9 @@ AcDbViewportTableRecord
  37
 0.0
  40
-2817.332184519351
+860.7676036777839
  41
-2.769565217391304
+2.617808219178082
  42
 50.0
  43
@@ -1569,7 +1553,7 @@ AcDbViewportTableRecord
  75
 0
  76
-0
+1
  77
 0
  78
@@ -1635,7 +1619,7 @@ LTYPE
 100
 AcDbSymbolTable
  70
-4
+3
   0
 LTYPE
   5
@@ -1703,92 +1687,6 @@ Solid line
  40
 0.0
   0
-LTYPE
-  5
-3CA
-330
-5
-100
-AcDbSymbolTableRecord
-100
-AcDbLinetypeTableRecord
-  2
-CENTER2
- 70
-0
-  3
-Center (.5x) ___ _ ___ _ ___ _ ___ _ ___ _ ___
- 72
-65
- 73
-4
- 40
-28.575
- 49
-19.05
- 74
-4
- 75
-0
-340
-0
- 46
-0.0
- 50
-0.0
- 44
-0.0
- 45
-0.0
- 49
--3.174999999999998
- 74
-4
- 75
-0
-340
-0
- 46
-0.0
- 50
-0.0
- 44
-0.0
- 45
-0.0
- 49
-3.174999999999998
- 74
-4
- 75
-0
-340
-0
- 46
-0.0
- 50
-0.0
- 44
-0.0
- 45
-0.0
- 49
--3.174999999999998
- 74
-4
- 75
-0
-340
-0
- 46
-0.0
- 50
-0.0
- 44
-0.0
- 45
-0.0
-  0
 ENDTAB
   0
 TABLE
@@ -1807,7 +1705,7 @@ LAYER
 100
 AcDbSymbolTable
  70
-25
+35
   0
 LAYER
   5
@@ -1843,7 +1741,7 @@ F
   0
 LAYER
   5
-3CB
+22E
 330
 2
 100
@@ -1879,187 +1777,7 @@ AcCmTransparency
   0
 LAYER
   5
-3CC
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-BedRoom1
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3CD
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-BathRoom1
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3CE
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-LivingRoom1
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3CF
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-WashArea
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3D0
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-Boundary
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3D1
+22F
 330
 2
 100
@@ -2095,115 +1813,7 @@ AcCmTransparency
   0
 LAYER
   5
-3D2
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-WashArea_Staircase
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3D3
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-DiningRoom
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3D4
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-Kitchen
- 70
-0
- 62
-7
-  6
-Continuous
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3D5
+230
 330
 2
 100
@@ -2239,7 +1849,7 @@ AcCmTransparency
   0
 LAYER
   5
-3D6
+231
 330
 2
 100
@@ -2247,7 +1857,7 @@ AcDbSymbolTableRecord
 100
 AcDbLayerTableRecord
   2
-PoojaRoom
+Entrance
  70
 0
  62
@@ -2275,7 +1885,43 @@ AcCmTransparency
   0
 LAYER
   5
-3D7
+232
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Entrance_wall
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+233
 330
 2
 100
@@ -2311,7 +1957,7 @@ AcCmTransparency
   0
 LAYER
   5
-3D8
+234
 330
 2
 100
@@ -2319,7 +1965,7 @@ AcDbSymbolTableRecord
 100
 AcDbLayerTableRecord
   2
-Door3fPanel
+Boundary
  70
 0
  62
@@ -2347,7 +1993,7 @@ AcCmTransparency
   0
 LAYER
   5
-3D9
+235
 330
 2
 100
@@ -2355,7 +2001,7 @@ AcDbSymbolTableRecord
 100
 AcDbLayerTableRecord
   2
-Door2.6fPanel
+Passage
  70
 0
  62
@@ -2383,7 +2029,7 @@ AcCmTransparency
   0
 LAYER
   5
-3DA
+236
 330
 2
 100
@@ -2391,7 +2037,7 @@ AcDbSymbolTableRecord
 100
 AcDbLayerTableRecord
   2
-Door4fPanel
+WashArea
  70
 0
  62
@@ -2419,7 +2065,7 @@ AcCmTransparency
   0
 LAYER
   5
-3DB
+237
 330
 2
 100
@@ -2427,7 +2073,7 @@ AcDbSymbolTableRecord
 100
 AcDbLayerTableRecord
   2
-Main_gate
+LivingRoom1
  70
 0
  62
@@ -2455,7 +2101,115 @@ AcCmTransparency
   0
 LAYER
   5
-3DC
+238
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Kitchen
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+239
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+OTS1
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+23A
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+OTS2
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+23B
 330
 2
 100
@@ -2491,7 +2245,7 @@ AcCmTransparency
   0
 LAYER
   5
-3DD
+23C
 330
 2
 100
@@ -2527,7 +2281,547 @@ AcCmTransparency
   0
 LAYER
   5
-3DE
+23D
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Foyer
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+23E
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Door3fPanel
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+23F
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Door2.6fPanel
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+240
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Door4fPanel
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+241
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+DinningRoom
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+242
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+BathRoom2a
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+243
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Terrace
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+244
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Balcony
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+245
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+LivingRoom2
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+246
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+BedRoom3a
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+247
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+BathRoom3a
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+248
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Main_gate
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+249
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+StoreRoom
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+24A
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+BathRoom3b
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+24B
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+BedRoom3b
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+F
+347
+98
+348
+0
+1001
+AcAecLayerStandard
+1000
+
+1000
+
+1001
+AcCmTransparency
+1071
+0
+  0
+LAYER
+  5
+5FF
 330
 2
 100
@@ -2563,7 +2857,7 @@ AcCmTransparency
   0
 LAYER
   5
-3DF
+600
 330
 2
 100
@@ -2599,45 +2893,7 @@ AcCmTransparency
   0
 LAYER
   5
-3E0
-330
-2
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-Shower
- 70
-0
- 62
-7
-  6
-Continuous
-290
-0
-370
--3
-390
-F
-347
-98
-348
-0
-1001
-AcAecLayerStandard
-1000
-
-1000
-
-1001
-AcCmTransparency
-1071
-0
-  0
-LAYER
-  5
-3E1
+601
 330
 2
 100
@@ -2673,7 +2929,7 @@ AcCmTransparency
   0
 LAYER
   5
-52A
+683
 330
 2
 100
@@ -2831,7 +3087,7 @@ APPID
 100
 AcDbSymbolTable
  70
-12
+13
   0
 APPID
   5
@@ -2933,21 +3189,7 @@ ACAD_NAV_VCDISPLAY
   0
 APPID
   5
-22E
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbRegAppTableRecord
-  2
-Acad_TC
- 70
-0
-  0
-APPID
-  5
-3E2
+24C
 330
 9
 100
@@ -2961,7 +3203,7 @@ AcAecLayerStandard
   0
 APPID
   5
-3E3
+24D
 330
 9
 100
@@ -2975,7 +3217,35 @@ AcCmTransparency
   0
 APPID
   5
-52B
+526
+330
+9
+100
+AcDbSymbolTableRecord
+100
+AcDbRegAppTableRecord
+  2
+ACAD_EXEMPT_FROM_CAD_STANDARDS
+ 70
+0
+  0
+APPID
+  5
+60D
+330
+9
+100
+AcDbSymbolTableRecord
+100
+AcDbRegAppTableRecord
+  2
+Acad_TC
+ 70
+0
+  0
+APPID
+  5
+684
 330
 9
 100
@@ -2989,7 +3259,7 @@ HATCHBACKGROUNDCOLOR
   0
 APPID
   5
-52C
+685
 330
 9
 100
@@ -3051,7 +3321,7 @@ Standard
  49
 2.5
 140
-6.0
+2.5
 141
 2.5
 142
@@ -3111,9 +3381,9 @@ Standard
 179
 2
 271
-0
+2
 272
-0
+2
 273
 2
 274
@@ -3123,7 +3393,7 @@ Standard
 276
 0
 277
-4
+2
 278
 44
 279
@@ -3150,26 +3420,10 @@ Standard
 0
 340
 11
-341
-230
-342
-230
 371
 -2
 372
 -2
-1001
-ACAD_DSTYLE_DIMJAG
-1070
-388
-1040
-1.5
-1001
-ACAD_DSTYLE_DIMTALN
-1070
-392
-1070
-0
   0
 DIMSTYLE
 105
@@ -3415,7 +3669,7 @@ AcDbBlockTableRecord
   0
 BLOCK_RECORD
   5
-230
+55D
 330
 1
 100
@@ -3435,7 +3689,7 @@ _ArchTick
   0
 BLOCK_RECORD
   5
-234
+561
 330
 1
 100
@@ -3455,7 +3709,7 @@ Toilet sheet
   0
 BLOCK_RECORD
   5
-259
+586
 330
 1
 100
@@ -3475,27 +3729,7 @@ WashBasin
   0
 BLOCK_RECORD
   5
-280
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-Shower
-340
-0
- 70
-2
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-378
+5AD
 330
 1
 100
@@ -3508,6 +3742,32 @@ Sink
 0
  70
 2
+280
+1
+281
+0
+  0
+BLOCK_RECORD
+  5
+663
+102
+{ACAD_XDICTIONARY
+360
+665
+102
+}
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+A$Cb8cb3795
+340
+0
+ 70
+1
 280
 1
 281
@@ -3645,9 +3905,9 @@ AcDbBlockEnd
   0
 BLOCK
   5
-232
+55E
 330
-230
+55D
 100
 AcDbEntity
   8
@@ -3671,9 +3931,9 @@ _ArchTick
   0
 LWPOLYLINE
   5
-231
+55F
 330
-230
+55D
 100
 AcDbEntity
   8
@@ -3701,9 +3961,9 @@ AcDbPolyline
   0
 ENDBLK
   5
-233
+560
 330
-230
+55D
 100
 AcDbEntity
   8
@@ -3713,9 +3973,9 @@ AcDbBlockEnd
   0
 BLOCK
   5
-235
+562
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3739,9 +3999,9 @@ Toilet sheet
   0
 ARC
   5
-236
+563
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3765,9 +4025,9 @@ AcDbArc
   0
 LINE
   5
-237
+564
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3789,9 +4049,9 @@ AcDbLine
   0
 ARC
   5
-238
+565
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3815,9 +4075,9 @@ AcDbArc
   0
 LINE
   5
-239
+566
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3839,9 +4099,9 @@ AcDbLine
   0
 ARC
   5
-23A
+567
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3865,9 +4125,9 @@ AcDbArc
   0
 LINE
   5
-23B
+568
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3889,9 +4149,9 @@ AcDbLine
   0
 ARC
   5
-23C
+569
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3915,9 +4175,9 @@ AcDbArc
   0
 LINE
   5
-23D
+56A
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3939,9 +4199,9 @@ AcDbLine
   0
 LINE
   5
-23E
+56B
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3963,9 +4223,9 @@ AcDbLine
   0
 LINE
   5
-23F
+56C
 330
-234
+561
 100
 AcDbEntity
   8
@@ -3975,21 +4235,21 @@ AcDbLine
  10
 0.0
  20
--3.463523380797792
+-3.463523380797791
  30
 0.0
  11
 4.635941795543629
  21
--3.463523380797792
+-3.463523380797791
  31
 0.0
   0
 LINE
   5
-240
+56D
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4011,9 +4271,9 @@ AcDbLine
   0
 ARC
   5
-241
+56E
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4037,9 +4297,9 @@ AcDbArc
   0
 LINE
   5
-242
+56F
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4061,9 +4321,9 @@ AcDbLine
   0
 LINE
   5
-243
+570
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4073,21 +4333,21 @@ AcDbLine
  10
 0.0
  20
--3.463523380797792
+-3.463523380797791
  30
 0.0
  11
 -4.635941795543601
  21
--3.463523380797792
+-3.463523380797791
  31
 0.0
   0
 LINE
   5
-244
+571
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4097,7 +4357,7 @@ AcDbLine
  10
 4.635941795543629
  20
--3.463523380797792
+-3.463523380797791
  30
 0.0
  11
@@ -4109,9 +4369,9 @@ AcDbLine
   0
 ARC
   5
-245
+572
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4135,9 +4395,9 @@ AcDbArc
   0
 LINE
   5
-246
+573
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4159,9 +4419,9 @@ AcDbLine
   0
 LINE
   5
-247
+574
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4177,15 +4437,15 @@ AcDbLine
  11
 2.813306654140884
  21
--3.463523380797792
+-3.463523380797791
  31
 0.0
   0
 LINE
   5
-248
+575
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4195,7 +4455,7 @@ AcDbLine
  10
 -4.635941795543601
  20
--3.463523380797792
+-3.463523380797791
  30
 0.0
  11
@@ -4207,9 +4467,9 @@ AcDbLine
   0
 ARC
   5
-249
+576
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4233,9 +4493,9 @@ AcDbArc
   0
 LINE
   5
-24A
+577
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4257,9 +4517,9 @@ AcDbLine
   0
 LINE
   5
-24B
+578
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4275,15 +4535,15 @@ AcDbLine
  11
 -2.813306654140858
  21
--3.463523380797792
+-3.463523380797791
  31
 0.0
   0
 ARC
   5
-24C
+579
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4307,9 +4567,9 @@ AcDbArc
   0
 LINE
   5
-24D
+57A
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4331,9 +4591,9 @@ AcDbLine
   0
 ARC
   5
-24E
+57B
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4357,9 +4617,9 @@ AcDbArc
   0
 LINE
   5
-24F
+57C
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4381,9 +4641,9 @@ AcDbLine
   0
 ARC
   5
-250
+57D
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4407,9 +4667,9 @@ AcDbArc
   0
 ARC
   5
-251
+57E
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4433,9 +4693,9 @@ AcDbArc
   0
 ARC
   5
-252
+57F
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4459,9 +4719,9 @@ AcDbArc
   0
 ARC
   5
-253
+580
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4485,9 +4745,9 @@ AcDbArc
   0
 ARC
   5
-254
+581
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4511,9 +4771,9 @@ AcDbArc
   0
 ARC
   5
-255
+582
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4537,9 +4797,9 @@ AcDbArc
   0
 ARC
   5
-256
+583
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4563,9 +4823,9 @@ AcDbArc
   0
 ARC
   5
-257
+584
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4589,9 +4849,9 @@ AcDbArc
   0
 ENDBLK
   5
-258
+585
 330
-234
+561
 100
 AcDbEntity
   8
@@ -4601,9 +4861,9 @@ AcDbBlockEnd
   0
 BLOCK
   5
-25A
+587
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4627,9 +4887,9 @@ WashBasin
   0
 ARC
   5
-25B
+588
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4657,9 +4917,9 @@ AcDbArc
   0
 CIRCLE
   5
-25C
+589
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4681,9 +4941,9 @@ AcDbCircle
   0
 CIRCLE
   5
-25D
+58A
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4705,9 +4965,9 @@ AcDbCircle
   0
 ARC
   5
-25E
+58B
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4735,9 +4995,9 @@ AcDbArc
   0
 ARC
   5
-25F
+58C
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4765,9 +5025,9 @@ AcDbArc
   0
 ARC
   5
-260
+58D
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4795,9 +5055,9 @@ AcDbArc
   0
 LINE
   5
-261
+58E
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4823,9 +5083,9 @@ AcDbLine
   0
 LINE
   5
-262
+58F
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4851,9 +5111,9 @@ AcDbLine
   0
 CIRCLE
   5
-263
+590
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4875,9 +5135,9 @@ AcDbCircle
   0
 CIRCLE
   5
-264
+591
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4899,9 +5159,9 @@ AcDbCircle
   0
 LINE
   5
-265
+592
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4913,13 +5173,13 @@ AcDbEntity
 100
 AcDbLine
  10
--4.022543850618515
+-4.022543850618514
  20
 -1.418934273519823
  30
 0.0
  11
--4.022543850618515
+-4.022543850618514
  21
 -1.775927415073543
  31
@@ -4927,9 +5187,9 @@ AcDbLine
   0
 LINE
   5
-266
+593
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4941,7 +5201,7 @@ AcDbEntity
 100
 AcDbLine
  10
--4.022543850618515
+-4.022543850618514
  20
 -1.775927415073543
  30
@@ -4955,9 +5215,9 @@ AcDbLine
   0
 LINE
   5
-267
+594
 330
-259
+586
 100
 AcDbEntity
   8
@@ -4975,7 +5235,7 @@ AcDbLine
  30
 0.0
  11
--4.022543850618515
+-4.022543850618514
  21
 -1.418934273519823
  31
@@ -4983,9 +5243,9 @@ AcDbLine
   0
 LINE
   5
-268
+595
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5011,9 +5271,9 @@ AcDbLine
   0
 LINE
   5
-269
+596
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5039,9 +5299,9 @@ AcDbLine
   0
 LINE
   5
-26A
+597
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5067,9 +5327,9 @@ AcDbLine
   0
 ARC
   5
-26B
+598
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5097,9 +5357,9 @@ AcDbArc
   0
 ARC
   5
-26C
+599
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5127,9 +5387,9 @@ AcDbArc
   0
 ARC
   5
-26D
+59A
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5157,9 +5417,9 @@ AcDbArc
   0
 ARC
   5
-26E
+59B
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5187,9 +5447,9 @@ AcDbArc
   0
 LINE
   5
-26F
+59C
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5215,9 +5475,9 @@ AcDbLine
   0
 LINE
   5
-270
+59D
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5243,9 +5503,9 @@ AcDbLine
   0
 LINE
   5
-271
+59E
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5271,9 +5531,9 @@ AcDbLine
   0
 LINE
   5
-272
+59F
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5299,9 +5559,9 @@ AcDbLine
   0
 LINE
   5
-273
+5A0
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5327,9 +5587,9 @@ AcDbLine
   0
 LINE
   5
-274
+5A1
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5355,9 +5615,9 @@ AcDbLine
   0
 LINE
   5
-275
+5A2
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5383,9 +5643,9 @@ AcDbLine
   0
 LINE
   5
-276
+5A3
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5411,9 +5671,9 @@ AcDbLine
   0
 LINE
   5
-277
+5A4
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5439,9 +5699,9 @@ AcDbLine
   0
 LINE
   5
-278
+5A5
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5467,9 +5727,9 @@ AcDbLine
   0
 LINE
   5
-279
+5A6
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5495,9 +5755,9 @@ AcDbLine
   0
 CIRCLE
   5
-27A
+5A7
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5519,9 +5779,9 @@ AcDbCircle
   0
 ARC
   5
-27B
+5A8
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5549,9 +5809,9 @@ AcDbArc
   0
 LINE
   5
-27C
+5A9
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5577,9 +5837,9 @@ AcDbLine
   0
 LINE
   5
-27D
+5AA
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5605,9 +5865,9 @@ AcDbLine
   0
 LINE
   5
-27E
+5AB
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5633,9 +5893,9 @@ AcDbLine
   0
 ENDBLK
   5
-27F
+5AC
 330
-259
+586
 100
 AcDbEntity
   8
@@ -5645,6407 +5905,9 @@ AcDbBlockEnd
   0
 BLOCK
   5
-281
+5AE
 330
-280
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-Shower
- 70
-0
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-Shower
-  1
-
-  0
-LINE
-  5
-282
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-CENTER2
-100
-AcDbLine
- 10
-0.4796885668725396
- 20
-0.0
- 30
-0.0
- 11
--0.4796885668725396
- 21
-0.0
- 31
-0.0
-  0
-LINE
-  5
-283
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-CENTER2
-100
-AcDbLine
- 10
-0.0
- 20
-0.4796885668725396
- 30
-0.0
- 11
-0.0
- 21
--0.4796885668725396
- 31
-0.0
-  0
-LINE
-  5
-284
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.3597664331958299
- 20
--0.3597664331957731
- 30
-0.0
- 11
--0.3597664331958299
- 21
--7.399196309393799
- 31
-0.0
-  0
-LINE
-  5
-285
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.3597664331958299
- 20
--7.399196309393799
- 30
-0.0
- 11
--0.3597664331958299
- 21
--7.399196309393799
- 31
-0.0
-  0
-LINE
-  5
-286
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.3597664331958299
- 20
--0.3597664331957731
- 30
-0.0
- 11
-0.3597664331958299
- 21
--7.399196309393799
- 31
-0.0
-  0
-LINE
-  5
-287
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.3597664331958299
- 20
--7.399196309393799
- 30
-0.0
- 11
-0.3597664331958299
- 21
--7.399196309393799
- 31
-0.0
-  0
-LINE
-  5
-288
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.3597664331958299
- 20
--7.435172952713344
- 30
-0.0
- 11
--0.3597664331958299
- 21
--7.399196309393799
- 31
-0.0
-  0
-LINE
-  5
-289
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.3597664331958299
- 20
--7.435172952713344
- 30
-0.0
- 11
-0.3597664331958299
- 21
--7.435172952713344
- 31
-0.0
-  0
-LINE
-  5
-28A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.3597664331958299
- 20
--7.435172952713344
- 30
-0.0
- 11
-0.3597664331958299
- 21
--7.399196309393799
- 31
-0.0
-  0
-LINE
-  5
-28B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7075406519517742
- 20
--0.3597664331957731
- 30
-0.0
- 11
--0.7075406519517742
- 21
--0.3597664331957731
- 31
-0.0
-  0
-LINE
-  5
-28C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7075406519517742
- 20
--0.3597664331957731
- 30
-0.0
- 11
--0.7315250808314886
- 21
--0.3597664331957731
- 31
-0.0
-  0
-LINE
-  5
-28D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7315250808314886
- 20
--0.3597664331957731
- 30
-0.0
- 11
-0.7075406519517742
- 21
--0.3597664331957731
- 31
-0.0
-  0
-ARC
-  5
-28E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.7315250808314886
- 20
--0.3117975754363442
- 30
-0.0
- 40
-0.0479688577594412
-100
-AcDbArc
- 50
-270.0
- 51
-0.0
-  0
-ARC
-  5
-28F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--0.7315250808314886
- 20
--0.3117975754363442
- 30
-0.0
- 40
-0.0479688577594412
-100
-AcDbArc
- 50
-180.0
- 51
-270.0
-  0
-LINE
-  5
-290
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7794939385909176
- 20
--0.3117975754363442
- 30
-0.0
- 11
-0.7794939385909176
- 21
-0.0
- 31
-0.0
-  0
-LINE
-  5
-291
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7075406519517742
- 20
-0.0
- 30
-0.0
- 11
-0.7794939385909176
- 21
-0.0
- 31
-0.0
-  0
-LINE
-  5
-292
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7075406519517742
- 20
-0.0
- 30
-0.0
- 11
-0.7075406519517742
- 21
-0.0
- 31
-0.0
-  0
-LINE
-  5
-293
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7794939385909176
- 20
-0.0
- 30
-0.0
- 11
--0.7075406519517742
- 21
-0.0
- 31
-0.0
-  0
-LINE
-  5
-294
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7794939385909176
- 20
--0.3117975754363442
- 30
-0.0
- 11
--0.7794939385909176
- 21
-0.0
- 31
-0.0
-  0
-LINE
-  5
-295
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.741420220952079
- 20
--4.142110867527661
- 30
-0.0
- 11
-2.741420220952079
- 21
--9.576982451672507
- 31
-0.0
-  0
-ARC
-  5
-296
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-2.717435792072365
- 20
--4.142110867527661
- 30
-0.0
- 40
-0.02398442887972
-100
-AcDbArc
- 50
-0.0
- 51
-90.0
-  0
-ARC
-  5
-297
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-2.717435792072365
- 20
--9.576982451672507
- 30
-0.0
- 40
-0.0239844288797199
-100
-AcDbArc
- 50
-270.0
- 51
-0.0
-  0
-LINE
-  5
-298
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.717435792072308
- 20
--4.118126438648062
- 30
-0.0
- 11
--0.3597667415356227
- 21
--4.118126438648005
- 31
-0.0
-  0
-LINE
-  5
-299
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.3597667305392633
- 20
--4.118126438648005
- 30
-0.0
- 11
-2.717435792072365
- 21
--4.118126438647948
- 31
-0.0
-  0
-LINE
-  5
-29A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.717435792072365
- 20
--9.600966880552221
- 30
-0.0
- 11
--2.717435792072308
- 21
--9.600966880552164
- 31
-0.0
-  0
-ARC
-  5
-29B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--2.717435792072308
- 20
--4.142110867527776
- 30
-0.0
- 40
-0.0239844288797194
-100
-AcDbArc
- 50
-90.0
- 51
-180.0
-  0
-ARC
-  5
-29C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--2.717435792072308
- 20
--9.576982451672446
- 30
-0.0
- 40
-0.02398442887972
-100
-AcDbArc
- 50
-180.0
- 51
-270.0
-  0
-LINE
-  5
-29D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.741420220952022
- 20
--9.576982451672446
- 30
-0.0
- 11
--2.741420220952022
- 21
--4.142110867527776
- 31
-0.0
-  0
-ARC
-  5
-29E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.443711934274831
-100
-AcDbArc
- 50
-0.0
- 51
-35.82477436860175
-  0
-ARC
-  5
-29F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.443711934274831
-100
-AcDbArc
- 50
-144.1752256313981
- 51
-215.8247743686017
-  0
-ARC
-  5
-2A0
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.443711934274831
-100
-AcDbArc
- 50
-324.1752256313982
- 51
-0.0
-  0
-ARC
-  5
-2A1
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4341181627229429
-100
-AcDbArc
- 50
-0.0
- 51
-34.03157505903126
-  0
-ARC
-  5
-2A2
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4341181627229429
-100
-AcDbArc
- 50
-145.9684249409686
- 51
-214.0315750590312
-  0
-ARC
-  5
-2A3
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4341181627229429
-100
-AcDbArc
- 50
-325.9684249409688
- 51
-0.0
-  0
-ARC
-  5
-2A4
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4413134913868591
-100
-AcDbArc
- 50
-324.6088627204377
- 51
-0.0
-  0
-ARC
-  5
-2A5
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4413134913868591
-100
-AcDbArc
- 50
-144.6088627204377
- 51
-215.3911372795623
-  0
-ARC
-  5
-2A6
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4413134913868591
-100
-AcDbArc
- 50
-0.0
- 51
-35.39113727956229
-  0
-CIRCLE
-  5
-2A7
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--2.458271895247774
- 20
--4.401142765389863
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-2A8
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.484114690104775
- 20
--4.389150550949977
- 30
-0.0
- 11
--2.484114690104775
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2A9
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--4.389150550949977
- 30
-0.0
- 11
--2.50504153156322
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2AA
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--4.413134979829691
- 30
-0.0
- 11
--2.470264109687605
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2AB
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--4.389150550949977
- 30
-0.0
- 11
--2.50504153156322
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2AC
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--4.389150550949977
- 30
-0.0
- 11
--2.44627968080789
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-2AD
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--4.354373129074359
- 30
-0.0
- 11
--2.470264109687605
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-2AE
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--4.354373129074359
- 30
-0.0
- 11
--2.470264109687605
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2AF
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--4.375299970532751
- 30
-0.0
- 11
--2.470264109687605
- 21
--4.375299970532751
- 31
-0.0
-  0
-LINE
-  5
-2B0
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--4.413134979829691
- 30
-0.0
- 11
--2.411502258932272
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2B1
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--4.389150550949977
- 30
-0.0
- 11
--2.44627968080789
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2B2
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.43242910039072
- 20
--4.413134979829691
- 30
-0.0
- 11
--2.43242910039072
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2B3
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--4.413134979829691
- 30
-0.0
- 11
--2.411502258932272
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2B4
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--4.44791240170525
- 30
-0.0
- 11
--2.44627968080789
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2B5
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--4.44791240170525
- 30
-0.0
- 11
--2.44627968080789
- 21
--4.44791240170525
- 31
-0.0
-  0
-LINE
-  5
-2B6
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--4.426985560246862
- 30
-0.0
- 11
--2.44627968080789
- 21
--4.426985560246862
- 31
-0.0
-  0
-LINE
-  5
-2B7
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--4.413134979829691
- 30
-0.0
- 11
--2.470264109687605
- 21
--4.44791240170525
- 31
-0.0
-  0
-CIRCLE
-  5
-2B8
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--2.458271895247774
- 20
--6.040078738837392
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-2B9
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.484114690104775
- 20
--6.028086524397507
- 30
-0.0
- 11
--2.484114690104775
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-2BA
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--6.028086524397507
- 30
-0.0
- 11
--2.50504153156322
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-2BB
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--6.052070953277222
- 30
-0.0
- 11
--2.470264109687605
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-2BC
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--6.028086524397507
- 30
-0.0
- 11
--2.50504153156322
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-2BD
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--6.028086524397507
- 30
-0.0
- 11
--2.44627968080789
- 21
--5.993309102521891
- 31
-0.0
-  0
-LINE
-  5
-2BE
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--5.993309102521891
- 30
-0.0
- 11
--2.470264109687605
- 21
--5.993309102521891
- 31
-0.0
-  0
-LINE
-  5
-2BF
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--5.993309102521891
- 30
-0.0
- 11
--2.470264109687605
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-2C0
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--6.014235943980337
- 30
-0.0
- 11
--2.470264109687605
- 21
--6.014235943980337
- 31
-0.0
-  0
-LINE
-  5
-2C1
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--6.052070953277222
- 30
-0.0
- 11
--2.411502258932272
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-2C2
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--6.028086524397507
- 30
-0.0
- 11
--2.44627968080789
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-2C3
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.43242910039072
- 20
--6.052070953277222
- 30
-0.0
- 11
--2.43242910039072
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-2C4
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--6.052070953277222
- 30
-0.0
- 11
--2.411502258932272
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-2C5
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--6.086848375152839
- 30
-0.0
- 11
--2.44627968080789
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-2C6
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--6.086848375152839
- 30
-0.0
- 11
--2.44627968080789
- 21
--6.086848375152839
- 31
-0.0
-  0
-LINE
-  5
-2C7
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--6.065921533694449
- 30
-0.0
- 11
--2.44627968080789
- 21
--6.065921533694449
- 31
-0.0
-  0
-LINE
-  5
-2C8
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--6.052070953277222
- 30
-0.0
- 11
--2.470264109687605
- 21
--6.086848375152839
- 31
-0.0
-  0
-CIRCLE
-  5
-2C9
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--2.458271895247774
- 20
--7.67901471228498
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-2CA
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.484114690104775
- 20
--7.667022497845096
- 30
-0.0
- 11
--2.484114690104775
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-2CB
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--7.667022497845096
- 30
-0.0
- 11
--2.50504153156322
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-2CC
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--7.691006926724806
- 30
-0.0
- 11
--2.470264109687605
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-2CD
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--7.667022497845096
- 30
-0.0
- 11
--2.50504153156322
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-2CE
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--7.667022497845096
- 30
-0.0
- 11
--2.44627968080789
- 21
--7.632245075969477
- 31
-0.0
-  0
-LINE
-  5
-2CF
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--7.632245075969477
- 30
-0.0
- 11
--2.470264109687605
- 21
--7.632245075969477
- 31
-0.0
-  0
-LINE
-  5
-2D0
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--7.632245075969477
- 30
-0.0
- 11
--2.470264109687605
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-2D1
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--7.653171917427926
- 30
-0.0
- 11
--2.470264109687605
- 21
--7.653171917427926
- 31
-0.0
-  0
-LINE
-  5
-2D2
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--7.691006926724806
- 30
-0.0
- 11
--2.411502258932272
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-2D3
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--7.667022497845096
- 30
-0.0
- 11
--2.44627968080789
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-2D4
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.43242910039072
- 20
--7.691006926724806
- 30
-0.0
- 11
--2.43242910039072
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-2D5
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--7.691006926724806
- 30
-0.0
- 11
--2.411502258932272
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-2D6
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--7.725784348600428
- 30
-0.0
- 11
--2.44627968080789
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-2D7
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--7.725784348600428
- 30
-0.0
- 11
--2.44627968080789
- 21
--7.725784348600428
- 31
-0.0
-  0
-LINE
-  5
-2D8
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--7.704857507142037
- 30
-0.0
- 11
--2.44627968080789
- 21
--7.704857507142037
- 31
-0.0
-  0
-LINE
-  5
-2D9
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--7.691006926724806
- 30
-0.0
- 11
--2.470264109687605
- 21
--7.725784348600428
- 31
-0.0
-  0
-CIRCLE
-  5
-2DA
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-2.458536025094929
- 20
--9.31795068573257
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-2DB
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.43269323023793
- 20
--9.305958471292683
- 30
-0.0
- 11
-2.43269323023793
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-2DC
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--9.305958471292683
- 30
-0.0
- 11
-2.41176638877954
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-2DD
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--9.329942900172396
- 30
-0.0
- 11
-2.4465438106551
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-2DE
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--9.305958471292683
- 30
-0.0
- 11
-2.41176638877954
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-2DF
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--9.305958471292683
- 30
-0.0
- 11
-2.470528239534814
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-2E0
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--9.271181049417066
- 30
-0.0
- 11
-2.4465438106551
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-2E1
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--9.271181049417066
- 30
-0.0
- 11
-2.4465438106551
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-2E2
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--9.292107890875458
- 30
-0.0
- 11
-2.4465438106551
- 21
--9.292107890875458
- 31
-0.0
-  0
-LINE
-  5
-2E3
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--9.329942900172396
- 30
-0.0
- 11
-2.505305661410431
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-2E4
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--9.305958471292683
- 30
-0.0
- 11
-2.470528239534814
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-2E5
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.484378819951984
- 20
--9.329942900172396
- 30
-0.0
- 11
-2.484378819951984
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-2E6
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--9.329942900172396
- 30
-0.0
- 11
-2.505305661410431
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-2E7
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--9.364720322048015
- 30
-0.0
- 11
-2.470528239534814
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-2E8
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--9.364720322048015
- 30
-0.0
- 11
-2.470528239534814
- 21
--9.364720322048015
- 31
-0.0
-  0
-LINE
-  5
-2E9
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--9.343793480589566
- 30
-0.0
- 11
-2.470528239534814
- 21
--9.343793480589566
- 31
-0.0
-  0
-LINE
-  5
-2EA
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--9.329942900172396
- 30
-0.0
- 11
-2.4465438106551
- 21
--9.364720322048015
- 31
-0.0
-  0
-CIRCLE
-  5
-2EB
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--0.8193359218001885
- 20
--4.401142765389863
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-2EC
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8451787166572444
- 20
--4.389150550949977
- 30
-0.0
- 11
--0.8451787166572444
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2ED
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8661055581155777
- 20
--4.389150550949977
- 30
-0.0
- 11
--0.8661055581155777
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2EE
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8661055581155777
- 20
--4.413134979829691
- 30
-0.0
- 11
--0.8313281362400173
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2EF
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--4.389150550949977
- 30
-0.0
- 11
--0.8661055581155777
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2F0
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--4.389150550949977
- 30
-0.0
- 11
--0.8073437073603031
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-2F1
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--4.354373129074359
- 30
-0.0
- 11
--0.8313281362400173
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-2F2
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--4.354373129074359
- 30
-0.0
- 11
--0.8313281362400173
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2F3
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--4.375299970532751
- 30
-0.0
- 11
--0.8313281362400173
- 21
--4.375299970532751
- 31
-0.0
-  0
-LINE
-  5
-2F4
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7725662854847429
- 20
--4.413134979829691
- 30
-0.0
- 11
--0.7725662854847429
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2F5
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7725662854847429
- 20
--4.389150550949977
- 30
-0.0
- 11
--0.8073437073603031
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2F6
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7934931269431332
- 20
--4.413134979829691
- 30
-0.0
- 11
--0.7934931269431332
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-2F7
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--4.413134979829691
- 30
-0.0
- 11
--0.7725662854847429
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2F8
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--4.44791240170525
- 30
-0.0
- 11
--0.8073437073603031
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2F9
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--4.44791240170525
- 30
-0.0
- 11
--0.8073437073603031
- 21
--4.44791240170525
- 31
-0.0
-  0
-LINE
-  5
-2FA
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--4.426985560246862
- 30
-0.0
- 11
--0.8073437073603031
- 21
--4.426985560246862
- 31
-0.0
-  0
-LINE
-  5
-2FB
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--4.413134979829691
- 30
-0.0
- 11
--0.8313281362400173
- 21
--4.44791240170525
- 31
-0.0
-  0
-CIRCLE
-  5
-2FC
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.8196000516473985
- 20
--4.401142765389863
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-2FD
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7937572567903431
- 20
--4.389150550949977
- 30
-0.0
- 11
-0.7937572567903431
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2FE
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7728304153319528
- 20
--4.389150550949977
- 30
-0.0
- 11
-0.7728304153319528
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-2FF
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7728304153319528
- 20
--4.413134979829691
- 30
-0.0
- 11
-0.8076078372075699
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-300
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--4.389150550949977
- 30
-0.0
- 11
-0.7728304153319528
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-301
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--4.389150550949977
- 30
-0.0
- 11
-0.8315922660872843
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-302
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--4.354373129074359
- 30
-0.0
- 11
-0.8076078372075699
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-303
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--4.354373129074359
- 30
-0.0
- 11
-0.8076078372075699
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-304
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--4.375299970532751
- 30
-0.0
- 11
-0.8076078372075699
- 21
--4.375299970532751
- 31
-0.0
-  0
-LINE
-  5
-305
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8663696879628446
- 20
--4.413134979829691
- 30
-0.0
- 11
-0.8663696879628446
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-306
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8663696879628446
- 20
--4.389150550949977
- 30
-0.0
- 11
-0.8315922660872843
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-307
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8454428465043973
- 20
--4.413134979829691
- 30
-0.0
- 11
-0.8454428465043973
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-308
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--4.413134979829691
- 30
-0.0
- 11
-0.8663696879628446
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-309
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--4.44791240170525
- 30
-0.0
- 11
-0.8315922660872843
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-30A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--4.44791240170525
- 30
-0.0
- 11
-0.8315922660872843
- 21
--4.44791240170525
- 31
-0.0
-  0
-LINE
-  5
-30B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--4.426985560246862
- 30
-0.0
- 11
-0.8315922660872843
- 21
--4.426985560246862
- 31
-0.0
-  0
-LINE
-  5
-30C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--4.413134979829691
- 30
-0.0
- 11
-0.8076078372075699
- 21
--4.44791240170525
- 31
-0.0
-  0
-CIRCLE
-  5
-30D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-2.458536025094929
- 20
--4.401142765389863
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-30E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.43269323023793
- 20
--4.389150550949977
- 30
-0.0
- 11
-2.43269323023793
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-30F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--4.389150550949977
- 30
-0.0
- 11
-2.41176638877954
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-310
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--4.413134979829691
- 30
-0.0
- 11
-2.4465438106551
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-311
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--4.389150550949977
- 30
-0.0
- 11
-2.41176638877954
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-312
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--4.389150550949977
- 30
-0.0
- 11
-2.470528239534814
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-313
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--4.354373129074359
- 30
-0.0
- 11
-2.4465438106551
- 21
--4.354373129074359
- 31
-0.0
-  0
-LINE
-  5
-314
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--4.354373129074359
- 30
-0.0
- 11
-2.4465438106551
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-315
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--4.375299970532751
- 30
-0.0
- 11
-2.4465438106551
- 21
--4.375299970532751
- 31
-0.0
-  0
-LINE
-  5
-316
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--4.413134979829691
- 30
-0.0
- 11
-2.505305661410431
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-317
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--4.389150550949977
- 30
-0.0
- 11
-2.470528239534814
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-318
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.484378819951984
- 20
--4.413134979829691
- 30
-0.0
- 11
-2.484378819951984
- 21
--4.389150550949977
- 31
-0.0
-  0
-LINE
-  5
-319
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--4.413134979829691
- 30
-0.0
- 11
-2.505305661410431
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-31A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--4.44791240170525
- 30
-0.0
- 11
-2.470528239534814
- 21
--4.413134979829691
- 31
-0.0
-  0
-LINE
-  5
-31B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--4.44791240170525
- 30
-0.0
- 11
-2.470528239534814
- 21
--4.44791240170525
- 31
-0.0
-  0
-LINE
-  5
-31C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--4.426985560246862
- 30
-0.0
- 11
-2.470528239534814
- 21
--4.426985560246862
- 31
-0.0
-  0
-LINE
-  5
-31D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--4.413134979829691
- 30
-0.0
- 11
-2.4465438106551
- 21
--4.44791240170525
- 31
-0.0
-  0
-CIRCLE
-  5
-31E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-2.458536025094929
- 20
--6.040078738837392
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-31F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.43269323023793
- 20
--6.028086524397507
- 30
-0.0
- 11
-2.43269323023793
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-320
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--6.028086524397507
- 30
-0.0
- 11
-2.41176638877954
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-321
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--6.052070953277222
- 30
-0.0
- 11
-2.4465438106551
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-322
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--6.028086524397507
- 30
-0.0
- 11
-2.41176638877954
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-323
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--6.028086524397507
- 30
-0.0
- 11
-2.470528239534814
- 21
--5.993309102521891
- 31
-0.0
-  0
-LINE
-  5
-324
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--5.993309102521891
- 30
-0.0
- 11
-2.4465438106551
- 21
--5.993309102521891
- 31
-0.0
-  0
-LINE
-  5
-325
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--5.993309102521891
- 30
-0.0
- 11
-2.4465438106551
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-326
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--6.014235943980337
- 30
-0.0
- 11
-2.4465438106551
- 21
--6.014235943980337
- 31
-0.0
-  0
-LINE
-  5
-327
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--6.052070953277222
- 30
-0.0
- 11
-2.505305661410431
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-328
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--6.028086524397507
- 30
-0.0
- 11
-2.470528239534814
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-329
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.484378819951984
- 20
--6.052070953277222
- 30
-0.0
- 11
-2.484378819951984
- 21
--6.028086524397507
- 31
-0.0
-  0
-LINE
-  5
-32A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--6.052070953277222
- 30
-0.0
- 11
-2.505305661410431
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-32B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--6.086848375152839
- 30
-0.0
- 11
-2.470528239534814
- 21
--6.052070953277222
- 31
-0.0
-  0
-LINE
-  5
-32C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--6.086848375152839
- 30
-0.0
- 11
-2.470528239534814
- 21
--6.086848375152839
- 31
-0.0
-  0
-LINE
-  5
-32D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--6.065921533694449
- 30
-0.0
- 11
-2.470528239534814
- 21
--6.065921533694449
- 31
-0.0
-  0
-LINE
-  5
-32E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--6.052070953277222
- 30
-0.0
- 11
-2.4465438106551
- 21
--6.086848375152839
- 31
-0.0
-  0
-CIRCLE
-  5
-32F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-2.458536025094929
- 20
--7.67901471228498
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-330
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.43269323023793
- 20
--7.667022497845096
- 30
-0.0
- 11
-2.43269323023793
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-331
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--7.667022497845096
- 30
-0.0
- 11
-2.41176638877954
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-332
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.41176638877954
- 20
--7.691006926724806
- 30
-0.0
- 11
-2.4465438106551
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-333
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--7.667022497845096
- 30
-0.0
- 11
-2.41176638877954
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-334
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--7.667022497845096
- 30
-0.0
- 11
-2.470528239534814
- 21
--7.632245075969477
- 31
-0.0
-  0
-LINE
-  5
-335
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--7.632245075969477
- 30
-0.0
- 11
-2.4465438106551
- 21
--7.632245075969477
- 31
-0.0
-  0
-LINE
-  5
-336
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--7.632245075969477
- 30
-0.0
- 11
-2.4465438106551
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-337
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--7.653171917427926
- 30
-0.0
- 11
-2.4465438106551
- 21
--7.653171917427926
- 31
-0.0
-  0
-LINE
-  5
-338
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--7.691006926724806
- 30
-0.0
- 11
-2.505305661410431
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-339
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.505305661410431
- 20
--7.667022497845096
- 30
-0.0
- 11
-2.470528239534814
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-33A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.484378819951984
- 20
--7.691006926724806
- 30
-0.0
- 11
-2.484378819951984
- 21
--7.667022497845096
- 31
-0.0
-  0
-LINE
-  5
-33B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--7.691006926724806
- 30
-0.0
- 11
-2.505305661410431
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-33C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.470528239534814
- 20
--7.725784348600428
- 30
-0.0
- 11
-2.470528239534814
- 21
--7.691006926724806
- 31
-0.0
-  0
-LINE
-  5
-33D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--7.725784348600428
- 30
-0.0
- 11
-2.470528239534814
- 21
--7.725784348600428
- 31
-0.0
-  0
-LINE
-  5
-33E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--7.704857507142037
- 30
-0.0
- 11
-2.470528239534814
- 21
--7.704857507142037
- 31
-0.0
-  0
-LINE
-  5
-33F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-2.4465438106551
- 20
--7.691006926724806
- 30
-0.0
- 11
-2.4465438106551
- 21
--7.725784348600428
- 31
-0.0
-  0
-CIRCLE
-  5
-340
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.8196000516473985
- 20
--9.31795068573257
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-341
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7937572567903431
- 20
--9.305958471292683
- 30
-0.0
- 11
-0.7937572567903431
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-342
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7728304153319528
- 20
--9.305958471292683
- 30
-0.0
- 11
-0.7728304153319528
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-343
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.7728304153319528
- 20
--9.329942900172396
- 30
-0.0
- 11
-0.8076078372075699
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-344
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--9.305958471292683
- 30
-0.0
- 11
-0.7728304153319528
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-345
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--9.305958471292683
- 30
-0.0
- 11
-0.8315922660872843
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-346
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--9.271181049417066
- 30
-0.0
- 11
-0.8076078372075699
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-347
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--9.271181049417066
- 30
-0.0
- 11
-0.8076078372075699
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-348
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--9.292107890875458
- 30
-0.0
- 11
-0.8076078372075699
- 21
--9.292107890875458
- 31
-0.0
-  0
-LINE
-  5
-349
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8663696879629013
- 20
--9.329942900172396
- 30
-0.0
- 11
-0.8663696879629013
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-34A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8663696879629013
- 20
--9.305958471292683
- 30
-0.0
- 11
-0.8315922660872843
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-34B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8454428465043973
- 20
--9.329942900172396
- 30
-0.0
- 11
-0.8454428465043973
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-34C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--9.329942900172396
- 30
-0.0
- 11
-0.8663696879629013
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-34D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8315922660872843
- 20
--9.364720322048015
- 30
-0.0
- 11
-0.8315922660872843
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-34E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--9.364720322048015
- 30
-0.0
- 11
-0.8315922660872843
- 21
--9.364720322048015
- 31
-0.0
-  0
-LINE
-  5
-34F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--9.343793480589566
- 30
-0.0
- 11
-0.8315922660872843
- 21
--9.343793480589566
- 31
-0.0
-  0
-LINE
-  5
-350
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
-0.8076078372075699
- 20
--9.329942900172396
- 30
-0.0
- 11
-0.8076078372075699
- 21
--9.364720322048015
- 31
-0.0
-  0
-CIRCLE
-  5
-351
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--0.8193359218001885
- 20
--9.31795068573257
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-352
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8451787166572444
- 20
--9.305958471292683
- 30
-0.0
- 11
--0.8451787166572444
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-353
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8661055581155777
- 20
--9.305958471292683
- 30
-0.0
- 11
--0.8661055581155777
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-354
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8661055581155777
- 20
--9.329942900172396
- 30
-0.0
- 11
--0.8313281362400173
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-355
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--9.305958471292683
- 30
-0.0
- 11
--0.8661055581155777
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-356
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--9.305958471292683
- 30
-0.0
- 11
--0.8073437073603031
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-357
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--9.271181049417066
- 30
-0.0
- 11
--0.8313281362400173
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-358
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--9.271181049417066
- 30
-0.0
- 11
--0.8313281362400173
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-359
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--9.292107890875458
- 30
-0.0
- 11
--0.8313281362400173
- 21
--9.292107890875458
- 31
-0.0
-  0
-LINE
-  5
-35A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7725662854847429
- 20
--9.329942900172396
- 30
-0.0
- 11
--0.7725662854847429
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-35B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7725662854847429
- 20
--9.305958471292683
- 30
-0.0
- 11
--0.8073437073603031
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-35C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.7934931269431332
- 20
--9.329942900172396
- 30
-0.0
- 11
--0.7934931269431332
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-35D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--9.329942900172396
- 30
-0.0
- 11
--0.7725662854846859
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-35E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8073437073603031
- 20
--9.364720322048015
- 30
-0.0
- 11
--0.8073437073603031
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-35F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--9.364720322048015
- 30
-0.0
- 11
--0.8073437073603031
- 21
--9.364720322048015
- 31
-0.0
-  0
-LINE
-  5
-360
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--9.343793480589566
- 30
-0.0
- 11
--0.8073437073603031
- 21
--9.343793480589566
- 31
-0.0
-  0
-LINE
-  5
-361
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--0.8313281362400173
- 20
--9.329942900172396
- 30
-0.0
- 11
--0.8313281362400173
- 21
--9.364720322048015
- 31
-0.0
-  0
-CIRCLE
-  5
-362
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
--2.458271895247774
- 20
--9.31795068573257
- 30
-0.0
- 40
-0.0959377155188823
-  0
-LINE
-  5
-363
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.484114690104775
- 20
--9.305958471292683
- 30
-0.0
- 11
--2.484114690104775
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-364
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--9.305958471292683
- 30
-0.0
- 11
--2.50504153156322
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-365
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.50504153156322
- 20
--9.329942900172396
- 30
-0.0
- 11
--2.470264109687605
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-366
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--9.305958471292683
- 30
-0.0
- 11
--2.50504153156322
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-367
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--9.305958471292683
- 30
-0.0
- 11
--2.44627968080789
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-368
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--9.271181049417066
- 30
-0.0
- 11
--2.470264109687605
- 21
--9.271181049417066
- 31
-0.0
-  0
-LINE
-  5
-369
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--9.271181049417066
- 30
-0.0
- 11
--2.470264109687605
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-36A
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--9.292107890875458
- 30
-0.0
- 11
--2.470264109687605
- 21
--9.292107890875458
- 31
-0.0
-  0
-LINE
-  5
-36B
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--9.329942900172396
- 30
-0.0
- 11
--2.411502258932272
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-36C
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.411502258932272
- 20
--9.305958471292683
- 30
-0.0
- 11
--2.44627968080789
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-36D
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.43242910039072
- 20
--9.329942900172396
- 30
-0.0
- 11
--2.43242910039072
- 21
--9.305958471292683
- 31
-0.0
-  0
-LINE
-  5
-36E
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--9.329942900172396
- 30
-0.0
- 11
--2.411502258932272
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-36F
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.44627968080789
- 20
--9.364720322048015
- 30
-0.0
- 11
--2.44627968080789
- 21
--9.329942900172396
- 31
-0.0
-  0
-LINE
-  5
-370
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--9.364720322048015
- 30
-0.0
- 11
--2.44627968080789
- 21
--9.364720322048015
- 31
-0.0
-  0
-LINE
-  5
-371
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--9.343793480589566
- 30
-0.0
- 11
--2.44627968080789
- 21
--9.343793480589566
- 31
-0.0
-  0
-LINE
-  5
-372
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbLine
- 10
--2.470264109687605
- 20
--9.329942900172396
- 30
-0.0
- 11
--2.470264109687605
- 21
--9.364720322048015
- 31
-0.0
-  0
-ARC
-  5
-373
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.3924308903830416
-100
-AcDbArc
- 50
-336.4574645876274
- 51
-23.54253541237252
-  0
-ARC
-  5
-374
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4317197198349711
-100
-AcDbArc
- 50
-146.442690238109
- 51
-213.557309761891
-  0
-ARC
-  5
-375
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.3924308903830416
-100
-AcDbArc
- 50
-156.4574645876275
- 51
-203.5425354123725
-  0
-ARC
-  5
-376
-330
-280
-100
-AcDbEntity
-  8
-0
-  6
-Continuous
-100
-AcDbCircle
- 10
-0.0
- 20
--6.859546659600081
- 30
-0.0
- 40
-0.4317197198349711
-100
-AcDbArc
- 50
-326.4426902381091
- 51
-33.55730976189099
-  0
-ENDBLK
-  5
-377
-330
-280
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-379
-330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12069,9 +5931,9 @@ Sink
   0
 LINE
   5
-37A
+5AF
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12095,9 +5957,9 @@ AcDbLine
   0
 LINE
   5
-37B
+5B0
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12121,9 +5983,9 @@ AcDbLine
   0
 LINE
   5
-37C
+5B1
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12147,9 +6009,9 @@ AcDbLine
   0
 LINE
   5
-37D
+5B2
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12173,9 +6035,9 @@ AcDbLine
   0
 LINE
   5
-37E
+5B3
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12199,9 +6061,9 @@ AcDbLine
   0
 LINE
   5
-37F
+5B4
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12225,9 +6087,9 @@ AcDbLine
   0
 LINE
   5
-380
+5B5
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12251,9 +6113,9 @@ AcDbLine
   0
 ARC
   5
-381
+5B6
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12279,9 +6141,9 @@ AcDbArc
   0
 LINE
   5
-382
+5B7
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12305,9 +6167,9 @@ AcDbLine
   0
 ARC
   5
-383
+5B8
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12333,9 +6195,9 @@ AcDbArc
   0
 ARC
   5
-384
+5B9
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12361,9 +6223,9 @@ AcDbArc
   0
 ARC
   5
-385
+5BA
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12389,9 +6251,9 @@ AcDbArc
   0
 ARC
   5
-386
+5BB
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12417,9 +6279,9 @@ AcDbArc
   0
 ARC
   5
-387
+5BC
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12445,9 +6307,9 @@ AcDbArc
   0
 LINE
   5
-388
+5BD
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12471,9 +6333,9 @@ AcDbLine
   0
 LINE
   5
-389
+5BE
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12497,9 +6359,9 @@ AcDbLine
   0
 LINE
   5
-38A
+5BF
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12523,9 +6385,9 @@ AcDbLine
   0
 LINE
   5
-38B
+5C0
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12549,9 +6411,9 @@ AcDbLine
   0
 LINE
   5
-38C
+5C1
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12575,9 +6437,9 @@ AcDbLine
   0
 LINE
   5
-38D
+5C2
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12601,9 +6463,9 @@ AcDbLine
   0
 LINE
   5
-38E
+5C3
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12627,9 +6489,9 @@ AcDbLine
   0
 LINE
   5
-38F
+5C4
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12653,9 +6515,9 @@ AcDbLine
   0
 LINE
   5
-390
+5C5
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12679,9 +6541,9 @@ AcDbLine
   0
 LINE
   5
-391
+5C6
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12705,9 +6567,9 @@ AcDbLine
   0
 LINE
   5
-392
+5C7
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12731,9 +6593,9 @@ AcDbLine
   0
 LINE
   5
-393
+5C8
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12757,9 +6619,9 @@ AcDbLine
   0
 LINE
   5
-394
+5C9
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12783,9 +6645,9 @@ AcDbLine
   0
 LINE
   5
-395
+5CA
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12809,9 +6671,9 @@ AcDbLine
   0
 LINE
   5
-396
+5CB
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12835,9 +6697,9 @@ AcDbLine
   0
 ARC
   5
-397
+5CC
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12863,9 +6725,9 @@ AcDbArc
   0
 LINE
   5
-398
+5CD
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12889,9 +6751,9 @@ AcDbLine
   0
 LINE
   5
-399
+5CE
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12915,9 +6777,9 @@ AcDbLine
   0
 LINE
   5
-39A
+5CF
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12941,9 +6803,9 @@ AcDbLine
   0
 ARC
   5
-39B
+5D0
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12969,9 +6831,9 @@ AcDbArc
   0
 LINE
   5
-39C
+5D1
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -12995,9 +6857,9 @@ AcDbLine
   0
 LINE
   5
-39D
+5D2
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13021,9 +6883,9 @@ AcDbLine
   0
 LINE
   5
-39E
+5D3
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13047,9 +6909,9 @@ AcDbLine
   0
 LINE
   5
-39F
+5D4
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13073,9 +6935,9 @@ AcDbLine
   0
 LINE
   5
-3A0
+5D5
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13099,9 +6961,9 @@ AcDbLine
   0
 LINE
   5
-3A1
+5D6
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13125,9 +6987,9 @@ AcDbLine
   0
 LINE
   5
-3A2
+5D7
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13151,9 +7013,9 @@ AcDbLine
   0
 LINE
   5
-3A3
+5D8
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13177,9 +7039,9 @@ AcDbLine
   0
 LWPOLYLINE
   5
-3A4
+5D9
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13291,9 +7153,9 @@ AcDbPolyline
   0
 LWPOLYLINE
   5
-3A5
+5DA
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13405,9 +7267,9 @@ AcDbPolyline
   0
 LWPOLYLINE
   5
-3A6
+5DB
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13431,9 +7293,9 @@ AcDbPolyline
   0
 LWPOLYLINE
   5
-3A7
+5DC
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13457,9 +7319,9 @@ AcDbPolyline
   0
 LWPOLYLINE
   5
-3A8
+5DD
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13483,9 +7345,9 @@ AcDbPolyline
   0
 LWPOLYLINE
   5
-3A9
+5DE
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13509,9 +7371,9 @@ AcDbPolyline
   0
 CIRCLE
   5
-3AA
+5DF
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13531,9 +7393,9 @@ AcDbCircle
   0
 CIRCLE
   5
-3AB
+5E0
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13553,9 +7415,9 @@ AcDbCircle
   0
 LINE
   5
-3AC
+5E1
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13579,9 +7441,9 @@ AcDbLine
   0
 LINE
   5
-3AD
+5E2
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13605,9 +7467,9 @@ AcDbLine
   0
 LINE
   5
-3AE
+5E3
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13631,9 +7493,9 @@ AcDbLine
   0
 LINE
   5
-3AF
+5E4
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13657,9 +7519,9 @@ AcDbLine
   0
 LINE
   5
-3B0
+5E5
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13683,9 +7545,9 @@ AcDbLine
   0
 LINE
   5
-3B1
+5E6
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13709,9 +7571,9 @@ AcDbLine
   0
 LINE
   5
-3B2
+5E7
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13735,9 +7597,9 @@ AcDbLine
   0
 LINE
   5
-3B3
+5E8
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13761,9 +7623,9 @@ AcDbLine
   0
 LINE
   5
-3B4
+5E9
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13787,9 +7649,9 @@ AcDbLine
   0
 LINE
   5
-3B5
+5EA
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13813,9 +7675,9 @@ AcDbLine
   0
 LINE
   5
-3B6
+5EB
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13839,9 +7701,9 @@ AcDbLine
   0
 LINE
   5
-3B7
+5EC
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13865,9 +7727,9 @@ AcDbLine
   0
 LINE
   5
-3B8
+5ED
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13891,9 +7753,9 @@ AcDbLine
   0
 LINE
   5
-3B9
+5EE
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13917,9 +7779,9 @@ AcDbLine
   0
 LINE
   5
-3BA
+5EF
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13943,9 +7805,9 @@ AcDbLine
   0
 LINE
   5
-3BB
+5F0
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13969,9 +7831,9 @@ AcDbLine
   0
 CIRCLE
   5
-3BC
+5F1
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -13991,9 +7853,9 @@ AcDbCircle
   0
 CIRCLE
   5
-3BD
+5F2
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14013,9 +7875,9 @@ AcDbCircle
   0
 LINE
   5
-3BE
+5F3
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14039,9 +7901,9 @@ AcDbLine
   0
 LINE
   5
-3BF
+5F4
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14065,9 +7927,9 @@ AcDbLine
   0
 LINE
   5
-3C0
+5F5
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14091,9 +7953,9 @@ AcDbLine
   0
 LINE
   5
-3C1
+5F6
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14117,9 +7979,9 @@ AcDbLine
   0
 LINE
   5
-3C2
+5F7
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14143,9 +8005,9 @@ AcDbLine
   0
 LINE
   5
-3C3
+5F8
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14169,9 +8031,9 @@ AcDbLine
   0
 LINE
   5
-3C4
+5F9
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14195,9 +8057,9 @@ AcDbLine
   0
 LINE
   5
-3C5
+5FA
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14221,9 +8083,9 @@ AcDbLine
   0
 LINE
   5
-3C6
+5FB
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14247,9 +8109,9 @@ AcDbLine
   0
 LINE
   5
-3C7
+5FC
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14273,9 +8135,9 @@ AcDbLine
   0
 LINE
   5
-3C8
+5FD
 330
-378
+5AD
 100
 AcDbEntity
   8
@@ -14299,9 +8161,69 @@ AcDbLine
   0
 ENDBLK
   5
-3C9
+5FE
 330
-378
+5AD
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+667
+330
+663
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+A$Cb8cb3795
+ 70
+0
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+A$Cb8cb3795
+  1
+
+  0
+INSERT
+  5
+664
+330
+663
+100
+AcDbEntity
+  8
+WC
+100
+AcDbBlockReference
+  2
+Toilet sheet
+ 10
+10.91693820096065
+ 20
+0.0
+ 30
+0.0
+ 50
+180.0
+  0
+ENDBLK
+  5
+668
+330
+663
 100
 AcDbEntity
   8
@@ -14315,753 +8237,29 @@ SECTION
   2
 ENTITIES
   0
-MULTILEADER
+INSERT
   5
-4DC
+616
 330
 1F
 100
 AcDbEntity
   8
-Entrance_Staircase
-160
-636
-310
-7C020000180000000C00000016000000000000C00C00000033000000000000000C00000013000000993A0000B8000000260000006A7E62BCFBC565408621D117678D6240000000000000000000000000000000000000000000000000000000000000F03F000000000000F03F00000000000000000000000000000000550050
-310
-000000200002000000010000000000000000001840000000000000F03F0000000000000000000000000000F03F00000000000000000000000000000000000000000000000000000000010000002200000041007200690061006C00000000000000000000000C00000033000000000000000C000000100000000B0000000C00
-310
-000016000000000000C00C00000012000000FF7F00000C00000013000000010000000C0000001400000001000000540000000700000003000000AE567512B4AB6440D220DC1B006365400000000000000000D7B204D5A9AC6440C84938ABC26865400000000000000000000F94979FAD6440D220DC1B006365400000000000
-310
-0000000C00000014000000010000000C00000013000000891300003C0000000600000002000000D7B204D5A9AC6440D220DC1B006365400000000000000000D7B204D5A9AC64407A5A52FEC3EB624000000000000000000C00000013000000112700003C0000000600000002000000D7B204D5A9AC64407A5A52FEC3EB6240
-310
-0000000000000000CA3A677530D865407A5A52FEC3EB624000000000000000000C00000016000000000000C00C00000012000000FF7F00000C00000017000000000000000C000000130000009A3A00000C00000016000000000000C00C00000012000000FF7F00000C00000017000000FFFFFFFF0C00000033000000000000
-310
-00
+Sink
 100
-AcDbMLeader
-270
-2
-300
-CONTEXT_DATA{
- 40
-1.0
+AcDbBlockReference
+  2
+Sink
  10
-174.7559153572276
+313.2791859404824
  20
-151.3676749809709
+522.5213032674765
  30
 0.0
- 41
-6.0
-140
-0.18
-145
-0.09
-174
-1
-175
-1
-176
-0
-177
-0
-290
-1
-304
-UP
- 11
-0.0
- 21
-0.0
- 31
-1.0
-340
-11
- 12
-174.8459153572277
- 22
-154.4188345989789
- 32
-0.0
- 13
-1.0
- 23
-0.0
- 33
-0.0
- 42
-0.0
- 43
-0.0
- 44
-0.0
- 45
-1.0
-170
-1
- 90
--1073741824
-171
-1
-172
-5
- 91
--1073741824
-141
-0.0
- 92
-0
-291
-0
-292
-0
-173
-0
-293
-0
-142
-0.0
-143
-0.0
-294
-0
-295
-0
-296
-0
-110
-165.395731457879
-120
-160.7633793577644
-130
-0.0
-111
-1.0
-121
-0.0
-131
-0.0
-112
-0.0
-122
-1.0
-132
-0.0
-297
-0
-302
-LEADER{
-290
-1
-291
-1
- 10
-165.395731457879
- 20
-151.3676749809709
- 30
-0.0
- 11
-1.0
- 21
-0.0
- 31
-0.0
- 90
-0
- 40
-9.360183899348684
-304
-LEADER_LINE{
- 10
-165.395731457879
- 20
-171.273763284624
- 30
-0.0
- 91
-0
- 92
--1056964608
-305
-}
-271
-0
-303
-}
-272
-9
-273
-9
-301
-}
-340
-D8
- 90
-345216
-170
-1
- 91
--1056964608
-341
-14
-171
--2
-290
-1
-291
-1
- 41
-0.36
- 42
-0.18
-172
-2
-343
-11
-173
-1
- 95
-1
-174
-1
-175
-0
- 92
--1056964608
-292
-0
- 93
--1056964608
- 10
-1.0
- 20
-1.0
- 30
-1.0
- 43
-0.0
-176
-0
-293
-0
-294
-0
-178
-0
-179
-1
- 45
-1.0
-271
-0
-272
-9
-273
-9
-295
-0
-  0
-MULTILEADER
-  5
-4E3
-330
-1F
-100
-AcDbEntity
-  8
-WashArea_Staircase
-160
-636
-310
-7C020000180000000C00000016000000000000C00C00000033000000000000000C00000013000000993A0000B8000000260000008E8D9E24C3107240EE966648FEF07E40000000000000000000000000000000000000000000000000000000000000F03FBC89D897B2D29C3C000000000000F03F0000000000000000550050
-310
-000000000002000000010000000000000000001840000000000000F03F0000000000000000000000000000F03F00000000000000000000000000000000000000000000000000000000010000002200000041007200690061006C00000000000000000000000C00000033000000000000000C00000010000000080000000C00
-310
-000016000000000000C00C00000012000000FF7F00000C00000013000000010000000C0000001400000001000000540000000700000003000000E40D99A2F6A570400F037073DA637E40000000000000000069F9EA5A15A3704023B1B75455647E400000000000000000E40D99A2F6A57040375FFF35D0647E400000000000
-310
-0000000C00000014000000010000000C00000013000000891300003C0000000600000002000000E40D99A2F6A5704023B1B75455647E40000000000000000014F15DB194E1714023B1B75455647E4000000000000000000C00000013000000112700003C000000060000000200000014F15DB194E1714023B1B75455647E40
-310
-000000000000000014F15DB194E171401CF5E8A418FA7E4000000000000000000C00000016000000000000C00C00000012000000FF7F00000C00000017000000000000000C000000130000009A3A00000C00000016000000000000C00C00000012000000FF7F00000C00000017000000FFFFFFFF0C00000033000000000000
-310
-00
-100
-AcDbMLeader
-270
-2
-300
-CONTEXT_DATA{
- 40
-1.0
- 10
-286.0988019628141
- 20
-495.6310166454221
- 30
-0.0
- 41
-6.0
-140
-0.18
-145
-0.09
-174
-1
-175
-1
-176
-0
-177
-0
-290
-1
-304
-UP
- 11
-0.0
- 21
-0.0
- 31
-1.0
-340
-11
- 12
-283.0476423448061
- 22
-495.7210166454221
- 32
-0.0
- 13
-1e-16
- 23
-1.0
- 33
-0.0
- 42
-1.570796326794896
- 43
-0.0
- 44
-0.0
- 45
-1.0
-170
-1
- 90
--1073741824
-171
-1
-172
-5
- 91
--1073741824
-141
-0.0
- 92
-0
-291
-0
-292
-0
-173
-0
-293
-0
-142
-0.0
-143
-0.0
-294
-0
-295
-0
-296
-0
-110
-276.7030975860206
-120
-486.2708327460733
-130
-0.0
-111
-1e-16
-121
-1.0
-131
-0.0
-112
--1.0
-122
-1e-16
-132
-0.0
-297
-0
-302
-LEADER{
-290
-1
-291
-1
- 10
-286.0988019628141
- 20
-486.2708327460733
- 30
-0.0
- 11
-1e-16
- 21
-1.0
- 31
-0.0
- 90
-0
- 40
-9.360183899348684
-304
-LEADER_LINE{
- 10
-266.1927136591608
- 20
-486.2708327460733
- 30
-0.0
- 91
-0
- 92
--1056964608
-305
-}
-271
-0
-303
-}
-272
-9
-273
-9
-301
-}
-340
-D8
- 90
-345216
-170
-1
- 91
--1056964608
-341
-14
-171
--2
-290
-1
-291
-1
- 41
-0.36
- 42
-0.18
-172
-2
-343
-11
-173
-1
- 95
-1
-174
-1
-175
-0
- 92
--1056964608
-292
-0
- 93
--1056964608
- 10
-1.0
- 20
-1.0
- 30
-1.0
- 43
-0.0
-176
-0
-293
-0
-294
-0
-178
-0
-179
-1
- 45
-1.0
-271
-0
-272
-9
-273
-9
-295
-0
-  0
-MULTILEADER
-  5
-4EA
-330
-1F
-100
-AcDbEntity
-  8
-Staircase
-160
-636
-310
-7C020000180000000C00000016000000000000C00C00000033000000000000000C00000013000000993A0000B800000026000000E76CD240966859405E33CFF52A9F6D40000000000000000000000000000000000000000000000000000000000000F03F4D67E2F1059EB53C000000000000F03F0000000000000000550050
-310
-0000002E0002000000010000000000000000001840000000000000F03F0000000000000000000000000000F03F00000000000000000000000000000000000000000000000000000000010000002200000041007200690061006C00000000006400000000000C00000033000000000000000C00000010000000070000000C00
-310
-000016000000000000C00C00000012000000FF7F00000C00000013000000010000000C000000140000000100000054000000070000000300000077B89ADD641F5440A20BE24BE3846C4000000000000000008B66E2BEDF135440CB67710ED9856C40000000000000000077B89ADD641F5440F4C300D1CE866C400000000000
-310
-0000000C00000014000000010000000C00000013000000891300003C000000060000000200000077B89ADD641F5440CB67710ED9856C40000000000000000006FBCF73DCAB5840CB67710ED9856C4000000000000000000C00000013000000112700003C000000060000000200000006FBCF73DCAB5840CB67710ED9856C40
-310
-000000000000000006FBCF73DCAB5840BEEFD3AE5FB16D4000000000000000000C00000016000000000000C00C00000012000000FF7F00000C00000017000000000000000C000000130000009A3A00000C00000016000000000000C00C00000012000000FF7F00000C00000017000000FFFFFFFF0C00000033000000000000
-310
-00
-100
-AcDbMLeader
-270
-2
-300
-CONTEXT_DATA{
- 40
-1.0
- 10
-98.6853303462086
- 20
-237.5429300441155
- 30
-0.0
- 41
-6.0
-140
-0.18
-145
-0.09
-174
-1
-175
-1
-176
-0
-177
-0
-290
-1
-304
-UP
- 11
-0.0
- 21
-0.0
- 31
-1.0
-340
-11
- 12
-95.63417072820049
- 22
-237.6329300441155
- 32
-0.0
- 13
-3e-16
- 23
-1.0
- 33
-0.0
- 42
-1.570796326794896
- 43
-0.0
- 44
-0.0
- 45
-1.0
-170
-1
- 90
--1073741824
-171
-1
-172
-5
- 91
--1073741824
-141
-0.0
- 92
-0
-291
-0
-292
-0
-173
-0
-293
-0
-142
-0.0
-143
-0.0
-294
-0
-295
-0
-296
-0
-110
-89.2896259694146
-120
-228.1827461447668
-130
-0.0
-111
-3e-16
-121
-1.0
-131
-0.0
-112
--1.0
-122
-3e-16
-132
-0.0
-297
-0
-302
-LEADER{
-290
-1
-291
-1
- 10
-98.6853303462086
- 20
-228.1827461447668
- 30
-0.0
- 11
-3e-16
- 21
-1.0
- 31
-0.0
- 90
-0
- 40
-9.360183899348684
-304
-LEADER_LINE{
- 10
-80.31053135022572
- 20
-228.1827461447668
- 30
-0.0
- 91
-0
- 92
--1056964608
-305
-}
-271
-0
-303
-}
-272
-9
-273
-9
-301
-}
-340
-D8
- 90
-345216
-170
-1
- 91
--1056964608
-341
-14
-171
--2
-290
-1
-291
-1
- 41
-0.36
- 42
-0.18
-172
-2
-343
-11
-173
-1
- 95
-1
-174
-1
-175
-0
- 92
--1056964608
-292
-0
- 93
--1056964608
- 10
-1.0
- 20
-1.0
- 30
-1.0
- 43
-0.0
-176
-0
-293
-0
-294
-0
-178
-0
-179
-1
- 45
-1.0
-271
-0
-272
-9
-273
-9
-295
-0
   0
 INSERT
   5
-502
+632
 330
 1F
 100
@@ -15073,15 +8271,39 @@ AcDbBlockReference
   2
 WashBasin
  10
-264.3543414665493
+223.7415470270331
  20
-257.3844112800232
+199.9524150543528
  30
 0.0
+ 50
+180.0
   0
 INSERT
   5
-503
+64A
+330
+1F
+100
+AcDbEntity
+  8
+WashBasin
+100
+AcDbBlockReference
+  2
+WashBasin
+ 10
+921.741157848942
+ 20
+444.9524150543746
+ 30
+0.0
+ 50
+180.0
+  0
+INSERT
+  5
+652
 330
 1F
 100
@@ -15093,77 +8315,79 @@ AcDbBlockReference
   2
 Toilet sheet
  10
-330.3105313502257
+882.8331663176939
  20
-234.4475496338788
+549.8693532553243
  30
 0.0
  50
-269.9999999999999
+90.0
   0
 INSERT
   5
-504
+662
 330
 1F
 100
 AcDbEntity
   8
-Shower
+WC
 100
 AcDbBlockReference
   2
-Shower
+Toilet sheet
  10
-330.3105313502257
+643.3926712191825
  20
-282.0941572887292
+20.95241505438561
  30
 0.0
  50
-270.0
+180.0
   0
 INSERT
   5
-506
+670
 330
 1F
 100
 AcDbEntity
   8
-Sink
+WC
 100
 AcDbBlockReference
   2
-Sink
+Toilet sheet
  10
-314.9654083113035
+151.8331663176939
  20
-488.1457664569627
+231.1121423467268
  30
 0.0
+ 50
+90.0
   0
 INSERT
   5
-509
+678
 330
 1F
 100
 AcDbEntity
   8
-Sink
+WashBasin
 100
 AcDbBlockReference
   2
-Sink
+WashBasin
  10
-307.8688213212537
+562.9065926946436
  20
-399.8229049582711
+20.95241505438561
  30
 0.0
  50
-270.0
+180.0
   0
 ENDSEC
   0
@@ -15239,7 +8463,7 @@ ACAD_VISUALSTYLE
   3
 ACDB_RECOMPOSE_DATA
 350
-524
+67A
   3
 AcDbVariableDictionary
 350
@@ -15247,7 +8471,7 @@ AcDbVariableDictionary
   3
 EZDXF_META
 350
-52D
+686
   0
 DICTIONARY
   5
@@ -15282,6 +8506,24 @@ DICTIONARY
 AcDbDictionary
 281
 1
+  3
+ACAD_SORTENTS
+360
+640
+  0
+DICTIONARY
+  5
+665
+330
+663
+100
+AcDbDictionary
+281
+1
+  3
+ACAD_SORTENTS
+360
+666
   0
 XRECORD
   5
@@ -15799,7 +9041,7 @@ X-Ray
   0
 XRECORD
   5
-524
+67A
 102
 {ACAD_REACTORS
 330
@@ -15884,6 +9126,50 @@ DICTIONARY
 AcDbDictionary
 281
 1
+  0
+SORTENTSTABLE
+  5
+640
+102
+{ACAD_REACTORS
+330
+15D
+102
+}
+330
+15D
+100
+AcDbSortentsTable
+330
+1F
+331
+63C
+  5
+642
+331
+63F
+  5
+63C
+331
+642
+  5
+63F
+  0
+SORTENTSTABLE
+  5
+666
+102
+{ACAD_REACTORS
+330
+665
+102
+}
+330
+665
+100
+AcDbSortentsTable
+330
+663
   0
 ACDBDETAILVIEWSTYLE
   5
@@ -17022,12 +10308,6 @@ D8
 {ACAD_REACTORS
 330
 D7
-330
-4DC
-330
-4E3
-330
-4EA
 102
 }
 330
@@ -24775,7 +18055,7 @@ AcDbDictionary
   3
 ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP
 360
-523
+679
   0
 XRECORD
   5
@@ -25195,7 +18475,7 @@ AcDbXrecord
   0
 CELLSTYLEMAP
   5
-523
+679
 102
 {ACAD_REACTORS
 330
@@ -25841,7 +19121,7 @@ CELLSTYLE_END
   0
 DICTIONARY
   5
-52D
+686
 330
 C
 100
@@ -25851,19 +19131,19 @@ AcDbDictionary
   3
 WRITTEN_BY_EZDXF
 350
-52E
+687
   0
 DICTIONARYVAR
   5
-52E
+687
 330
-52D
+686
 100
 DictionaryVariables
 280
 0
   1
-1.3.1 @ 2024-11-14T18:35:04.411608+00:00
+1.3.1 @ 2024-12-24T10:50:44.320418+00:00
   0
 ENDSEC
   0
@@ -26005,9 +19285,9 @@ Thumbnail_Data
 280
 15
  94
-943
+1137
 310
-89504E470D0A1A0A0000000D49484452000001000000005C0803000000B6979B6C00000300504C5445FFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000000000000000330000660000990000CC0000FF0033000033330033660033990033CC0033FF0066000066330066660066990066CC0066FF0099
+89504E470D0A1A0A0000000D49484452000001000000006108030000000E738F1F00000300504C5445212830FFFFFF2128300000000000000000000000000000000000000000000000000000330000660000990000CC0000FF0033000033330033660033990033CC0033FF0066000066330066660066990066CC0066FF0099
 310
 000099330099660099990099CC0099FF00CC0000CC3300CC6600CC9900CCCC00CCFF00FF0000FF3300FF6600FF9900FFCC00FFFF3300003300333300663300993300CC3300FF3333003333333333663333993333CC3333FF3366003366333366663366993366CC3366FF3399003399333399663399993399CC3399FF33CC00
 310
@@ -26019,9 +19299,11 @@ FF3366FF6666FF9966FFCC66FFFF9900009900339900669900999900CC9900FF9933009933339933
 310
 FF3366FF3399FF33CCFF33FFFF6600FF6633FF6666FF6699FF66CCFF66FFFF9900FF9933FF9966FF9999FF99CCFF99FFFFCC00FFCC33FFCC66FFCC99FFCCCCFFCCFFFFFF00FFFF33FFFF66FFFF99FFFFCCFFFFFF0000000D0D0D1A1A1A2828283535354343435050505D5D5D6B6B6B787878868686939393A1A1A1AEAEAEBB
 310
-BBBBC9C9C9D6D6D6E4E4E4F1F1F1FFFFFF000000000000000000000000000000000000000000000000000000000000AD4AB4E40000006A4944415478DAEDD6B11180300C04C1EFBF4C5542A0C1500043F2BB0138E5005B090000000000000000007C61DE04A80C90391D5ABF0001EE556980BDD7071801FC02D59BA041A879
+BBBBC9C9C9D6D6D6E4E4E4F1F1F1FFFFFF0000000000000000000000000000000000000000000000000000000000002E4550F10000012C4944415478DAEDDAD10EC230088561DEFF7DB93746E3680BDD9C3702FF77634C8D49CF28EBAA22000000000000000000C07D1A381B3B1B4D14C0F4DEBC3893D1E923CB971140D200
 310
-10DA67DF89A838406A033C57018A03346F82E7DD3B06030000000000000000F0830B67B48A9B3A4C450A0000000049454E44AE426082
+2E2F0113803B5C2C80E552EF2BC0AF9A1C018C2B40C2009E17B97500852BC0AEEF4F00E68AB3047A04B06F82C34628D854A5AF003515E0DF1CC2006A2C010D37422A85031836339B00B478050C57B955059849CE4D50BCB1AA4DF03D498903D85540E66781F97CC00D40771590F63CE0BDDFB381844BE018330F8543074819
+310
+80FE12C0D4020BDC069B0660A7D0AC07D8005E1B9D96B7C11BA7C27E01143C1213A74BD40BE09884F85B61BD701EA0350F445A052004B004301C83740B60E9FDD503506D1E003DA0630FF8EEFF01B2FD713461000000000000000000000000000080FFF0007874487413779DEB0000000049454E44AE426082
   0
 ENDSEC
   0

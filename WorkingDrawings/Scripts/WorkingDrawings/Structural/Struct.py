@@ -13,7 +13,6 @@ from sklearn.decomposition import PCA
 warnings.filterwarnings("ignore", category=pd.errors.SettingWithCopyWarning)
 
 
-# %%
 
 def adjust_dxf_coordinates_to00(filename, output_filename):
     # Read the DXF file

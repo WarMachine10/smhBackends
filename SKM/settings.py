@@ -49,8 +49,8 @@ INSTALLED_APPS = [
     'storages',
     'corsheaders',
     'account',
-    'dummy',
-    'project',
+    'FloorPlanning',
+    'WorkingDrawings',
     'rest_framework_swagger',  
     'drf_yasg', 
 ]

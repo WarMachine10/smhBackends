@@ -1,39 +1,31 @@
-# Use Python 3.9 as the base image
+# Use Python 3.12 as the base image
 FROM python:3.12
 
-# Install Nginx
-RUN apt-get update && apt-get install -y nginx
-
-# Set the working directory within the container
+# Set the working directory inside the container
 WORKDIR /app/backend
 
 # Copy the requirements.txt file to the container
 COPY Requirements.txt /app/backend/
 
 # Install Python dependencies using pip
-RUN pip install -r Requirements.txt
+RUN pip install --no-cache-dir -r Requirements.txt
 
 # Install Gunicorn
 RUN pip install gunicorn
 
-# Copy the entire application code to the container
+# Copy the entire application code into the container
 COPY . /app/backend/
 
-# Copy Nginx configuration
-COPY nginx.conf /etc/nginx/sites-available/default
+# Expose port 8000 for Gunicorn
+EXPOSE 8000
 
-# Expose port 80 for Nginx
-EXPOSE 80
-
-# Apply migrations to set up the database (SQLite in this case)
-RUN python manage.py migrate
-
-# Create a start script
+# Create the start script to launch Gunicorn and apply migrations at runtime
 RUN echo '#!/bin/bash\n\
-nginx\n\
+python manage.py migrate\n\
 gunicorn --bind 0.0.0.0:8000 SKM:application' > /app/backend/start.sh
 
+# Make the start script executable
 RUN chmod +x /app/backend/start.sh
 
-# Run the start script
+# Run the start script when the container starts
 CMD ["/app/backend/start.sh"]
