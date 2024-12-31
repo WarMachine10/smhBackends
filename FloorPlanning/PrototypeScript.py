@@ -21,7 +21,7 @@ pd.options.mode.copy_on_write = True
 project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SKM.settings')
-data_folder = settings.BASE_DIR / 'dummy' / 'Datapoints/'
+data_folder = settings.BASE_DIR / 'FloorPlanning' / 'Datapoints/'
 django.setup()
 
 filename = [

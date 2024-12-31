@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'storages',
     'corsheaders',
     'account',
+    'project',
     'FloorPlanning',
     'WorkingDrawings',
     'rest_framework_swagger',  
@@ -62,7 +63,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -102,7 +103,7 @@ REST_FRAMEWORK = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Development', #This will be Production on server
+        'NAME': 'Test', #This will be Production on server
         'USER': 'admin',
         'PASSWORD': secrets['RDS_KEY'],
         'HOST': secrets['RDS_HOST_URL'],
