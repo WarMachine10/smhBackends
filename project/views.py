@@ -14,9 +14,9 @@ class ProjectListCreateView(APIView):
 
     def get(self, request):
         projects = Project.objects.filter(user=request.user).prefetch_related(
-            'subprojects',  # Prefetch subprojects
-            'subprojects__floorplanning',  # Prefetch floorplanning
-            'subprojects__floorplanning__user_files'  # Prefetch user_files if applicable
+            'subprojects',  
+            'subprojects__floorplanning',  
+            'subprojects__floorplanning__user_files'  
         )
         
         # Serialize the projects with their related subprojects and floorplanning data
@@ -114,8 +114,8 @@ class SubProjectListCreateView(APIView):
         
         # Filter subprojects for the project
         subprojects = SubProject.objects.filter(project=project).prefetch_related(
-            'floorplanning',  # Prefetch related floorplanning data if needed
-            'floorplanning__user_files'  # If you have related files, you can prefetch them as well
+            'floorplanning', 
+            'floorplanning__user_files'  
         )
         serializer = SubProjectSerializer(subprojects, many=True)
         return Response(serializer.data)
@@ -176,3 +176,4 @@ class SubProjectRetrieveUpdateDestroyView(APIView):
         subproject = self.get_object(pk)
         subproject.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+

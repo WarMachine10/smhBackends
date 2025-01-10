@@ -1,3 +1,4 @@
+from datetime import timezone
 from rest_framework import serializers
 from .models import User, Contact
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
@@ -5,9 +6,11 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from account.utils import Util
 from django.core.cache import cache
+from Subscriptions.models import CustomerProfile, Subscription
 import random 
+from django.contrib.auth import authenticate, logout
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
+class UserRegistrationSerializer(serializers.Serializer):
     # password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     otp = serializers.CharField(required=False)
     
@@ -38,12 +41,59 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         cache.set(f'registration_otp_{email}', otp, timeout=300)  # OTP valid for 5 minutes
         return otp
 
+
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
-    
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
         fields = ['email', 'password']
+
+    def validate(self, attrs):
+        """
+        Override the default validate method to handle user authentication.
+        """
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        # Authenticate the user
+        user = authenticate(email=email, password=password)
+
+        if not user:
+            raise serializers.ValidationError("Invalid email or password.")
+
+        # Add the authenticated user to validated_data so it can be used in the view
+        attrs['user'] = user
+        return attrs
+
+    def to_representation(self, instance):
+        """
+        Override the to_representation method to include customer type and subscription info.
+        """
+        data = super().to_representation(instance)
+
+        try:
+            customer_profile = CustomerProfile.objects.get(user=instance)
+            active_subscription = Subscription.objects.filter(
+                user=instance,
+                status='ACTIVE',
+                end_date__gte=timezone.now()
+            ).first()
+
+            data['customer_type'] = customer_profile.customer_type
+
+            if active_subscription:
+                data['subscription'] = {
+                    'plan': active_subscription.plan.name,
+                    'billing_cycle': active_subscription.plan.billing_cycle,
+                    'end_date': active_subscription.end_date
+                }
+
+        except CustomerProfile.DoesNotExist:
+            pass  # If no profile is found, we do nothing, and customer_type will be None
+
+        return data
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:

@@ -21,7 +21,7 @@ class SubProjectSerializer(serializers.ModelSerializer):
     def get_floorplanning(self, obj):
         logger.debug(f"SubProject ID: {obj.id}, Type: {obj.type}")
         
-        if obj.type.lower() == 'floorplanning':  # Use exact comparison
+        if obj.type.lower() == 'floorplanning':  
             try:
                 floorplanning = FloorplanningProject.objects.get(subproject=obj)
                 logger.debug(f"Found FloorplanningProject: {floorplanning.id}")

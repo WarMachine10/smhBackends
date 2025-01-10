@@ -31,11 +31,43 @@ load_dotenv()
 
 # Generate Token Manually
 def get_tokens_for_user(user):
-  refresh = RefreshToken.for_user(user)
-  return {
-      'refresh': str(refresh),
-      'access': str(refresh.access_token),
-  }
+    refresh = RefreshToken.for_user(user)
+    
+    # Get customer profile info
+    try:
+        customer_profile = CustomerProfile.objects.get(user=user)
+        customer_type = customer_profile.customer_type
+    except CustomerProfile.DoesNotExist:
+        customer_type = None
+
+    # Get subscription info
+    try:
+        active_subscription = Subscription.objects.filter(
+            user=user,
+            status='ACTIVE',
+            end_date__gte=timezone.now()
+        ).select_related('plan').first()
+        
+        subscription_info = {
+            'plan': active_subscription.plan.name,
+            'billing_cycle': active_subscription.plan.billing_cycle,
+            'end_date': str(active_subscription.end_date)
+        } if active_subscription else None
+    except:
+        subscription_info = None
+
+    # Add custom claims to token
+    refresh.payload.update({
+        'email': user.email,
+        'name': user.name,
+        'customer_type': customer_type,
+        'subscription': subscription_info
+    })
+
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 def send_brevo_email(to_email, to_name, subject, html_content):
     configuration = Configuration()
@@ -84,21 +116,51 @@ class UserRegistrationView(APIView):
                 else:
                     return Response({'token': token, 'msg': 'Registration Successful, but welcome email sending failed'}, status=status.HTTP_201_CREATED)
 
+# account/views.py
 class UserLoginView(APIView):
-  renderer_classes = [UserRenderer]
-  @swagger_auto_schema(request_body=UserLoginSerializer)
-  def post(self, request, format=None):
-    serializer = UserLoginSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    email = serializer.data.get('email')
-    password = serializer.data.get('password')
-    user = authenticate(email=email, password=password)
-    if user is not None:
-      token = get_tokens_for_user(user)
-      return Response({'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
-    else:
-      return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
+    renderer_classes = [UserRenderer]
 
+    @swagger_auto_schema(request_body=UserLoginSerializer)
+    def post(self, request, format=None):
+        try:
+            # Validate request data
+            serializer = UserLoginSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            # Authenticate user
+            email = serializer.validated_data.get('email')
+            password = serializer.validated_data.get('password')
+            user = authenticate(email=email, password=password)
+
+            if not user:
+                return Response(
+                    {'errors': {'non_field_errors': ['Email or Password is not Valid']}},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            if not user.is_active:
+                return Response(
+                    {'errors': {'non_field_errors': ['Account is disabled']}},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Generate token with embedded user info
+            token = get_tokens_for_user(user)
+
+            # Return successful response
+            return Response({
+                'token': token,
+                'msg': 'Login Success'
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Login error: {str(e)}")
+            return Response(
+                {'errors': {'non_field_errors': ['An error occurred during login']}},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        
 class UserProfileView(APIView):
   renderer_classes = [UserRenderer]
   permission_classes = [IsAuthenticated]
@@ -228,4 +290,10 @@ class ContactCreateView(APIView):
             else:
                 return Response({'message': 'Contact form submitted but failed to send email.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
 

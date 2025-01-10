@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'project',
     'FloorPlanning',
     'WorkingDrawings',
+    'Subscriptions',
     'rest_framework_swagger',  
     'drf_yasg', 
 ]
@@ -99,7 +100,20 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
-
+SUBSCRIPTION_FEATURES = {
+    'PREMIUM': {
+        'max_projects': 5,
+        'storage_limit_gb': 5
+    },
+    'GROWTH': {
+        'max_projects': 15,
+        'storage_limit_gb': 15
+    },
+    'ELITE': {
+        'max_projects': -1,  # unlimited
+        'storage_limit_gb': 30
+    }
+}
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
