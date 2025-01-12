@@ -48,6 +48,12 @@ def subscription_required(plan_names=None, customer_types=None):
                     logger.warning(f"Access denied: project limit exceeded for user {request.user.username}")
                     raise PermissionDenied("Project limit exceeded")
 
+                # Check file upload size
+                if hasattr(request, 'FILES') and request.FILES:
+                        total_upload_size = sum(f.size for f in request.FILES.values())
+                        if used_storage + (total_upload_size / (1024 ** 3)) > storage_limit:
+                            raise PermissionDenied("This upload would exceed your storage limit")
+                            
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator

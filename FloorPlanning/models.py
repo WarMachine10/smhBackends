@@ -18,12 +18,10 @@ class FloorplanningProject(models.Model):
 
 class UserFile(BaseFileModel):
     floorplanning = models.ForeignKey(FloorplanningProject, on_delete=models.CASCADE, related_name='user_files')
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     png_image = models.URLField(max_length=500, null=True, blank=True)
     dxf_file = models.URLField(max_length=500, null=True, blank=True)
     gif_file = models.URLField(max_length=500, null=True, blank=True)
     info = models.JSONField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
 class SoilData(models.Model):
     floorplanning = models.ForeignKey(FloorplanningProject, on_delete=models.CASCADE, related_name='soil_data')

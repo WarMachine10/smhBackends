@@ -1,9 +1,5 @@
 from django.urls import path
-from .views import (
-    SubscriptionPlanListView, SubscriptionPlanDetailView,
-    CustomerProfileView,
-    SubscriptionListView, SubscriptionDetailView
-)
+from .views import *
 
 urlpatterns = [
     # SubscriptionPlan URLs
@@ -16,4 +12,7 @@ urlpatterns = [
     # Subscription URLs
     path('subscriptions/', SubscriptionListView.as_view(), name='subscription-list'),
     path('subscriptions/<int:pk>/', SubscriptionDetailView.as_view(), name='subscription-detail'),
+
+    # Storage Checker
+    path('storagecheck/', StorageUsageView.as_view(), name='storage-check'),
 ]

@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from datetime import datetime, timedelta
+from django.db.models import Sum
+from project.models import BaseFileModel
 from .models import SubscriptionPlan, CustomerProfile, Subscription
 from .serializers import SubscriptionPlanSerializer, CustomerProfileSerializer, SubscriptionSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -270,23 +272,44 @@ class SubscriptionDetailView(APIView):
         
 
 class StorageUsageView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
     def get(self, request):
-        user_profile = CustomerProfile.objects.get(user=request.user)
-        subscription = Subscription.objects.filter(
-            user=request.user,
-            status='ACTIVE',
-            end_date__gte=timezone.now()
-        ).first()
+        try:
+            subscription = Subscription.objects.filter(
+                user=request.user,
+                status='ACTIVE',
+                end_date__gte=timezone.now()
+            ).select_related('plan').first()
 
-        if not subscription:
-            return Response({'error': 'No active subscription found'}, status=status.HTTP_403_FORBIDDEN)
+            if not subscription:
+                return Response(
+                    {'error': 'No active subscription found'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-        storage_limit = subscription.plan.features.get('storage_limit_gb', 0)
-        used_storage = user_profile.used_storage_gb
-        remaining_storage = storage_limit - used_storage
+            storage_limit = subscription.plan.features.get('storage_limit_gb', 0)
+            
+            # Calculate total storage
+            total_size = BaseFileModel.objects.filter(
+                user=request.user
+            ).aggregate(
+                total=Sum('size')
+            )['total'] or 0
+            
+            used_storage = total_size / (1024 ** 3)  # Convert bytes to GB
+            remaining_storage = max(0, storage_limit - used_storage)
 
-        return Response({
-            'storage_limit': storage_limit,
-            'used_storage': used_storage,
-            'remaining_storage': remaining_storage
-        }, status=status.HTTP_200_OK)
+            return Response({
+                'storage_limit_gb': storage_limit,
+                'used_storage_gb': round(used_storage, 2),
+                'remaining_storage_gb': round(remaining_storage, 2),
+                'usage_percentage': round((used_storage / storage_limit * 100) if storage_limit > 0 else 0, 2)
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

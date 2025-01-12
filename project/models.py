@@ -1,6 +1,10 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.forms import ValidationError
+from Subscriptions.models import Subscription
+from django.utils import timezone
+from django.db.models import Sum    
 
 class Project(models.Model):
     name = models.CharField(max_length=255)
@@ -16,11 +20,29 @@ class SubProject(models.Model):
 
 class BaseFileModel(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    size = models.PositiveIntegerField()  # Size of the file in bytes
+    size = models.PositiveIntegerField()  # Size in bytes
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        abstract = True
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_size = self.size if self.id else None
 
-    def __str__(self):
-        return f"{self.user.username} - {self.size} bytes"
+    def save(self, *args, **kwargs):
+        if self.id and self.size != self._original_size:
+            # File is being updated, check storage limits
+            subscription = Subscription.objects.filter(
+                user=self.user,
+                status='ACTIVE',
+                end_date__gte=timezone.now()
+            ).first()
+            
+            if subscription:
+                storage_limit = subscription.plan.features.get('storage_limit_gb', 0) * (1024 ** 3)
+                current_usage = BaseFileModel.objects.filter(
+                    user=self.user
+                ).exclude(id=self.id).aggregate(total=Sum('size'))['total'] or 0
+                
+                if current_usage + self.size > storage_limit:
+                    raise ValidationError("Storage limit would be exceeded")
+        
+        super().save(*args, **kwargs)
