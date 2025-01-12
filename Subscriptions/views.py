@@ -267,3 +267,26 @@ class SubscriptionDetailView(APIView):
             return Response({'status': 'Subscription cancelled'}, status=status.HTTP_200_OK)
         except Subscription.DoesNotExist:
             raise NotFound("Subscription not found")
+        
+
+class StorageUsageView(APIView):
+    def get(self, request):
+        user_profile = CustomerProfile.objects.get(user=request.user)
+        subscription = Subscription.objects.filter(
+            user=request.user,
+            status='ACTIVE',
+            end_date__gte=timezone.now()
+        ).first()
+
+        if not subscription:
+            return Response({'error': 'No active subscription found'}, status=status.HTTP_403_FORBIDDEN)
+
+        storage_limit = subscription.plan.features.get('storage_limit_gb', 0)
+        used_storage = user_profile.used_storage_gb
+        remaining_storage = storage_limit - used_storage
+
+        return Response({
+            'storage_limit': storage_limit,
+            'used_storage': used_storage,
+            'remaining_storage': remaining_storage
+        }, status=status.HTTP_200_OK)

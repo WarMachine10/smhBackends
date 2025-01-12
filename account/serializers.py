@@ -11,28 +11,27 @@ import random
 from django.contrib.auth import authenticate, logout
 
 class UserRegistrationSerializer(serializers.Serializer):
-    # password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    email = serializers.EmailField(required=True)
+    name = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
     otp = serializers.CharField(required=False)
-    
-    class Meta:
-        model = User
-        fields = ['email', 'name', 'password', 'otp']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+
+    def validate(self, data):
+        return data
 
     def create(self, validated_data):
         otp = validated_data.pop('otp', None)
         email = validated_data.get('email')
-        
+
         # Check if OTP is valid
         stored_otp = cache.get(f'registration_otp_{email}')
-        if not otp or otp != stored_otp:
+        if otp and otp != stored_otp:
             raise serializers.ValidationError("Invalid OTP")
-        
+
         # Clear the OTP from cache
-        cache.delete(f'registration_otp_{email}')
-        
+        if otp:
+            cache.delete(f'registration_otp_{email}')
+
         return User.objects.create_user(**validated_data)
 
     @staticmethod

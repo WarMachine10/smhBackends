@@ -13,3 +13,14 @@ class SubProject(models.Model):
     type = models.CharField(max_length=20)
     state = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class BaseFileModel(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    size = models.PositiveIntegerField()  # Size of the file in bytes
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return f"{self.user.username} - {self.size} bytes"

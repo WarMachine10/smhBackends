@@ -173,18 +173,20 @@ class CreateProjectView(CreateAPIView):
         processed_files = []
         for png_filename, floor_data in info_data.items():
             try:
-                # Create UserFile instance
+                # Create UserFile instance with initial size of 0
                 user_file = UserFile.objects.create(
-                    floorplanning=floorplanning_project
+                    floorplanning=floorplanning_project,
+                    user=self.request.user,  # Add user since it's required
+                    size=0  # Initialize size as 0
                 )
                 logger.info(f"Created UserFile: {user_file.id} for FloorplanningProject: {floorplanning_project.id}")
                 
                 # Process the main files
-                png_saved, png_url = self.save_file(png_filename, user_file, 'png_image', subfolder='pngs')
+                png_saved, png_url, png_size = self.save_file(png_filename, user_file, 'png_image', subfolder='pngs')
                 dxf_filename = png_filename.replace('.png', '.dxf')
-                dxf_saved, dxf_url = self.save_file(dxf_filename, user_file, 'dxf_file', subfolder='dxfs')
+                dxf_saved, dxf_url, dxf_size = self.save_file(dxf_filename, user_file, 'dxf_file', subfolder='dxfs')
                 gif_filename = png_filename.replace('.png', '.html')
-                gif_saved, gif_url = self.save_file(gif_filename, user_file, 'gif_file', subfolder='gifs')
+                gif_saved, gif_url, gif_size = self.save_file(gif_filename, user_file, 'gif_file', subfolder='gifs')
                 
                 # Update UserFile with URLs
                 user_file.png_image = png_url
@@ -196,12 +198,14 @@ class CreateProjectView(CreateAPIView):
                 floor_files_saved = []
                 
                 for floor_file in list(floor_data.keys()):
-                    floor_saved, floor_url = self.save_file(floor_file, user_file, 'floor_file', subfolder='pngs')
+                    floor_saved, floor_url, floor_size = self.save_file(floor_file, user_file, 'floor_file', subfolder='pngs')
                     if floor_saved:
-                        # Store the S3 URL as the key instead of local path
                         updated_floor_data[floor_url] = floor_data[floor_file]
-                        floor_files_saved.append(floor_url)
-                        # Clean up local file
+                        floor_files_saved.append({
+                            'url': floor_url,
+                            'size': floor_size
+                        })
+                        
                         local_floor_path = os.path.join(settings.MEDIA_ROOT, 'pngs', floor_file)
                         if os.path.exists(local_floor_path):
                             os.remove(local_floor_path)
@@ -213,10 +217,11 @@ class CreateProjectView(CreateAPIView):
                 if png_saved or dxf_saved or gif_saved or floor_files_saved:
                     logger.info(f"Saved files for UserFile: {user_file.id}")
                     processed_files.append({
-                        'png': png_url,
-                        'dxf': dxf_url,
-                        'gif': gif_url,
-                        'floors': floor_files_saved
+                        'png': {'url': png_url, 'size': png_size},
+                        'dxf': {'url': dxf_url, 'size': dxf_size},
+                        'gif': {'url': gif_url, 'size': gif_size},
+                        'floors': floor_files_saved,
+                        'total_size': user_file.size  # Use the existing size field
                     })
                 else:
                     logger.error(f"No files were saved for {png_filename}")
@@ -230,16 +235,22 @@ class CreateProjectView(CreateAPIView):
 
     def save_file(self, filename, user_file, file_type, subfolder):
         if not filename:
-            return False, None    
-        source_path = os.path.join(settings.MEDIA_ROOT, subfolder, filename)       
+            return False, None, 0
+            
+        source_path = os.path.join(settings.MEDIA_ROOT, subfolder, filename)
         if not os.path.exists(source_path):
             logger.warning(f"File not found: {source_path}")
-            return False, None
+            return False, None, 0
+            
         try:
+            # Get file size before upload
+            file_size = os.path.getsize(source_path)
+            
             short_id = generate_short_uuid()
             name, ext = os.path.splitext(filename)
             unique_filename = f"{name}_{short_id}{ext}"
             s3_key = f"media/{subfolder}/{unique_filename}"
+            
             content_type, _ = mimetypes.guess_type(filename)
             if content_type is None:
                 content_type = 'application/octet-stream'
@@ -254,28 +265,39 @@ class CreateProjectView(CreateAPIView):
                 extra_args['ContentDisposition'] = 'inline'    
             elif ext.lower() == '.dxf':
                 extra_args['ContentDisposition'] = f'attachment; filename="{quote(unique_filename)}"'
+                
             s3_client = settings.S3_CLIENT 
             with open(source_path, 'rb') as file:
                 s3_client.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, s3_key, ExtraArgs=extra_args)
-            s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"  
+                
+            s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
+            
+            # Add file size to the total size in UserFile
+            user_file.size += file_size
+            user_file.save(update_fields=['size'])
+            
             if file_type == 'floor_file':
                 if user_file.info is None:
                     user_file.info = {}
                 user_file.info[s3_url] = user_file.info.pop(filename, {})
                 user_file.save(update_fields=['info'])
             else:
-                setattr(user_file, file_type, s3_url)        
-            logger.success(f"Successfully saved {file_type} to S3: {s3_url}") 
+                setattr(user_file, file_type, s3_url)
+                
+            logger.success(f"Successfully saved {file_type} to S3: {s3_url} (Size: {file_size} bytes)")
+            
             # Delete the local file after successful S3 upload
             os.remove(source_path)
-            logger.info(f"Deleted local file after S3 upload: {source_path}")     
-            return True, s3_url
+            logger.info(f"Deleted local file after S3 upload: {source_path}")
+            
+            return True, s3_url, file_size
+            
         except ClientError as e:
             logger.error(f"Error uploading {file_type} {filename} to S3: {str(e)}")
-            return False, None
+            return False, None, 0
         except Exception as e:
             logger.error(f"Error processing {file_type} {filename}: {str(e)}")
-            return False, None
+            return False, None, 0
 
     def error_response(self, message, details=None):
         response = {'message': message}

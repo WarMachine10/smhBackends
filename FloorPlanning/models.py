@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from project.models import SubProject
+from project.models import BaseFileModel, SubProject
 
 class FloorplanningProject(models.Model):
     subproject = models.ForeignKey(SubProject, on_delete=models.CASCADE, related_name='floorplanning')
@@ -16,8 +16,9 @@ class FloorplanningProject(models.Model):
     living_room = models.IntegerField()
     store_room = models.IntegerField()
 
-class UserFile(models.Model):
+class UserFile(BaseFileModel):
     floorplanning = models.ForeignKey(FloorplanningProject, on_delete=models.CASCADE, related_name='user_files')
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     png_image = models.URLField(max_length=500, null=True, blank=True)
     dxf_file = models.URLField(max_length=500, null=True, blank=True)
     gif_file = models.URLField(max_length=500, null=True, blank=True)

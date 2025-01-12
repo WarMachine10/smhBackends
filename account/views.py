@@ -30,9 +30,10 @@ from drf_yasg.utils import swagger_auto_schema
 load_dotenv()
 
 # Generate Token Manually
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
-    
+
     # Get customer profile info
     try:
         customer_profile = CustomerProfile.objects.get(user=user)
@@ -47,7 +48,7 @@ def get_tokens_for_user(user):
             status='ACTIVE',
             end_date__gte=timezone.now()
         ).select_related('plan').first()
-        
+
         subscription_info = {
             'plan': active_subscription.plan.name,
             'billing_cycle': active_subscription.plan.billing_cycle,
@@ -90,18 +91,21 @@ def send_brevo_email(to_email, to_name, subject, html_content):
 
 class UserRegistrationView(APIView):
     renderer_classes = [UserRenderer]
+
     @swagger_auto_schema(request_body=UserRegistrationSerializer)
     def post(self, request, format=None):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             if 'otp' not in request.data:
                 # Generate and send OTP
-                email = serializer.validated_data['email']
+                email = serializer.validated_data.get('email')
+                if not email:
+                    return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
                 otp = UserRegistrationSerializer.generate_otp(email)
-                name=serializer.data['name']
+                name = serializer.validated_data.get('name')
                 # Send OTP email
-                otp_html =render_to_string('otp_email.html', {'otp': otp,'name':name,'date':datetime.date.today()})
-                if send_brevo_email(email, serializer.validated_data['name'], "Verification OTP for SketchMyHome.AI", otp_html):
+                otp_html = render_to_string('otp_email.html', {'otp': otp, 'name': name, 'date': datetime.date.today()})
+                if send_brevo_email(email, name, "Verification OTP for SketchMyHome.AI", otp_html):
                     return Response({'msg': 'OTP sent to your email'}, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'Failed to send OTP'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -110,12 +114,13 @@ class UserRegistrationView(APIView):
                 user = serializer.save()
                 token = get_tokens_for_user(user)
                 # Send welcome email
-                welcome_html = render_to_string('welcome_email.html', {'name': user.name,'date':datetime.date.today()})
+                welcome_html = render_to_string('welcome_email.html', {'name': user.name, 'date': datetime.date.today()})
                 if send_brevo_email(user.email, user.name, "Welcome to SketchMyHome.AI", welcome_html):
                     return Response({'token': token, 'msg': 'Registration Successful'}, status=status.HTTP_201_CREATED)
                 else:
                     return Response({'token': token, 'msg': 'Registration Successful, but welcome email sending failed'}, status=status.HTTP_201_CREATED)
-
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # account/views.py
 class UserLoginView(APIView):
     renderer_classes = [UserRenderer]

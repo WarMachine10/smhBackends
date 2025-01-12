@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.db import models
 from django.db import models
 from account.models import User
+from django.conf import settings
 from django.core.exceptions import ValidationError
 # Create your models here.
 class SubscriptionPlan(models.Model):
@@ -24,6 +25,11 @@ class SubscriptionPlan(models.Model):
     class Meta:
         unique_together = ('name', 'billing_cycle')
 
+    def save(self, *args, **kwargs):
+        if not self.features:
+            self.features = settings.SUBSCRIPTION_FEATURES.get(self.name, {})
+        super().save(*args, **kwargs)
+
 class CustomerProfile(models.Model):
     CUSTOMER_TYPES = (
         ('B2B', 'Business'),
@@ -33,6 +39,9 @@ class CustomerProfile(models.Model):
     customer_type = models.CharField(max_length=3, choices=CUSTOMER_TYPES)
     company_name = models.CharField(max_length=255, null=True, blank=True)
     tax_id = models.CharField(max_length=50, null=True, blank=True)
+    used_storage_gb = models.FloatField(default=0.0)  # Track used storage
+    project_count = models.PositiveIntegerField(default=0)
+    has_free_project = models.BooleanField(default=False)
     
     def clean(self):
         if self.customer_type == 'B2B' and not self.company_name:

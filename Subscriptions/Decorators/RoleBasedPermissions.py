@@ -1,11 +1,11 @@
-from datetime import timezone
 from functools import wraps
-from rest_framework.exceptions import PermissionDenied
-from ..models import Subscription, CustomerProfile
-from loguru import logger
-from functools import wraps
-from rest_framework.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+from Subscriptions.models import Subscription, CustomerProfile
+import logging
+
+logger = logging.getLogger(__name__)
+
 def subscription_required(plan_names=None, customer_types=None):
     def decorator(view_func):
         @wraps(view_func)
@@ -29,10 +29,24 @@ def subscription_required(plan_names=None, customer_types=None):
                     end_date__gte=timezone.now(),
                     plan__name__in=plan_names
                 ).first()
-                
+
                 if not subscription:
                     logger.warning(f"Access denied: no active subscription for user {request.user.username}")
                     raise PermissionDenied("Feature requires an active subscription")
+
+                # Check storage limit
+                storage_limit = subscription.plan.features.get('storage_limit_gb', 0)
+                used_storage = request.user.customerprofile.used_storage_gb
+                if used_storage >= storage_limit:
+                    logger.warning(f"Access denied: storage limit exceeded for user {request.user.username}")
+                    raise PermissionDenied("Storage limit exceeded")
+
+                # Check project limit
+                max_projects = subscription.plan.features.get('max_projects', 0)
+                project_count = request.user.customerprofile.project_count
+                if max_projects != -1 and project_count >= max_projects:
+                    logger.warning(f"Access denied: project limit exceeded for user {request.user.username}")
+                    raise PermissionDenied("Project limit exceeded")
 
             return view_func(request, *args, **kwargs)
         return wrapper
