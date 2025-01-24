@@ -4,7 +4,7 @@ from django.db import models
 from account.models import User
 from django.conf import settings
 from django.core.exceptions import ValidationError
-# Create your models here.
+
 class SubscriptionPlan(models.Model):
     PLAN_TYPES = (
         ('PREMIUM', 'Premium'),

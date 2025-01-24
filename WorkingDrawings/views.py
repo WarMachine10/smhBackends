@@ -1,11 +1,18 @@
+import threading
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
+from loguru import logger
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import *
+import nest_asyncio 
+nest_asyncio.apply()
+import tempfile
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 import boto3,shutil
 from loguru import logger
 import tempfile,re
@@ -14,363 +21,345 @@ from pathlib import Path
 from django.conf import settings,Settings
 import tempfile
 from .serializers import *
-from .Scripts.WorkingDrawings.AutoSOP.SopGenerator import process_dxf_file
-from .Scripts.WorkingDrawings.Plumbing.Plumb import complete_pipeline
-from .Scripts.WorkingDrawings.Electrical.Lights import main_final
-from .Scripts.WorkingDrawings.Structural.Struct import pipeline_main
-from .Scripts.WorkingDrawings.BOQs.boq import main_electrical,main_plumbing,main_structure
+from WorkingDrawings.Scripts.WorkingDrawings.Electrical.Fixtures import main_process
+from WorkingDrawings.Scripts.WorkingDrawings.Electrical.Wiring import main_process_wiring
 import pandas as pd
 import numpy as np
 import json
 import ezdxf
-
-# Project Views
+import os
+import asyncio
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from project.models import SubProject
+from .models import ElectricalFixtures
+from .serializers import ElectricalFixturesSerializer
+import asyncio
 
 TEMP_FOLDER = os.path.join(settings.BASE_DIR,'Temp','crap')  # Replace with a real folder path, e.g., '/tmp/dxf_processing'
 
 # Set up a StringIO log capture stream
 log_stream = StringIO()
 # logger.basicConfig(stream=log_stream, level=logger.INFO)
-class ProcessDXFView(APIView):
-    parser_classes = [MultiPartParser]
+# working_drawings/views.py
+class WorkingDrawingDetailView(APIView):
+    def get(self, request, pk):
+        working_drawing = self.get_working_drawing(pk, request.user)
+        serializer = WorkingDrawingProjectSerializer(working_drawing)
+        data = serializer.data
+        
+        # Add fixtures if this is an electrical drawing
+        if working_drawing.drawing_type == 'electrical':
+            fixtures = ElectricalFixtures.objects.filter(
+                subproject=working_drawing.subproject
+            )
+            data['fixtures'] = ElectricalFixturesSerializer(
+                fixtures, 
+                many=True
+            ).data
+            
+        return Response(data)
+
+class ElectricalFixturesView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        dxf_file = request.FILES.get('file')
-        project_name = request.data.get('project_name', '').strip()
-        process_plumbing = request.data.get('process_plumbing', 'false').lower() == 'true'
-        process_electrical = request.data.get('process_electrical', 'false').lower() == 'true'
-        process_structural = request.data.get('process_structural', 'false').lower() == 'true'
-
-        if not dxf_file:
-            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not project_name:
-            return Response({"error": "Project name is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_S3_REGION_NAME
+    def get_working_drawing(self, project_id, user):
+        """Gets or creates working drawing for the project"""
+        project = get_object_or_404(Project, id=project_id, user=user)
+        
+        subproject = SubProject.objects.filter(
+            project=project,
+            type='working_drawing'
+        ).first()
+        
+        if not subproject:
+            subproject = SubProject.objects.create(
+                project=project,
+                type='working_drawing',
+                state={'drawing_type': 'electrical'}
             )
-            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        except Exception as e:
-            logger.error(f"Failed to initialize S3 client: {str(e)}")
-            return Response({"error": "Failed to initialize S3 connection"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        temp_dir = os.path.join(TEMP_FOLDER)
-        os.makedirs(temp_dir, exist_ok=True)
+            WorkingDrawingProject.objects.create(
+                subproject=subproject,
+                drawing_type='electrical'
+            )
+        
+        return subproject.working_drawing
+
+    def process_fixtures(self, instance):
+        """Process the uploaded DXF file"""
+        input_temp_path = None
+        output_temp_path = None
+        
         try:
-            # Save the uploaded file temporarily
-            input_temp_path = os.path.join(temp_dir, 'input.dxf')
-            with open(input_temp_path, 'wb') as temp_file:
-                for chunk in dxf_file.chunks():
-                    temp_file.write(chunk)
+            instance.status = 'processing'
+            instance.save()
+            os.makedirs(TEMP_FOLDER, exist_ok=True)
+
+            input_temp_path = os.path.join(TEMP_FOLDER, f'input_{instance.id}.dxf')
+            output_filename = f"electrical_drawing_{instance.id}.dxf"
+            output_temp_path = os.path.join(TEMP_FOLDER, output_filename)
+
+            with open(input_temp_path, 'wb') as f:
+                f.write(instance.input_file.read())
 
             # Process DXF file
-            output_temp_path = os.path.join(temp_dir, 'output.dxf')
-            processing_result, final_output_path = process_dxf_file(input_temp_path, output_temp_path, temp_dir)
-            
-            if not processing_result:
-                return Response({"error": "DXF processing failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            try:
+                main_process(
+                    input_file=input_temp_path,
+                    light_dxf=os.path.join(settings.BASE_DIR, 'assets', 'Ceiling_Lights.dxf'),
+                    switch_dxf=os.path.join(settings.BASE_DIR, 'assets', 'M_SW.dxf'),
+                    fan_dxf=os.path.join(settings.BASE_DIR, 'assets', 'Fan_C.dxf'),
+                    wall_light=os.path.join(settings.BASE_DIR, 'assets', 'Wall_Lights.dxf'),
+                    ac_dxf=os.path.join(settings.BASE_DIR, 'assets', 'AC.dxf'),
+                    MBD_dxf=os.path.join(settings.BASE_DIR, 'assets', 'MBD.dxf'),
+                    EvSwitch_dxf=os.path.join(settings.BASE_DIR, 'assets', 'EvSwitch.dxf'),
+                    output_file_final=output_temp_path,
+                    user_input="yes"
+                )
 
-            # Upload original file to S3
-            input_file_key = f"uploads/{project_name}/{dxf_file.name}"
-            with open(input_temp_path, 'rb') as file_obj:
-                s3_client.upload_fileobj(file_obj, bucket_name, input_file_key)
-            input_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{input_file_key}"
+                with open(output_temp_path, 'rb') as f:
+                    output_path = f'electrical/fixtures/outputs/{output_filename}'
+                    instance.output_file.save(output_path, ContentFile(f.read()))
 
-            # Upload processed file to S3
-            output_file_key = f"processed/{project_name}/Final_output.dxf"
-            with open(final_output_path, 'rb') as file_obj:
-                s3_client.upload_fileobj(file_obj, bucket_name, output_file_key)
-            output_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{output_file_key}"
+                instance.status = 'completed'
+                instance.save()
 
-            # Prepare plumbing processing if requested
-            plumbing_result = None
-            if process_plumbing:
-                logger.info(f"Processing plumbing for project: {project_name}")
-                try:
-                    plumbing_output_filename = 'Final_Floor_Plan_with_Drainage_Pipes.dxf'
-                    blocksDxf = os.path.join(settings.BASE_DIR, 'assets', 'SMH-Blocks.dxf')
-                    plumbExcel = os.path.join(settings.BASE_DIR, 'assets', 'price_of_plumbing_material.xlsx')
-                    material = complete_pipeline(final_output_path, output_temp_path, blocksDxf, plumbExcel)
-
-                    # Upload plumbing result to S3
-                    plumbing_file_key = f"processed/{project_name}/{plumbing_output_filename}"
-                    with open(plumbing_output_filename, 'rb') as file_obj:
-                        s3_client.upload_fileobj(file_obj, bucket_name, plumbing_file_key)
-                    plumbing_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{plumbing_file_key}"
-                    
-                    boq_filename = "Plumbing_BOQ.xlsx"
-                    main_plumbing(material)
-
-                    boq_file_key = f"processed/{project_name}/{boq_filename}"
-                    with open(boq_filename, 'rb') as boq_file:
-                        s3_client.upload_fileobj(boq_file, bucket_name, boq_file_key)
-                    boq_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{boq_file_key}"
-
-                    plumbing_result = {
-                        "output_file_url": plumbing_file_url,
-                        "output_file_name": plumbing_output_filename,
-                        "boq_file_url": boq_file_url,
-                        "additional_result": {
-                            "MaterialList": material
-                        }
-                    }
-                    
-                except Exception as e:
-                    logger.error(f"Plumbing processing failed for project: {project_name}: {str(e)}")
-
-            # Prepare electrical processing if requested
-            electrical_result = None
-            if process_electrical:
-                logger.info(f"Processing electrical for project: {project_name}")
-                try:
-                    # Define paths for input DXF, source DXF, SW DXF, electrical DXF, and Excel file
-                    input_dxf_file = input_temp_path
-                    source_dxf_path = os.path.join(settings.BASE_DIR, 'assets', '15W.dxf')
-                    sw_dxf_path = os.path.join(settings.BASE_DIR, 'assets', 'SW.dxf')
-                    dxf_path_electrical = os.path.join(settings.BASE_DIR, 'Electrical.dxf')
-                    excel_file_path = os.path.join(settings.BASE_DIR, 'assets', 'price_of_electrical.xlsx')
-                    output_path_final = os.path.join(settings.BASE_DIR, 'Electrical_drawing.dxf')
-
-                    # Call main_final with all required parameters
-                    electrical_output_path, material_result = main_final(
-                        input_dxf_file=input_dxf_file,
-                        source_dxf_path=source_dxf_path,
-                        sw_dxf_path=sw_dxf_path,
-                        dxf_path_electrical=dxf_path_electrical,
-                        excel_file_path=excel_file_path,
-                        output_path_final=output_path_final,
-                        offset_distance=24
-                    )
-
-                    # Upload electrical output to S3
-                    electrical_file_key = f"processed/{project_name}/Final_Electrical_Plan.dxf"
-                    with open(electrical_output_path, 'rb') as file_obj:
-                        s3_client.upload_fileobj(file_obj, bucket_name, electrical_file_key)
-                    electrical_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{electrical_file_key}"
-
-                    # Generate BOQ for electrical
-                    boq_filename = "Electrical_BOQ.xlsx"
-                    main_electrical(material_result)
-
-                    # Upload the BOQ file to S3
-                    boq_file_key = f"processed/{project_name}/{boq_filename}"
-                    with open(boq_filename, 'rb') as boq_file:
-                        s3_client.upload_fileobj(boq_file, bucket_name, boq_file_key)
-                    boq_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{boq_file_key}"
-
-                    electrical_result = {
-                        "output_file_url": electrical_file_url,
-                        "output_file_name": os.path.basename(electrical_output_path),
-                        "boq_file_url": boq_file_url,  # URL for the BOQ file
-                        "material_result": material_result
-                    }
-
-                except Exception as e:
-                    logger.error(f"Electrical processing failed for project: {project_name}: {str(e)}")
-                    return Response(
-                        {"error": "Electrical processing failed", "details": str(e)},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                    )
-
-            structural_result = None
-            if process_structural:
-                logger.info(f"Processing structural components for project: {project_name}")
-                try:
-                    xl = os.path.join(settings.BASE_DIR, 'assets', 'price_of_material_new.xlsx')
-
-                    # Call pipeline_main and verify if data is returned correctly
-                    try:
-                        column_info_df, beam_info_df = pipeline_main(final_output_path, output_temp_path)
-                        logger.info("Successfully retrieved column and beam info.")
-                    except Exception as e:
-                        logger.error(f"Error in pipeline_main: {str(e)}")
-                        return Response(
-                            {"error": "Failed to process structural components", "details": str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                        )
-
-                    # Upload the output DXF file to S3
-                    output_file_key = f"processed/{project_name}/structural_output.dxf"
-                    with open(output_temp_path, 'rb') as file_obj:
-                        s3_client.upload_fileobj(file_obj, bucket_name, output_file_key)
-                    output_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{output_file_key}"
-
-                    # Generate and upload BOQ file for structural components
-                    boq_filename = "Structural_BOQ.xlsx"
-                    main_structure(column_info_df, beam_info_df, xl)
-                    boq_file_key = f"processed/{project_name}/{boq_filename}"
-                    with open(boq_filename, 'rb') as boq_file:
-                        s3_client.upload_fileobj(boq_file, bucket_name, boq_file_key)
-                    boq_file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{boq_file_key}"
-
-                    # Prepare structural result response data
-                    structural_result = {
-                        "output_file_url": output_file_url,
-                        "boq_file_url": boq_file_url,
-                        "column_info": column_info_df.to_dict(),
-                        "beam_info": beam_info_df.to_dict()
-                    }
-
-                except Exception as e:
-                    logger.error(f"Structural processing failed: {str(e)}")
-                    return Response(
-                        {"error": "Structural processing failed", "details": str(e)},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                    )
-                
-            # Create or update the project instance
-            project, created = Project.objects.update_or_create(
-                project_name=project_name,
-                defaults={
-                    'created_by': request.user,
-                    'input_file_url': input_file_url,
-                    'output_file_url': output_file_url,
-                    'plumbing': plumbing_result,
-                    'electrical': electrical_result,
-                    'structural': structural_result,
-                }
-            )
-
-            # Prepare response data
-            project_data = ProjectSerializer(project).data
-            response_data = {
-                "project": {
-                    **project_data,
-                    "plumbing": plumbing_result if plumbing_result else {"output_file_url": None, "required": process_plumbing},
-                    # "electrical": electrical_result if electrical_result else {"output_file_url": None, "required": process_electrical},
-                    "electrical": electrical_result if electrical_result else {"output_file_url": None, "required": process_electrical},
-                    "structural": structural_result if structural_result else {"output_file_url": None, "required": process_structural},
-                    "layer_names": processing_result['Layer_names'],
-                    "number_overlapped_lines": processing_result['Number_overlapped_lines'],
-                }
-            }
-
-            logger.info(f"Successfully processed DXF file for project: {project_name}")
-            return Response(response_data, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                raise RuntimeError(f"DXF processing error: {str(e)}")
 
         except Exception as e:
-            logger.error(f"Error processing project {project_name}: {str(e)}")
+            instance.status = 'failed'
+            instance.save()
+            logger.error(f"Fixture processing failed: {str(e)}")
+            raise
+
+        finally:
+            # Cleanup
+            for temp_file in [input_temp_path, output_temp_path]:
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except OSError as e:
+                        logger.error(f"Cleanup error for {temp_file}: {str(e)}")
+
+    def post(self, request, project_id):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        input_file = request.FILES.get('input_file')
+        if not input_file:
             return Response(
-                {"error": f"Processing failed: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {'detail': 'Input file is required.'}, 
+                status=status.HTTP_400_BAD_REQUEST
             )
-        # finally:
-        #     # Clean up the temp directory
-        #     if os.path.exists(temp_dir):
-        #         shutil.rmtree(temp_dir)
+        
+        if not input_file.name.lower().endswith('.dxf'):
+            return Response(
+                {'detail': 'Only DXF files are allowed.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        data = {
+            'subproject': working_drawing.subproject.id,
+            'user': request.user.id,
+            'input_file': input_file,
+            'size': input_file.size
+        }
 
+        serializer = ElectricalFixturesSerializer(data=data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            
+            thread = threading.Thread(
+                target=self.process_fixtures,
+                args=(instance,),
+                name=f"ProcessFixtures-{instance.id}"
+            )
+            thread.daemon = True
+            thread.start()
+            
+            return Response({
+                'id': instance.id,
+                'status': 'processing',
+                'message': 'Processing started. Check status for completion.',
+                'working_drawing': {
+                    'id': working_drawing.id,
+                    'type': 'electrical'
+                },
+                'files': {
+                    'input': instance.input_file_url,
+                    'output': None
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProjectListView(APIView):
+    def get(self, request, project_id, fixture_id=None):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        if fixture_id:
+            fixture = get_object_or_404(
+                ElectricalFixtures, 
+                id=fixture_id, 
+                subproject=working_drawing.subproject
+            )
+            serializer = ElectricalFixturesSerializer(fixture)
+            return Response(serializer.data)
+        
+        fixtures = ElectricalFixtures.objects.filter(
+            subproject=working_drawing.subproject
+        )
+        serializer = ElectricalFixturesSerializer(fixtures, many=True)
+        return Response({
+            'working_drawing_id': working_drawing.id,
+            'fixtures': serializer.data
+        })
+
+class ElectricalWiringView(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        projects = Project.objects.filter(created_by=request.user)
-        serializer = ProjectSerializer(projects, many=True)
-        return Response(serializer.data)
+    def get_working_drawing(self, project_id, user):
+        project = get_object_or_404(Project, id=project_id, user=user)
+        
+        subproject = SubProject.objects.filter(
+            project=project,
+            type='working_drawing'
+        ).first()
+        
+        if not subproject:
+            subproject = SubProject.objects.create(
+                project=project,
+                type='working_drawing',
+                state={'drawing_type': 'electrical'}
+            )
+            WorkingDrawingProject.objects.create(
+                subproject=subproject,
+                drawing_type='electrical'
+            )
+        
+        return subproject.working_drawing
 
-# Working Drawing Views
+    def process_wiring(self, instance):
+        input_temp_path = None
+        output_temp_path = None
+        
+        try:
+            instance.status = 'processing'
+            instance.save()
+            os.makedirs(TEMP_FOLDER, exist_ok=True)
 
-# class WorkingDrawingCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
+            input_temp_path = os.path.join(TEMP_FOLDER, f'input_{instance.id}.dxf')
+            output_filename = f"electrical_wiring_{instance.id}.dxf"
+            output_temp_path = os.path.join(TEMP_FOLDER, output_filename)
 
-#     def post(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         serializer = WorkingDrawingSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(uploaded_by=request.user, project=project)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            with open(input_temp_path, 'wb') as f:
+                f.write(instance.input_file.read())
 
-# class WorkingDrawingListView(APIView):
-#     permission_classes = [IsAuthenticated]
+            try:
+                main_process_wiring(
+                    input_file=input_temp_path,
+                    output_file_final=output_temp_path
+                )
 
-#     def get(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         working_drawings = WorkingDrawing.objects.filter(project=project)
-#         serializer = WorkingDrawingSerializer(working_drawings, many=True)
-#         return Response(serializer.data)
+                with open(output_temp_path, 'rb') as f:
+                    output_path = f'electrical/wiring/outputs/{output_filename}'
+                    instance.output_file.save(output_path, ContentFile(f.read()))
 
-# # Plan Views
+                instance.status = 'completed'
+                instance.save()
 
-# class PlanCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
+            except Exception as e:
+                raise RuntimeError(f"DXF processing error: {str(e)}")
 
-#     def post(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         serializer = PlanSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(uploaded_by=request.user, project=project)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            instance.status = 'failed'
+            instance.save()
+            logger.error(f"Wiring processing failed: {str(e)}")
+            raise
 
-# class PlanListView(APIView):
-#     permission_classes = [IsAuthenticated]
+        finally:
+            # Cleanup
+            for temp_file in [input_temp_path, output_temp_path]:
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except OSError as e:
+                        logger.error(f"Cleanup error for {temp_file}: {str(e)}")
 
-#     def get(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         plans = Plan.objects.filter(project=project)
-#         serializer = PlanSerializer(plans, many=True)
-#         return Response(serializer.data)
+    def post(self, request, project_id):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        input_file = request.FILES.get('input_file')
+        if not input_file:
+            return Response(
+                {'detail': 'Input file is required.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not input_file.name.lower().endswith('.dxf'):
+            return Response(
+                {'detail': 'Only DXF files are allowed.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-# # 3D Model Views
+        data = {
+            'subproject': working_drawing.subproject.id,
+            'user': request.user.id,
+            'input_file': input_file,
+            'size': input_file.size
+        }
 
-# class ThreeDModelCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
+        serializer = ElectricalWiringSerializer(data=data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            
+            thread = threading.Thread(
+                target=self.process_wiring,
+                args=(instance,),
+                name=f"ProcessWiring-{instance.id}"
+            )
+            thread.daemon = True
+            thread.start()
+            
+            return Response({
+                'id': instance.id,
+                'status': 'processing',
+                'message': 'Processing started. Check status for completion.',
+                'working_drawing': {
+                    'id': working_drawing.id,
+                    'type': 'electrical'
+                },
+                'files': {
+                    'input': instance.input_file_url,
+                    'output': None
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#     def post(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         serializer = ThreeDModelSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(uploaded_by=request.user, project=project)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, project_id, wiring_id=None):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        if wiring_id:
+            wiring = get_object_or_404(
+                ElectricalWiring, 
+                id=wiring_id, 
+                subproject=working_drawing.subproject
+            )
+            serializer = ElectricalWiringSerializer(wiring)
+            return Response(serializer.data)
+        
+        wiring_list = ElectricalWiring.objects.filter(
+            subproject=working_drawing.subproject
+        )
+        serializer = ElectricalWiringSerializer(wiring_list, many=True)
+        return Response({
+            'working_drawing_id': working_drawing.id,
+            'wiring': serializer.data
+        })
+    
 
-# class ThreeDModelListView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         models_3d = ThreeDModel.objects.filter(project=project)
-#         serializer = ThreeDModelSerializer(models_3d, many=True)
-#         return Response(serializer.data)
-
-# # Concept Views
-
-# class ConceptCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         serializer = ConceptSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(uploaded_by=request.user, project=project)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class ConceptListView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, project_id):
-#         project = get_object_or_404(Project, id=project_id, created_by=request.user)
-#         concepts = Concept.objects.filter(project=project)
-#         serializer = ConceptSerializer(concepts, many=True)
-#         return Response(serializer.data)
-
-
-
-
-
-
-
-
-
-
-
-
+    

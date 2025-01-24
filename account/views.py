@@ -46,7 +46,6 @@ def get_tokens_for_user(user):
         active_subscription = Subscription.objects.filter(
             user=user,
             status='ACTIVE',
-            end_date__gte=timezone.now()
         ).select_related('plan').first()
 
         subscription_info = {

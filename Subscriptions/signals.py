@@ -1,5 +1,3 @@
-# subscriptions/signals.py
-
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from project.models import  Project
@@ -83,3 +81,20 @@ def update_project_count(sender, instance, **kwargs):
 def create_customer_profile(sender, instance, created, **kwargs):
     if created:
         CustomerProfile.objects.create(user=instance)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        

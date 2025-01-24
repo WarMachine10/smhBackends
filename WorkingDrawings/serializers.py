@@ -4,41 +4,118 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class UserSerializer(serializers.ModelSerializer):
+
+class ElectricalFixturesSerializer(serializers.ModelSerializer):
+    input_file_url = serializers.SerializerMethodField()
+    output_file_url = serializers.SerializerMethodField()
+    
     class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
+        model = ElectricalFixtures
+        fields = [
+            'id', 'user', 'subproject', 'input_file', 'output_file',
+            'input_file_url', 'output_file_url', 'size',
+            'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
+                           'input_file_url', 'output_file_url']
 
-class ProjectSerializer(serializers.ModelSerializer):
+    def get_input_file_url(self, obj):
+        return obj.input_file_url
+
+    def get_output_file_url(self, obj):
+        return obj.output_file_url
+
+    def validate(self, data):
+        # Ensure the subproject is of type working_drawing
+        if data['subproject'].type != 'working_drawing':
+            raise serializers.ValidationError(
+                "Fixtures can only be added to working drawing subprojects"
+            )
+        return data
+
+class ElectricalWiringSerializer(serializers.ModelSerializer):
+    input_file_url = serializers.SerializerMethodField()
+    output_file_url = serializers.SerializerMethodField()
+    
     class Meta:
-        model = Project
-        fields = ('id', 'project_name', 'created_by', 'created_at', 'modified_at',
-                  'input_file_url', 'output_file_url', 'plumbing', 'electrical', 'structural')
+        model = ElectricalWiring
+        fields = [
+            'id', 'user', 'subproject', 'input_file', 'output_file',
+            'input_file_url', 'output_file_url', 'size',
+            'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
+                           'input_file_url', 'output_file_url']
 
-class WorkingDrawingSerializer(serializers.ModelSerializer):
-    uploaded_by = UserSerializer(read_only=True)
+    def get_input_file_url(self, obj):
+        return obj.input_file_url
+
+    def get_output_file_url(self, obj):
+        return obj.output_file_url
+
+class SubProjectSerializer(serializers.ModelSerializer):
+    electrical_fixtures = ElectricalFixturesSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = SubProject
+        fields = ['id', 'project', 'type', 'state', 'created_at', 'electrical_fixtures']
+
+class WorkingDrawingProjectSerializer(serializers.ModelSerializer):
+    electrical_fixtures = serializers.SerializerMethodField()
+    electrical_wiring = serializers.SerializerMethodField()
 
     class Meta:
-        model = Project
-        fields = ['id', 'project', 'uploaded_by', 'uploaded_at', 'sheet_size', 'scale']
+        model = WorkingDrawingProject
+        fields = [
+            'id',
+            'drawing_type',
+            'created_at',
+            'electrical_fixtures',
+            'electrical_wiring'
+        ]
 
-# class PlanSerializer(serializers.ModelSerializer):
-#     uploaded_by = UserSerializer(read_only=True)
+    def get_electrical_fixtures(self, obj):
+        if obj.drawing_type == 'electrical':
+            fixtures = obj.subproject.electrical_fixtures.all()
+            return ElectricalFixturesSerializer(fixtures, many=True).data
+        return []
 
-#     class Meta:
-#         model = Plan
-#         fields = ['id', 'project', 'uploaded_by', 'uploaded_at', 'plan_type', 'scale']
+    def get_electrical_wiring(self, obj):
+        if obj.drawing_type == 'electrical':
+            wiring = obj.subproject.electrical_wiring.all()
+            return ElectricalWiringSerializer(wiring, many=True).data
+        return []
 
-# class ThreeDModelSerializer(serializers.ModelSerializer):
-#     uploaded_by = UserSerializer(read_only=True)
 
-#     class Meta:
-#         model = ThreeDModel
-#         fields = ['id', 'project', 'uploaded_by', 'uploaded_at', 'model_type', 'render_quality']
+    # def get_plumbing_details(self, obj):
+    #     if obj.drawing_type == 'plumbing':
+    #         try:
+    #             return PlumbingDetailsSerializer(obj.plumbing_details).data
+    #         except PlumbingDrawing.DoesNotExist:
+    #             return None
+    #     return None
 
-# class ConceptSerializer(serializers.ModelSerializer):
-#     uploaded_by = UserSerializer(read_only=True)
+    # def get_structural_details(self, obj):
+    #     if obj.drawing_type == 'structural':
+    #         try:
+    #             return StructuralDetailsSerializer(obj.structural_details).data
+    #         except StructuralDrawing.DoesNotExist:
+    #             return None
+    #     return None
 
-#     class Meta:
-#         model = Concept
-#         fields = ['id', 'project', 'uploaded_by', 'uploaded_at', 'concept_type']
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Only include relevant details based on drawing type
+        if instance.drawing_type == 'electrical':
+            data.pop('plumbing_details', None)
+            data.pop('structural_details', None)
+        elif instance.drawing_type == 'plumbing':
+            data.pop('electrical_details', None)
+            data.pop('structural_details', None)
+            data.pop('electrical_fixtures', None)  # Remove fixtures for non-electrical
+        elif instance.drawing_type == 'structural':
+            data.pop('electrical_details', None)
+            data.pop('plumbing_details', None)
+            data.pop('electrical_fixtures', None)  # Remove fixtures for non-electrical
+        return data
+    
