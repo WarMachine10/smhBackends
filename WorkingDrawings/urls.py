@@ -15,7 +15,7 @@ from .views import *
 #     path('projects/<int:project_id>/concept/create/', ConceptCreateView.as_view(), name='concept-create'),
 # ]
 urlpatterns = [
-    path('working-drawings/<int:pk>/', WorkingDrawingDetailView.as_view(),name='working-drawing-detail'),
+    path('working-drawings/<int:pk>/', WorkingDrawingView.as_view(),name='working-drawing-detail'),
     path('projects/<int:project_id>/electrical/fixtures/', ElectricalFixturesView.as_view(), name='electrical-fixtures'),
     path('projects/<int:project_id>/electrical/fixtures/<int:pk>/', ElectricalFixturesView.as_view(), name='fixture-detail'),
     path('projects/<int:project_id>/wiring/', ElectricalWiringView.as_view(),name='electrical-wiring-list'),

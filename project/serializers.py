@@ -2,10 +2,10 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Project, SubProject
 from loguru import logger
-from WorkingDrawings.models import ElectricalFixtures
 from FloorPlanning.serializers import CreateFloorplanningProjectSerializer, UserFileSerializer
 from FloorPlanning.models import FloorplanningProject, UserFile
-from WorkingDrawings.serializers import WorkingDrawingProjectSerializer 
+from WorkingDrawings.serializers import *
+from WorkingDrawings.models import *
 # from threed.serializers import ThreeDProjectSerializer
 # from conceptualisation.serializers import ConceptualisationProjectSerializer
 # from working_drawing.serializers import WorkingDrawingProjectSerializer
@@ -34,7 +34,7 @@ class ElectricalFixturesSerializer(serializers.ModelSerializer):
 class SubProjectSerializer(serializers.ModelSerializer):
     floorplanning = serializers.SerializerMethodField()
     working_drawing = serializers.SerializerMethodField()
-    electrical_fixtures = ElectricalFixturesSerializer(many=True, read_only=True)
+    # electrical_fixtures = ElectricalFixturesSerializer(many=True, read_only=True)
     
     type = serializers.ChoiceField(choices=[
         ('floorplanning', 'Floorplanning'),
@@ -44,7 +44,7 @@ class SubProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubProject
         fields = ['id', 'project', 'type', 'state', 'created_at', 
-                 'floorplanning', 'working_drawing', 'electrical_fixtures']
+                 'floorplanning', 'working_drawing']
 
     def get_floorplanning(self, obj):
         if obj.type == 'floorplanning':

@@ -28,8 +28,12 @@ class BaseFileModel(models.Model):
         self._original_size = self.size if self.id else None
 
     def save(self, *args, **kwargs):
+        # Always calculate size from input_file first
+        if hasattr(self, 'input_file') and self.input_file:
+            self.size = self.input_file.size
+        
+        # Storage limit check only if updating existing record
         if self.id and self.size != self._original_size:
-            # File is being updated, check storage limits
             subscription = Subscription.objects.filter(
                 user=self.user,
                 status='ACTIVE',
@@ -46,3 +50,4 @@ class BaseFileModel(models.Model):
                     raise ValidationError("Storage limit would be exceeded")
         
         super().save(*args, **kwargs)
+        self._original_size = self.size
