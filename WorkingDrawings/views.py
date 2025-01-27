@@ -29,6 +29,8 @@ import json
 import ezdxf
 import os
 import asyncio
+from WorkingDrawings.Scripts.WorkingDrawings.Plumbing.WaterSupply import main_final_water
+from WorkingDrawings.Scripts.WorkingDrawings.Plumbing.PlumbingComplete import main_final_plumbing_complete
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -89,19 +91,17 @@ class BaseWorkingDrawingView(APIView):
                     }
                 }
             )
-            # Create working drawing project
+            # Create working drawing project without drawing_type
             working_drawing = WorkingDrawingProject.objects.create(
-                subproject=subproject,
-                drawing_type='electrical'
+                subproject=subproject  # Remove drawing_type parameter
             )
         else:
-            working_drawing = subproject.working_drawing
+            working_drawing = getattr(subproject, 'working_drawing', None)
             
             if not working_drawing:
-                # Create working drawing if somehow missing
+                # Create working drawing if missing, without drawing_type
                 working_drawing = WorkingDrawingProject.objects.create(
-                    subproject=subproject,
-                    drawing_type='electrical'
+                    subproject=subproject  # Remove drawing_type parameter
                 )
         
         return working_drawing
@@ -359,3 +359,274 @@ class WorkingDrawingView(BaseWorkingDrawingView):
         working_drawing = self.get_working_drawing(project_id, request.user)
         serializer = WorkingDrawingProjectSerializer(working_drawing)
         return Response(serializer.data)
+    
+class WaterSupplyView(BaseWorkingDrawingView):
+    def process_water_supply_async(self, instance):
+        """Process water supply in background"""
+        input_temp_path = None
+        output_temp_path = None
+        
+        try:
+            # Debug prints to verify asset files
+            mwsp_block_path = os.path.join(settings.BASE_DIR, 'assets', 'MWSP Pipe block.dxf')
+            inlet_block_path = os.path.join(settings.BASE_DIR, 'assets', 'Inlet_pipe.dxf')
+            outlet_block_path = os.path.join(settings.BASE_DIR, 'assets', 'Outlet_pipe.dxf')
+            
+            print(f"MWSP block exists: {os.path.exists(mwsp_block_path)}")
+            print(f"Inlet block exists: {os.path.exists(inlet_block_path)}")
+            print(f"Outlet block exists: {os.path.exists(outlet_block_path)}")
+
+            instance.status = 'processing'
+            instance.save()
+            os.makedirs(TEMP_FOLDER, exist_ok=True)
+
+            input_temp_path = os.path.join(TEMP_FOLDER, f'input_{instance.id}.dxf')
+            output_filename = f"water_supply_{instance.id}.dxf"
+            output_temp_path = os.path.join(TEMP_FOLDER, output_filename)
+
+            # Debug print input file
+            print(f"Input file size: {instance.input_file.size}")
+
+            with open(input_temp_path, 'wb') as f:
+                f.write(instance.input_file.read())
+
+            try:
+                # Process DXF with more debug info
+                print("Starting DXF processing...")
+                main_final_water(
+                    input_dxf1=input_temp_path,
+                    mwsp_block=mwsp_block_path,
+                    inlet_block=inlet_block_path,
+                    outlet_block=outlet_block_path,
+                    final_output=output_temp_path
+                )
+                print("DXF processing completed")
+
+                # Verify output file was created
+                print(f"Output file exists: {os.path.exists(output_temp_path)}")
+                print(f"Output file size: {os.path.getsize(output_temp_path) if os.path.exists(output_temp_path) else 'N/A'}")
+
+                with open(output_temp_path, 'rb') as f:
+                    output_path = f'plumbing/watersupply/outputs/{output_filename}'
+                    instance.output_file.save(output_path, ContentFile(f.read()))
+
+                instance.status = 'completed'
+                instance.save()
+
+            except Exception as e:
+                print(f"Processing error: {str(e)}")  # Debug print the actual error
+                raise RuntimeError(f"DXF processing error: {str(e)}")
+
+        except Exception as e:
+            print(f"Overall error: {str(e)}")  # Debug print for outer exception
+            instance.status = 'failed'
+            instance.save()
+            logger.error(f"Water supply processing failed: {str(e)}")
+            raise
+
+        finally:
+            # Cleanup temp files
+            for temp_file in [input_temp_path, output_temp_path]:
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except OSError as e:
+                        logger.error(f"Cleanup error for {temp_file}: {str(e)}")
+
+    @transaction.atomic
+    def post(self, request, project_id):
+        """Create new water supply processing"""
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        try:
+            input_file = self.validate_dxf_file(request.FILES.get('input_file'))
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            'subproject': working_drawing.subproject.id,
+            'user': request.user.id,
+            'input_file': input_file,
+            'size': input_file.size
+        }
+
+        serializer = WaterSupplySerializer(data=data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            
+            thread = threading.Thread(
+                target=self.process_water_supply_async,
+                args=(instance,),
+                name=f"ProcessWaterSupply-{instance.id}"
+            )
+            thread.daemon = True
+            thread.start()
+            
+            return Response({
+                'id': instance.id,
+                'status': 'processing',
+                'message': 'Processing started. Check status for completion.',
+                'working_drawing': {
+                    'id': working_drawing.id,
+                },
+                'files': {
+                    'input': instance.input_file_url,
+                    'output': None
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, project_id, supply_id=None):
+        """Get water supply details"""
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        if supply_id:
+            supply = get_object_or_404(
+                WaterSupply, 
+                id=supply_id, 
+                subproject=working_drawing.subproject
+            )
+            serializer = WaterSupplySerializer(supply)
+            return Response(serializer.data)
+        
+        supplies = WaterSupply.objects.filter(
+            subproject=working_drawing.subproject
+        ).order_by('-created_at')
+        
+        serializer = WaterSupplySerializer(supplies, many=True)
+        return Response(serializer.data)
+
+class PlumbingCompleteView(BaseWorkingDrawingView):
+    def process_complete_async(self, instance):
+        """Process plumbing complete in background"""
+        input_temp_path = None
+        output_temp_path = None
+        
+        try:
+            instance.status = 'processing'
+            instance.save()
+            os.makedirs(TEMP_FOLDER, exist_ok=True)
+
+            input_temp_path = os.path.join(TEMP_FOLDER, f'input_{instance.id}.dxf')
+            output_filename = f"plumbing_complete_{instance.id}.dxf"
+            output_temp_path = os.path.join(TEMP_FOLDER, output_filename)
+
+            with open(input_temp_path, 'wb') as f:
+                f.write(instance.input_file.read())
+
+            try:
+                # Process DXF
+                main_final_plumbing_complete(
+                    input_dxf1=input_temp_path,
+                    user_input1=instance.input1_option,
+                    user_input2=instance.input2_option,
+                    block_file_IC_and_GT=os.path.join(settings.BASE_DIR, 'assets', 'IC & GT_Blocks.dxf'),
+                    block_file_FT=os.path.join(settings.BASE_DIR, 'assets', 'Floor_Trap.dxf'),
+                    block_file_WPDT=os.path.join(settings.BASE_DIR, 'assets', 'Waste_Pipe.dxf'),
+                    block_dxf_path=os.path.join(settings.BASE_DIR, 'assets', 'Rain_Water_Pipe.dxf'),
+                    csv_file_path=os.path.join(settings.BASE_DIR, 'assets', 'indian_residential_layers.csv'),
+                    annual_rainfall_mm=800,
+                    output_dxf=output_temp_path,
+                    block_mapping={
+                        "Inlet_Pipe": ("Inlet Pipe", 10),
+                        "Outlet_Pipe": ("Outlet Pipe",2),
+                        "MWSP": ("Main Water\nSupply Pipe", 0.1),
+                        "WPDT": ("Waste Pipe\nDown Take", 0.1),
+                        "SPDT": ("Soil Pipe\nDown Take", 7),
+                        "RPDT": ("Rain Water\nDown Take", 0.1),
+                        "IC": ("Inspection Chamber", 0.8),
+                        "GT": ("Gully Trap", 0.8),
+                        "FT": ("Floor Trap", 0.05)
+                    }
+                )
+
+                with open(output_temp_path, 'rb') as f:
+                    output_path = f'plumbing/complete/outputs/{output_filename}'
+                    instance.output_file.save(output_path, ContentFile(f.read()))
+
+                instance.status = 'completed'
+                instance.save()
+
+            except Exception as e:
+                raise RuntimeError(f"DXF processing error: {str(e)}")
+
+        except Exception as e:
+            instance.status = 'failed'
+            instance.save()
+            logger.error(f"Plumbing complete processing failed: {str(e)}")
+            raise
+
+        finally:
+            for temp_file in [input_temp_path, output_temp_path]:
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except OSError as e:
+                        logger.error(f"Cleanup error for {temp_file}: {str(e)}")
+
+    @transaction.atomic
+    def post(self, request, project_id):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        try:
+            input_file = self.validate_dxf_file(request.FILES.get('input_file'))
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            'subproject': working_drawing.subproject.id,
+            'user': request.user.id,
+            'input_file': input_file,
+            'size': input_file.size,
+            'input1_option': request.data.get('input1_option', 'yes'),
+            'input2_option': request.data.get('input2_option', 'yes')
+        }
+
+        serializer = PlumbingCompleteSerializer(data=data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            
+            thread = threading.Thread(
+                target=self.process_complete_async,
+                args=(instance,),
+                name=f"ProcessPlumbingComplete-{instance.id}"
+            )
+            thread.daemon = True
+            thread.start()
+            
+            return Response({
+                'id': instance.id,
+                'status': 'processing',
+                'message': 'Processing started. Check status for completion.',
+                'working_drawing': {
+                    'id': working_drawing.id,
+                },
+                'files': {
+                    'input': instance.input_file_url,
+                    'output': None
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, project_id, complete_id=None):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        if complete_id:
+            complete = get_object_or_404(
+                PlumbingComplete, 
+                id=complete_id, 
+                subproject=working_drawing.subproject
+            )
+            serializer = PlumbingCompleteSerializer(complete)
+            return Response(serializer.data)
+        
+        completes = PlumbingComplete.objects.filter(
+            subproject=working_drawing.subproject
+        ).order_by('-created_at')
+        
+        serializer = PlumbingCompleteSerializer(completes, many=True)
+        return Response(serializer.data)
+
+

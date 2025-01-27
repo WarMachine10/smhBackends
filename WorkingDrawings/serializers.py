@@ -36,20 +36,21 @@ class ElectricalFixturesSerializer(serializers.ModelSerializer):
         if input_file:
             validated_data['size'] = input_file.size
         return super().create(validated_data)
-
 class ElectricalWiringSerializer(serializers.ModelSerializer):
-    created_by = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
-    input_file = serializers.SerializerMethodField()
-    output_file = serializers.SerializerMethodField()
-
+    input_file_url = serializers.SerializerMethodField()
+    output_file_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = ElectricalWiring
         fields = [
-            'id', 'created_by', 'input_file', 'output_file',
+            'id', 'user', 'subproject', 'input_file', 'output_file',  # Added subproject
+            'input_file_url', 'output_file_url', 'size',
             'status', 'created_at', 'updated_at'
         ]
+        read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
+                           'input_file_url', 'output_file_url']
 
-    def get_input_file(self, obj):
+    def get_input_file_url(self, obj):
         if obj.input_file:
             return {
                 'url': obj.input_file.url,
@@ -57,7 +58,7 @@ class ElectricalWiringSerializer(serializers.ModelSerializer):
             }
         return None
 
-    def get_output_file(self, obj):
+    def get_output_file_url(self, obj):
         if obj.output_file:
             return {
                 'url': obj.output_file.url,
@@ -65,9 +66,74 @@ class ElectricalWiringSerializer(serializers.ModelSerializer):
             }
         return None
 
+    def create(self, validated_data):
+        if 'input_file' in validated_data:
+            validated_data['size'] = validated_data['input_file'].size
+        return super().create(validated_data)
+    
 class ElectricalSectionSerializer(serializers.Serializer):
     fixtures = ElectricalFixturesSerializer(many=True, read_only=True)
     wiring = ElectricalWiringSerializer(many=True, read_only=True)
+
+
+class WaterSupplySerializer(serializers.ModelSerializer):
+    input_file_url = serializers.SerializerMethodField()
+    output_file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = WaterSupply
+        fields = [
+            'id', 'user', 'subproject', 'input_file', 'output_file',
+            'input_file_url', 'output_file_url', 'size',
+            'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
+                           'input_file_url', 'output_file_url']
+
+    def get_input_file_url(self, obj):
+        return obj.input_file_url
+
+    def get_output_file_url(self, obj):
+        return obj.output_file_url
+
+class PlumbingCompleteSerializer(serializers.ModelSerializer):
+    input_file_url = serializers.SerializerMethodField()
+    output_file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PlumbingComplete
+        fields = [
+            'id', 'user', 'subproject', 'input_file', 'output_file',
+            'input_file_url', 'output_file_url', 'size',
+            'input1_option', 'input2_option',
+            'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
+                           'input_file_url', 'output_file_url']
+
+    def get_input_file_url(self, obj):
+        if obj.input_file:
+            return {
+                'url': obj.input_file.url,
+                'size': obj.size
+            }
+        return None
+
+    def get_output_file_url(self, obj):
+        if obj.output_file:
+            return {
+                'url': obj.output_file.url,
+                'size': obj.size
+            }
+        return None
+
+    def create(self, validated_data):
+        if 'input_file' in validated_data:
+            validated_data['size'] = validated_data['input_file'].size
+        return super().create(validated_data)
+
+class PlumbingSectionSerializer(serializers.Serializer):
+    water_supply = WaterSupplySerializer(many=True, read_only=True)
 
 class SectionsSerializer(serializers.Serializer):
     electrical = serializers.SerializerMethodField()
@@ -83,9 +149,12 @@ class SectionsSerializer(serializers.Serializer):
         }
 
     def get_plumbing(self, obj):
+        water_supply = WaterSupply.objects.filter(subproject=obj.subproject)
+        plumbing_complete = PlumbingComplete.objects.filter(subproject=obj.subproject)
         return {
-            'pipes': [],
-            'fixtures': []
+            'water_supply': WaterSupplySerializer(water_supply, many=True).data,
+            'complete': PlumbingCompleteSerializer(plumbing_complete, many=True).data,
+            
         }
 
     def get_structural(self, obj):
@@ -100,7 +169,15 @@ class WorkingDrawingProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkingDrawingProject
         fields = ['id', 'sections', 'created_at']
-
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Only include sections that have data
+        if not any(data['sections'].get('plumbing', {}).values()):
+            data['sections'].pop('plumbing', None)
+        if not any(data['sections'].get('structural', {}).values()):
+            data['sections'].pop('structural', None)
+        return data
+    
 class SubProjectSerializer(serializers.ModelSerializer):
     working_drawing = WorkingDrawingProjectSerializer(read_only=True)
     floorplanning = serializers.SerializerMethodField()
