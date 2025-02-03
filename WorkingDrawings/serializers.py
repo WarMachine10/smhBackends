@@ -104,12 +104,54 @@ class PlumbingCompleteSerializer(serializers.ModelSerializer):
         model = PlumbingComplete
         fields = [
             'id', 'user', 'subproject', 'input_file', 'output_file',
-            'input_file_url', 'output_file_url', 'size',
+            'input_file_url', 'output_file_url','boq_output_file_url', 'size',
             'input1_option', 'input2_option',
             'status', 'created_at', 'updated_at'
         ]
         read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
-                           'input_file_url', 'output_file_url']
+                           'input_file_url', 'output_file_url','boq_output_file_url']
+
+    def get_input_file_url(self, obj):
+        if obj.input_file:
+            return {
+                'url': obj.input_file.url,
+                'size': obj.size
+            }
+        return None
+
+    def get_output_file_url(self, obj):
+        if obj.output_file:
+            return {
+                'url': obj.output_file.url,
+                'size': obj.size
+            }
+        return None
+    def get_boq_output_file_url(self, obj):  # New method
+        if obj.boq_output_file:
+            return {
+                'url': obj.boq_output_file.url,
+                'size': obj.size
+            }
+        return None
+    
+    def create(self, validated_data):
+        if 'input_file' in validated_data:
+            validated_data['size'] = validated_data['input_file'].size
+        return super().create(validated_data)
+    
+class StructuralMainSerializer(serializers.ModelSerializer):
+    input_file_url = serializers.SerializerMethodField()
+    output_file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = StructuralMain
+        fields = [
+            'id', 'user', 'subproject', 'input_file', 'output_file',
+            'input_file_url', 'output_file_url', 'size', 'status',
+            'column_info', 'beam_info', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
+                           'input_file_url', 'output_file_url', 'column_info', 'beam_info']
 
     def get_input_file_url(self, obj):
         if obj.input_file:
@@ -131,7 +173,7 @@ class PlumbingCompleteSerializer(serializers.ModelSerializer):
         if 'input_file' in validated_data:
             validated_data['size'] = validated_data['input_file'].size
         return super().create(validated_data)
-
+    
 class PlumbingSectionSerializer(serializers.Serializer):
     water_supply = WaterSupplySerializer(many=True, read_only=True)
 
@@ -158,8 +200,9 @@ class SectionsSerializer(serializers.Serializer):
         }
 
     def get_structural(self, obj):
+        structural_main = StructuralMain.objects.filter(subproject=obj.subproject)
         return {
-            'beams': [],
+            'structural_main': StructuralMainSerializer(structural_main, many=True).data,
             'columns': []
         }
 

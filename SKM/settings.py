@@ -64,7 +64,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -117,7 +117,7 @@ SUBSCRIPTION_FEATURES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Test', #This will be Production on server
+        'NAME': 'Test', 
         'USER': 'admin',
         'PASSWORD': secrets['RDS_KEY'],
         'HOST': secrets['RDS_HOST_URL'],
@@ -126,8 +126,6 @@ DATABASES = {
     }
 }
 
-
-# Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -227,4 +225,5 @@ SWAGGER_SETTINGS = {
 #
 EMAIL_XAPI=secrets['EMAIL_XAPI']
 GOOGLE_MAPS_API_KEY = secrets['GOOGLE_MAPS_API_KEY']
+
 

@@ -24,4 +24,6 @@ urlpatterns = [
     path('projects/<int:project_id>/plumbing/watersupply/<int:supply_id>/',WaterSupplyView.as_view(),name='water-supply-detail'),
     path('projects/<int:project_id>/plumbing/complete/', PlumbingCompleteView.as_view(),name='plumbing-complete-list'),
     path('projects/<int:project_id>/plumbing/complete/<int:complete_id>/',PlumbingCompleteView.as_view(),name='plumbing-complete-detail'),
+    path('projects/<int:project_id>/structure/main/',StructuralMainView.as_view(),name='plumbing-complete-list'),
+    path('projects/<int:project_id>/structure/main/<int:main_id>',StructuralMainView.as_view(),name='plumbing-complete-list'),
 ]

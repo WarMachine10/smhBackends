@@ -1,4 +1,4 @@
-
+# %%
 import ezdxf
 from ezdxf.addons import Importer
 from ezdxf.math import Vec2, intersection_line_line_2d
@@ -10,6 +10,7 @@ import ezdxf
 from ezdxf.math import Vec2
 import os
 
+# %%
 def copy_and_place_blocks(block_file_IC_and_GT, input_dxf1, output_dxf):
     try:
         # Load the block file and input DXF file
@@ -114,7 +115,8 @@ def copy_and_place_blocks(block_file_IC_and_GT, input_dxf1, output_dxf):
 def main1(input_dxf1, block_file_IC_and_GT, output_dxf):
     copy_and_place_blocks(block_file_IC_and_GT, input_dxf1, output_dxf)
 
-
+# %%
+# Step 1: Read DXF File
 def read_dxf(file_path):
     try:
         doc = ezdxf.readfile(file_path)
@@ -224,7 +226,7 @@ def process_dxf1(block_file_FT, input_dxf2, output_dxf):
 def main2(input_dxf2, block_file_FT, output_dxf):
     process_dxf1(block_file_FT, input_dxf2, output_dxf)
 
-
+# %%
 def find_intersection_points(horizontal_lines, vertical_lines):
     """Find intersection points of horizontal and vertical lines."""
     intersection_points = []
@@ -338,6 +340,7 @@ def make_ft_placement(block_file_FT, input_dxf3, output_dxf, layers):
 def main3(input_dxf3, block_file_FT, output_dxf, layers):
     make_ft_placement(block_file_FT, input_dxf3, output_dxf, layers)
 
+# %%
 def add_arrow_near_ft(input_dxf4, output_dxf):
     try:
         # Load the DXF file
@@ -380,6 +383,7 @@ def add_arrow_near_ft(input_dxf4, output_dxf):
 def main4(input_dxf4, output_dxf):
     add_arrow_near_ft(input_dxf4, output_dxf)
 
+# %%
 def copy_block_from_source_to_target(source_file, block_name, target_file):
     source_doc = ezdxf.readfile(source_file)
     target_doc = ezdxf.readfile(target_file)
@@ -473,6 +477,8 @@ def process_dxf2(block_file_WPDT, input_dxf5, output_dxf):
 def main5(input_dxf5, block_file_WPDT, output_dxf):
     process_dxf2(block_file_WPDT, input_dxf5, output_dxf)
 
+# %%
+
 def find_wpdt_blocks(msp, wpdt_block_name):
     """Find all WPDT block references in the model space."""
     wpdt_locations = []
@@ -546,6 +552,9 @@ def main6(input_dxf6, wpdt_block_name, spdt_block_name, output_dxf):
         doc.saveas(output_dxf)
     except Exception as e:
         pass
+
+
+# %%
 
 def debug_layer_content(doc, layer_name):
     """Print all entities in a given layer for debugging."""
@@ -810,6 +819,9 @@ def main8(input_dxf8, output_dxf, box_size_input, line_thickness_inch_input, tex
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
+# %%
+
 # Function to check if a layer Name matches target categories (with typo tolerance)
 def is_relevant_layer(layer_name, keywords, threshold=80):
     for keyword in keywords:
@@ -934,6 +946,11 @@ def main9(input_dxf9,block_dxf_path,target_layer_names,output_dxf,csv_file_path,
         #print(f"Block copied and saved to {output_dxf}")
     except Exception as e:
         print(f"Error copying block: {e}")
+
+# Call the main function
+
+
+# %%
 
 def process_dxf4(doc, output_dxf):
     try:
@@ -1077,6 +1094,7 @@ def main10(input_dxf10, output_dxf):
     doc.saveas(output_dxf)  # Save the modified document
     #print(f"DXF file processed and saved as '{output_dxf9}'.")
 
+# %%
 import ezdxf
 from ezdxf.math import BoundingBox
 from typing import Optional, Tuple
@@ -1133,150 +1151,10 @@ def process_dxf5(input_file11: str, output_dxf: str, block_mapping: dict) -> boo
         doc = ezdxf.readfile(input_file11)
         msp = doc.modelspace()
 
-        # Find the (max x, min y) and (max x, max y) points from entities on the "Boundary" layer
-        max_x = float("-inf")
-        min_y = float("inf")
-        max_y = float("-inf")
-
-        for entity in msp.query('LINE[layer=="Boundary"]'):
-            x1, y1 = entity.dxf.start.x, entity.dxf.start.y
-            x2, y2 = entity.dxf.end.x, entity.dxf.end.y
-            max_x = max(max_x, x1, x2)
-            min_y = min(min_y, y1, y2)
-            max_y = max(max_y, y1, y2)
-
-        if max_x == float("-inf") or min_y == float("inf") or max_y == float("-inf"):
-            logger.error("No valid entities found on the 'Boundary' layer.")
-            return False
-
-        # Calculate the offset for placing the table
-        table_start_x = max_x + 5 * 12  # 5 feet offset to the right
-        table_center_y = (min_y + max_y) / 2  # Center between min_y and max_y
-        table_height = 40 * (len(block_mapping) + 2)  # Table height based on number of rows (+2 for header and legends)
-        table_start_y = table_center_y + table_height / 2
-        table_end_y = table_center_y - table_height / 2
-
-        # Table parameters
-        square_size = 40
-        col_width = 60
-        text_height = 3
-        bold_text_height = 5
-        legends_height = 15
-
-        # Draw Legends box
-        total_table_width = square_size + col_width
-        legends_y = table_start_y
-
-        msp.add_lwpolyline(
-            [
-                (table_start_x, legends_y),
-                (table_start_x + total_table_width, legends_y),
-                (table_start_x + total_table_width, legends_y + legends_height),
-                (table_start_x, legends_y + legends_height),
-                (table_start_x, legends_y),
-            ],
-            close=True,
-        )
-
-        # Add centered legends text
-        center_x = table_start_x + total_table_width / 2
-        center_y = legends_y + legends_height / 2
-        legends_text = msp.add_text(
-            "Legends",
-            dxfattribs={
-                'height': bold_text_height,
-                'halign': ezdxf.const.CENTER,
-                'valign': ezdxf.const.MIDDLE,
-            },
-        )
-        legends_text.set_placement((center_x, center_y))
-
-        # Draw table headers
-        header_lines = [
-            [(table_start_x, table_start_y),
-             (table_start_x + square_size, table_start_y),
-             (table_start_x + square_size, table_start_y - square_size),
-             (table_start_x, table_start_y - square_size)],
-            [(table_start_x + square_size, table_start_y),
-             (table_start_x + square_size + col_width, table_start_y),
-             (table_start_x + square_size + col_width, table_start_y - square_size),
-             (table_start_x + square_size, table_start_y - square_size)]
-        ]
+        # Change layer name from "IC GT connection" to "Main Drain Pipe"
+        for entity in msp.query('LINE[layer=="IC GT connection"]'):
+            entity.dxf.layer = "Main Drain Pipe"
         
-        for points in header_lines:
-            msp.add_lwpolyline(points, close=True)
-
-        # Add header texts
-        headers = [
-            ("Block", table_start_x + square_size / 2),
-            ("Block Names", table_start_x + square_size + col_width / 2),
-        ]
-        
-        for text, x_pos in headers:
-            header_text = msp.add_text(
-                text,
-                dxfattribs={
-                    'height': bold_text_height,
-                    'halign': ezdxf.const.CENTER,
-                    'valign': ezdxf.const.MIDDLE,
-                },
-            )
-            header_text.set_placement((x_pos, table_start_y - square_size / 2))
-
-        # Process blocks
-        current_y = table_start_y - square_size
-        for block_name, (description, scale) in block_mapping.items():
-            # Draw row cells
-            for x_start in [table_start_x, table_start_x + square_size]:
-                width = square_size if x_start == table_start_x else col_width
-                msp.add_lwpolyline(
-                    [
-                        (x_start, current_y - square_size),
-                        (x_start + width, current_y - square_size),
-                        (x_start + width, current_y),
-                        (x_start, current_y),
-                        (x_start, current_y - square_size),
-                    ],
-                    close=True,
-                )
-
-            # Add block reference
-            block_center = (
-                table_start_x + square_size / 2,
-                current_y - square_size / 2,
-            )
-            if not safe_add_block_reference(msp, block_name, block_center, scale):
-                continue
-
-            # Add description text using mtext for multiline support
-            if '\n' in description:
-                desc_text = msp.add_mtext(
-                    description,
-                    dxfattribs={
-                        'char_height': text_height,
-                        'attachment_point': 5,  # Middle center
-                    }
-                )
-                desc_text.set_location((
-                    table_start_x + square_size + col_width / 2,
-                    current_y - square_size / 2,
-                ))
-            else:
-                desc_text = msp.add_text(
-                    description,
-                    dxfattribs={
-                        'height': text_height,
-                        'halign': ezdxf.const.CENTER,
-                        'valign': ezdxf.const.MIDDLE,
-                    },
-                )
-                desc_text.set_placement((
-                    table_start_x + square_size + col_width / 2,
-                    current_y - square_size / 2,
-                ))
-
-            current_y -= square_size
-
         # Validate and save the DXF file
         try:
             doc.validate()  # Validate silently
@@ -1290,17 +1168,12 @@ def process_dxf5(input_file11: str, output_dxf: str, block_mapping: dict) -> boo
         logger.error(f"Critical error: {e}")
         return False
 
-def main11(input_file11, output_dxf,block_mapping):
-    # Block mappings with scale factors
-    block_mapping=block_mapping
-   
-
+def main11(input_file11, output_dxf, block_mapping):
     success = process_dxf5(input_file11, output_dxf, block_mapping)
     if success:
         print(f"Processed DXF file successfully. Output saved to {output_dxf}")
     else:
         print("Failed to process the DXF file.")
-
 
 def main_final_plumbing_complete(
     user_input1,

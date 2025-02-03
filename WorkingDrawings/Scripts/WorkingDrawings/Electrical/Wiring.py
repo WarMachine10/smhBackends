@@ -645,9 +645,9 @@ def cleanup_files(files):
             print(f"File not found: {file}")
 
 # Run the main processing function
-main_process_wiring(
-    input_file="Electrical_Drawing.dxf",
-    output_file_final="Electrical_Complete.dxf"
-)
+# main_process_wiring(
+#     input_file="Electrical_Drawing.dxf",
+#     output_file_final="Electrical_Complete.dxf"
+# )
 
 

@@ -7,6 +7,9 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from WorkingDrawings.Scripts.WorkingDrawings.Plumbing.PlumbingBOQs import main_plumbing_boq
+from WorkingDrawings.Scripts.WorkingDrawings.Structural.Struct import pipeline_main_final
 from .models import *
 import nest_asyncio 
 nest_asyncio.apply()
@@ -395,6 +398,7 @@ class WaterSupplyView(BaseWorkingDrawingView):
                 print("Starting DXF processing...")
                 main_final_water(
                     input_dxf1=input_temp_path,
+                    transparency_percent=75,
                     mwsp_block=mwsp_block_path,
                     inlet_block=inlet_block_path,
                     outlet_block=outlet_block_path,
@@ -499,9 +503,9 @@ class WaterSupplyView(BaseWorkingDrawingView):
 
 class PlumbingCompleteView(BaseWorkingDrawingView):
     def process_complete_async(self, instance):
-        """Process plumbing complete in background"""
         input_temp_path = None
         output_temp_path = None
+        boq_temp_path = None
         
         try:
             instance.status = 'processing'
@@ -511,6 +515,8 @@ class PlumbingCompleteView(BaseWorkingDrawingView):
             input_temp_path = os.path.join(TEMP_FOLDER, f'input_{instance.id}.dxf')
             output_filename = f"plumbing_complete_{instance.id}.dxf"
             output_temp_path = os.path.join(TEMP_FOLDER, output_filename)
+            boq_filename = f"plumbing_boq_{instance.id}.xlsx"
+            boq_temp_path = os.path.join(TEMP_FOLDER, boq_filename)
 
             with open(input_temp_path, 'wb') as f:
                 f.write(instance.input_file.read())
@@ -541,15 +547,28 @@ class PlumbingCompleteView(BaseWorkingDrawingView):
                     }
                 )
 
+                # Generate BOQ
+                main_plumbing_boq(
+                    dxf_file=output_temp_path,
+                    excel_file_path=os.path.join(settings.BASE_DIR, 'assets', 'BOQs_Plumbing.xlsx'),
+                    output_file=boq_temp_path
+                )
+
+                # Save DXF output
                 with open(output_temp_path, 'rb') as f:
                     output_path = f'plumbing/complete/outputs/{output_filename}'
                     instance.output_file.save(output_path, ContentFile(f.read()))
+
+                # Save BOQ output
+                with open(boq_temp_path, 'rb') as f:
+                    boq_path = f'plumbing/complete/boq/{boq_filename}'
+                    instance.boq_output_file.save(boq_path, ContentFile(f.read()))
 
                 instance.status = 'completed'
                 instance.save()
 
             except Exception as e:
-                raise RuntimeError(f"DXF processing error: {str(e)}")
+                raise RuntimeError(f"Processing error: {str(e)}")
 
         except Exception as e:
             instance.status = 'failed'
@@ -558,7 +577,7 @@ class PlumbingCompleteView(BaseWorkingDrawingView):
             raise
 
         finally:
-            for temp_file in [input_temp_path, output_temp_path]:
+            for temp_file in [input_temp_path, output_temp_path, boq_temp_path]:
                 if temp_file and os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)
@@ -629,4 +648,121 @@ class PlumbingCompleteView(BaseWorkingDrawingView):
         serializer = PlumbingCompleteSerializer(completes, many=True)
         return Response(serializer.data)
 
+class StructuralMainView(BaseWorkingDrawingView):
+    def process_structural_async(self, instance):
+        input_temp_path = None
+        output_temp_path = None
+        try:
+            instance.status = 'processing'
+            instance.save()
+            os.makedirs(TEMP_FOLDER, exist_ok=True)
 
+            # Setup temporary file paths
+            input_temp_path = os.path.join(TEMP_FOLDER, f'input_{instance.id}.dxf')
+            output_filename = f"structural_main_{instance.id}.dxf"
+            output_temp_path = os.path.join(TEMP_FOLDER, output_filename)
+
+            # Write input file to temp location
+            with open(input_temp_path, 'wb') as f:
+                f.write(instance.input_file.read())
+
+            try:
+                # Process DXF and get dataframes
+                column_info_df, beam_info_df = pipeline_main_final(
+                    input_temp_path,
+                    output_temp_path
+                )
+
+                # Save output DXF
+                with open(output_temp_path, 'rb') as f:
+                    output_path = f'structural/main/outputs/{output_filename}'
+                    instance.output_file.save(output_path, ContentFile(f.read()))
+
+                # Convert DataFrames to JSON-compatible format and save
+                instance.column_info = column_info_df.to_dict(orient='records')
+                instance.beam_info = beam_info_df.to_dict(orient='records')
+                
+                instance.status = 'completed'
+                instance.save()
+
+            except Exception as e:
+                raise RuntimeError(f"Processing error: {str(e)}")
+
+        except Exception as e:
+            instance.status = 'failed'
+            instance.save()
+            logger.error(f"Structural main processing failed: {str(e)}")
+            raise
+
+        finally:
+            # Cleanup temporary files
+            for temp_file in [input_temp_path, output_temp_path]:
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except OSError as e:
+                        logger.error(f"Cleanup error for {temp_file}: {str(e)}")
+
+    @transaction.atomic
+    def post(self, request, project_id):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        try:
+            input_file = self.validate_dxf_file(request.FILES.get('input_file'))
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            'subproject': working_drawing.subproject.id,
+            'user': request.user.id,
+            'input_file': input_file,
+            'size': input_file.size
+        }
+
+        serializer = StructuralMainSerializer(data=data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            
+            thread = threading.Thread(
+                target=self.process_structural_async,
+                args=(instance,),
+                name=f"ProcessStructuralMain-{instance.id}"
+            )
+            thread.daemon = True
+            thread.start()
+            
+            return Response({
+                'id': instance.id,
+                'status': 'processing',
+                'message': 'Processing started. Check status for completion.',
+                'working_drawing': {
+                    'id': working_drawing.id,
+                },
+                'data': {
+                    'input_file': instance.input_file_url,
+                    'output_file': None,
+                    'column_info': None,
+                    'beam_info': None
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, project_id, main_id=None):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        if main_id:
+            main = get_object_or_404(
+                StructuralMain, 
+                id=main_id, 
+                subproject=working_drawing.subproject
+            )
+            serializer = StructuralMainSerializer(main)
+            return Response(serializer.data)
+        
+        mains = StructuralMain.objects.filter(
+            subproject=working_drawing.subproject
+        ).order_by('-created_at')
+        
+        serializer = StructuralMainSerializer(mains, many=True)
+        return Response(serializer.data)

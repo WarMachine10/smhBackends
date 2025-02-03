@@ -165,6 +165,7 @@ class PlumbingComplete(BaseFileModel):
     subproject = models.ForeignKey(SubProject, on_delete=models.CASCADE, related_name='plumbing_complete')
     input_file = models.FileField(upload_to='plumbing/complete/inputs/')
     output_file = models.FileField(upload_to='plumbing/complete/outputs/', null=True, blank=True)
+    boq_output_file = models.FileField(upload_to='plumbing/complete/boq/', null=True, blank=True)  # New field
     input1_option = models.CharField(max_length=3, default='yes')  # For user_input1
     input2_option = models.CharField(max_length=3, default='yes')  # For user_input2
     status = models.CharField(max_length=20, choices=[
@@ -183,12 +184,40 @@ class PlumbingComplete(BaseFileModel):
     def output_file_url(self):
         return self.output_file.url if self.output_file else None
 
+    @property
+    def boq_output_file_url(self):  # New property
+        return self.boq_output_file.url if self.boq_output_file else None
+    
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.status in ['completed', 'failed']:
             working_drawing = self.subproject.working_drawing
             if working_drawing:
                 working_drawing.update_section_status('plumbing', self.status)
+
+
+class StructuralMain(BaseFileModel):
+    subproject = models.ForeignKey(SubProject, on_delete=models.CASCADE, related_name='structural_main')
+    input_file = models.FileField(upload_to='structural/main/inputs/')
+    output_file = models.FileField(upload_to='structural/main/outputs/', null=True, blank=True)
+    column_info = models.JSONField(null=True, blank=True)  # Store column data directly as JSON
+    beam_info = models.JSONField(null=True, blank=True)    # Store beam data directly as JSON
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed')
+    ], default='pending')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def input_file_url(self):
+        return self.input_file.url if self.input_file else None
+
+    @property
+    def output_file_url(self):
+        return self.output_file.url if self.output_file else None
+
 
 
 

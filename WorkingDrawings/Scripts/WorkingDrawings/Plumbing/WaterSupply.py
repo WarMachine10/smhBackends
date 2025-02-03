@@ -4,6 +4,29 @@ import math
 from ezdxf.math import Vec2
 import os
 
+def set_transparency_for_all_entities(doc, transparency_percent):
+    """
+    Sets the transparency for all entities in a DXF document.
+
+    Args:
+        doc: The DXF document object.
+        transparency_percent (float): Transparency value as a percentage (0 to 100).
+    """
+    transparency_value = transparency_percent / 100.0
+    
+    for entity in doc.modelspace():
+        try:
+            entity.transparency = transparency_value  # Transparency value must be between 0 and 1
+        except AttributeError:
+            continue
+
+def main0( input_dxf0,output_dxf,transparency_percent):
+    
+    doc = ezdxf.readfile(input_dxf0)
+    set_transparency_for_all_entities(doc, transparency_percent)
+    doc.saveas(output_dxf)
+    #print(f"Transparency updated successfully to {transparency_percent}%. Saved to {output_dxf}")
+
 def load_dxf_file(dxf_file):
     """
     Loads a DXF file and returns the document and modelspace.
@@ -212,7 +235,6 @@ def main1(input_dxf1, output_dxf):
     doc.saveas(output_dxf)
     return output_dxf
 
-
 def copy_block_to_dxf(doc, block_doc, block_name):
     """Copy the block from the block file to the input DXF file."""
     block = block_doc.blocks.get(block_name)
@@ -237,8 +259,8 @@ def place_block1(msp, block_name, insert_point, layer_name):
         block_name,
         insert_point,
         dxfattribs={
-            'xscale': 0.04,  # Adjusted block size
-            'yscale': 0.04,
+            'xscale': 0.02,  # Adjusted block size
+            'yscale': 0.02,
             'rotation': 0.0,
             'layer': layer_name  # Ensure block placement on the correct layer
         },
@@ -338,7 +360,7 @@ def connect_mwsp_to_fixtures(input_dxf3):
         return None
 
     # Function to draw an arrow at the end of the line
-    def draw_arrow(start, end, color):
+    def draw_arrow(start, end, color, layer):
         arrow_size = 5  # Adjust the size of the arrowhead
         # Calculate the direction of the arrow
         dx = end[0] - start[0]
@@ -352,11 +374,11 @@ def connect_mwsp_to_fixtures(input_dxf3):
         arrow_end2 = (end[0] + arrow_size * unit_dy, end[1] - arrow_size * unit_dx)
 
         # Draw the main line
-        msp.add_line(start=start, end=end, dxfattribs={"color": color, "lineweight": 60})
+        msp.add_line(start=start, end=end, dxfattribs={"color": color, "lineweight": 60, "layer": layer})
 
         # Draw the two arrowhead lines
-        msp.add_line(end, arrow_end1, dxfattribs={"color": color, "lineweight": 60})
-        msp.add_line(end, arrow_end2, dxfattribs={"color": color, "lineweight": 60})
+        msp.add_line(end, arrow_end1, dxfattribs={"color": color, "lineweight": 60, "layer": layer})
+        msp.add_line(end, arrow_end2, dxfattribs={"color": color, "lineweight": 60, "layer": layer})
 
     # Process each MWSP block
     for mwsp in mwsp_blocks:
@@ -376,14 +398,16 @@ def connect_mwsp_to_fixtures(input_dxf3):
                     draw_arrow(
                         start=(mwsp_location[0], mwsp_location[1]),
                         end=(fixture_location[0], mwsp_location[1]),
-                        color=5  # Blue color for the line
+                        color=5,  # Blue color for the line
+                        layer="cold water supply"  # Layer name for blue line
                     )
 
                     # Draw a blue vertical line from the fixture's X-coordinate to the fixture's Y-coordinate
                     draw_arrow(
                         start=(fixture_location[0], mwsp_location[1]),
                         end=(fixture_location[0], fixture_location[1]),
-                        color=5  # Blue color for the line
+                        color=5,  # Blue color for the line
+                        layer="cold water supply"  # Layer name for blue line
                     )
 
                     # Add red lines for Shower and WashBasin ensuring both lines are visible
@@ -394,15 +418,18 @@ def connect_mwsp_to_fixtures(input_dxf3):
                         draw_arrow(
                             start=(mwsp_location[0] + offset_x, mwsp_location[1]),
                             end=(fixture_location[0] + offset_x, mwsp_location[1]),
-                            color=1  # Red color for the line
+                            color=1,  # Red color for the line
+                            layer="hot water supply"  # Layer name for red line
                         )
 
                         # Draw a red vertical line from the fixture's X-coordinate to the fixture's Y-coordinate
                         draw_arrow(
                             start=(fixture_location[0] + offset_x, mwsp_location[1]),
                             end=(fixture_location[0] + offset_x, fixture_location[1]),
-                            color=1  # Red color for the line
+                            color=1,  # Red color for the line
+                            layer="hot water supply"  # Layer name for red line
                         )
+
     # Return the modified doc
     return doc
 
@@ -414,7 +441,6 @@ def main3(input_dxf3, output_dxf):
     if doc is not None:
         # Save the modified DXF file
         doc.saveas(output_dxf)
-        #print(f"Updated DXF saved as {output_dxf}.")
         return output_dxf
     else:
         print("Processing failed. DXF file not saved.")
@@ -507,7 +533,7 @@ def process_dxf(input_dxf4, block_file_inlet, block_file_outlet):
 
     # Placement logic for Inlet_Pipe near Kitchen or BathRoom layers
     kitchen_bathroom_layers = ["Kitchen", "BathRoom"]
-    nearby_layers = ["Garden", "Garden1", "Garden2", "Pathway1", "WashArea", "Setback"]
+    nearby_layers = ["Garden","Garden1","Garden2","Passage","WashArea","WashArea1","WashArea2",'Setback','Setback1','Setback2',"Parking",'Pathway1','Pathway','Pathway2']
 
     for layer in kitchen_bathroom_layers:
         location = find_nearest_layer_line(msp, layer, nearby_layers)
@@ -522,8 +548,10 @@ def process_dxf(input_dxf4, block_file_inlet, block_file_outlet):
             place_block2(msp, "Outlet_Pipe", underground_location)
 
     # Placement logic for Outlet_Pipe
-    bathroom_layers = ["BathRoom1", "BathRoom2"]
-    kitchen_layers = ["Kitchen"]
+    bathroom_layers = ["BathRoom1", "BathRoom1a", "BathRoom2", "BathRoom2a", "BathRoom2b", "BathRoom2c",'BathRoom1','BathRoom2','BathRoom3','BathRoom4','Common_BathRoom','Common_BathRoom1','Common_BathRoom2','Master_BathRoom','Master_BathRoom1','Master_BathRoom2','Powder_Room','Powder_Room1','Powder_Room2']
+    kitchen_layers = ["Kitchen",'Kitchen1','Kitchen2','Pantry','Pantry1','Pantry2','Utility_Room']
+    nearby_layers = ["Garden","Garden1","Garden2","WashArea","WashArea1","WashArea2",'Setback','Setback1','Setback2', 'O.T.S','O.T.S1','O.T.S2','O.T.S3', "Parking", "Boundary"]
+
 
     for layer in bathroom_layers + kitchen_layers:
         location_outside_nearby = find_nearest_layer_line(msp, layer, nearby_layers)
@@ -571,10 +599,10 @@ def distance(point1, point2):
     return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2)
 
 # Function to draw a line with an arrowhead and fixed lineweight
-def draw_line_with_arrow(msp, start, end, color=5, lineweight=24.5):
-    """Draws a line with an arrowhead at the end and a fixed lineweight."""
+def draw_line_with_arrow(msp, start, end, color=5, lineweight=24.5, layer="Default"):
+    """Draws a line with an arrowhead at the end and a fixed lineweight on a specified layer."""
     # Draw the main line
-    line = msp.add_line(start, end, dxfattribs={'color': color, 'lineweight': 20})
+    line = msp.add_line(start, end, dxfattribs={'color': color, 'lineweight': 20, 'layer': layer})
 
     # Calculate direction vector
     direction = (end[0] - start[0], end[1] - start[1])
@@ -596,7 +624,7 @@ def draw_line_with_arrow(msp, start, end, color=5, lineweight=24.5):
     )
 
     # Draw the arrowhead
-    msp.add_lwpolyline([end, arrow_point1, arrow_point2, end], dxfattribs={'color': color, 'lineweight': lineweight})
+    msp.add_lwpolyline([end, arrow_point1, arrow_point2, end], dxfattribs={'color': color, 'lineweight': lineweight, 'layer': layer})
 
 def process_dxf5(doc):
     msp = doc.modelspace()
@@ -610,44 +638,10 @@ def process_dxf5(doc):
         entity for entity in msp.query('CIRCLE') 
         if entity.dxf.layer == "Overhead" and entity.dxf.layer != "Terrace"
     ]
-
     underground_layer = [
         entity for entity in msp.query('CIRCLE')
         if entity.dxf.layer == "Underground"
     ]
-
-    # Connect Sink to the nearest MWSP or Outlet_Pipe
-    if sink_blocks:
-        for sink in sink_blocks:
-            sink_position = (sink.dxf.insert.x, sink.dxf.insert.y)
-
-            # Find nearest MWSP or Outlet_Pipe
-            nearest_entity = None
-            nearest_distance = float('inf')
-
-            # Check MWSP blocks
-            for mwsp in mwsp_blocks:
-                mwsp_position = (mwsp.dxf.insert.x, mwsp.dxf.insert.y)
-                dist = distance(sink_position, mwsp_position)
-                if dist < nearest_distance:
-                    nearest_entity = mwsp
-                    nearest_distance = dist
-
-            # Check Outlet_Pipes
-            for outlet_pipe in outlet_pipes:
-                outlet_position = (outlet_pipe.dxf.insert.x, outlet_pipe.dxf.insert.y)
-                dist = distance(sink_position, outlet_position)
-                if dist < nearest_distance:
-                    nearest_entity = outlet_pipe
-                    nearest_distance = dist
-
-            # Draw horizontal and vertical lines to Sink
-            if nearest_entity:
-                nearest_position = (nearest_entity.dxf.insert.x, nearest_entity.dxf.insert.y)
-                horizontal_end = (sink_position[0], nearest_position[1])
-                draw_line_with_arrow(msp, nearest_position, horizontal_end, color=5)
-                vertical_end = (sink_position[0], sink_position[1])
-                draw_line_with_arrow(msp, horizontal_end, vertical_end, color=5)
 
     # Process Outlet_Pipe connections to MWSP
     if mwsp_blocks and outlet_pipes:
@@ -664,44 +658,9 @@ def process_dxf5(doc):
             mwsp_position = (nearest_mwsp.dxf.insert.x, nearest_mwsp.dxf.insert.y)
 
             horizontal_end = (mwsp_position[0], outlet_position[1])
-            draw_line_with_arrow(msp, outlet_position, horizontal_end, color=5)
+            draw_line_with_arrow(msp, outlet_position, horizontal_end, color=5, layer="Outlet Water Supply")
             vertical_end = (mwsp_position[0], mwsp_position[1])
-            draw_line_with_arrow(msp, horizontal_end, vertical_end, color=5)
-
-    # Process connections to Overhead circles
-    if overhead_circles:
-        for circle in overhead_circles:
-            circle_position = (circle.dxf.center.x, circle.dxf.center.y)
-
-            if outlet_pipes:
-                nearest_outlet_pipe = min(
-                    outlet_pipes,
-                    key=lambda outlet_pipe: distance(
-                        (outlet_pipe.dxf.insert.x, outlet_pipe.dxf.insert.y),
-                        circle_position
-                    )
-                )
-                outlet_position = (nearest_outlet_pipe.dxf.insert.x, nearest_outlet_pipe.dxf.insert.y)
-                draw_line_with_arrow(msp, (circle_position[0], circle_position[1]), (outlet_position[0], circle_position[1]), color=5)
-                draw_line_with_arrow(msp, (outlet_position[0], circle_position[1]), outlet_position, color=5)
-
-            if inlet_pipes:
-                nearest_inlet_pipe = min(
-                    inlet_pipes,
-                    key=lambda inlet_pipe: distance(
-                        (inlet_pipe.dxf.insert.x, inlet_pipe.dxf.insert.y),
-                        circle_position
-                    )
-                )
-                inlet_position = (nearest_inlet_pipe.dxf.insert.x, nearest_inlet_pipe.dxf.insert.y)
-                draw_line_with_arrow(msp, (inlet_position[0], inlet_position[1]), (circle_position[0], inlet_position[1]), color=6)
-                draw_line_with_arrow(msp, (circle_position[0], inlet_position[1]), circle_position, color=6)
-
-            horizontal_end = (circle_position[0] + 10, circle_position[1])
-            draw_line_with_arrow(msp, circle_position, horizontal_end, color=5)
-
-            vertical_end = (circle_position[0], circle_position[1] + 10)
-            draw_line_with_arrow(msp, circle_position, vertical_end, color=5)
+            draw_line_with_arrow(msp, horizontal_end, vertical_end, color=5, layer="Outlet Water Supply")
 
     # Process connections to Underground layer
     if underground_layer and inlet_pipes:
@@ -716,8 +675,8 @@ def process_dxf5(doc):
                 )
             )
             inlet_position = (nearest_inlet_pipe.dxf.insert.x, nearest_inlet_pipe.dxf.insert.y)
-            draw_line_with_arrow(msp, (inlet_position[0], inlet_position[1]), (circle_position[0], inlet_position[1]), color=6)
-            draw_line_with_arrow(msp, (circle_position[0], inlet_position[1]), circle_position, color=6)
+            draw_line_with_arrow(msp, (inlet_position[0], inlet_position[1]), (circle_position[0], inlet_position[1]), color=6, layer="Inlet Water Supply")
+            draw_line_with_arrow(msp, (circle_position[0], inlet_position[1]), circle_position, color=6, layer="Inlet Water Supply")
 
 def main5(input_dxf5, output_dxf):
     doc = ezdxf.readfile(input_dxf5)
@@ -725,7 +684,7 @@ def main5(input_dxf5, output_dxf):
     doc.saveas(output_dxf)
     return f"DXF file saved as {output_dxf}"
 
-def main_final_water(input_dxf1, mwsp_block, inlet_block, outlet_block, final_output):
+def main_final_water(input_dxf1,transparency_percent, mwsp_block, inlet_block, outlet_block, final_output):
     """
     Main function to handle sequential DXF processing and clean up intermediate files.
 
@@ -736,14 +695,15 @@ def main_final_water(input_dxf1, mwsp_block, inlet_block, outlet_block, final_ou
         outlet_block (str): DXF file containing outlet pipe block definitions.
         final_output (str): Final output DXF file name.
     """
-    intermediate_files = ["1.dxf", "2.dxf", "3.dxf", "4.dxf"]
+    intermediate_files = ["1.dxf", "2.dxf", "3.dxf", "4.dxf","5.dxf"]
 
     # Sequential processing using provided main functions
-    main1(input_dxf1=input_dxf1, output_dxf=intermediate_files[0])
-    main2(input_dxf2=intermediate_files[0], block_file=mwsp_block, output_dxf=intermediate_files[1])
-    main3(input_dxf3=intermediate_files[1], output_dxf=intermediate_files[2])
-    main4(input_dxf4=intermediate_files[2], block_file_inlet=inlet_block, block_file_outlet=outlet_block, output_dxf=intermediate_files[3])
-    main5(input_dxf5=intermediate_files[3], output_dxf=final_output)
+    main0(input_dxf0=input_dxf1, output_dxf=intermediate_files[0],transparency_percent=transparency_percent)
+    main1(input_dxf1=intermediate_files[0], output_dxf=intermediate_files[1])
+    main2(input_dxf2=intermediate_files[1], block_file=mwsp_block, output_dxf=intermediate_files[2])
+    main3(input_dxf3=intermediate_files[2], output_dxf=intermediate_files[3])
+    main4(input_dxf4=intermediate_files[3], block_file_inlet=inlet_block, block_file_outlet=outlet_block, output_dxf=intermediate_files[4])
+    main5(input_dxf5=intermediate_files[4], output_dxf=final_output)
 
     # Organize and delete intermediate files
     files_structure = {"Intermediate Files": intermediate_files}
@@ -759,12 +719,14 @@ def main_final_water(input_dxf1, mwsp_block, inlet_block, outlet_block, final_ou
         else:
             print(f"File not found: {file}")
 
-# Example usage
+# # Example usage
 # main_final(
-#     input_dxf1="Betatest1 (2).dxf",
+#     input_dxf0="Betatest1.dxf",
+#     transparency_percent=50,
 #     mwsp_block="MWSP Pipe block.dxf",
 #     inlet_block="Inlet_pipe.dxf",
 #     outlet_block="Outlet_pipe.dxf",
 #     final_output="Plumbing_Drawing.dxf"
 # )
+
 

@@ -1349,16 +1349,16 @@ def main_process(input_file, light_dxf, switch_dxf, fan_dxf, wall_light, ac_dxf,
             print(f"File not found: {file}")
 
 # Example usage
-main_process(
-    input_file="Test6.dxf",
-    light_dxf="Ceiling_Lights.dxf",
-    switch_dxf="M_SW.dxf",
-    fan_dxf="Fan_C.dxf",
-    wall_light="Wall_Lights.dxf",
-    ac_dxf="AC.dxf",
-    MBD_dxf="MBD.dxf",
-    EvSwitch_dxf="EvSwitch.dxf",
-    output_file_final="Electrical_Drawing.dxf",
-    user_input = "yes"
-)
+# main_process(
+#     input_file="Test6.dxf",
+#     light_dxf="Ceiling_Lights.dxf",
+#     switch_dxf="M_SW.dxf",
+#     fan_dxf="Fan_C.dxf",
+#     wall_light="Wall_Lights.dxf",
+#     ac_dxf="AC.dxf",
+#     MBD_dxf="MBD.dxf",
+#     EvSwitch_dxf="EvSwitch.dxf",
+#     output_file_final="Electrical_Drawing.dxf",
+#     user_input = "yes"
+# )
 
