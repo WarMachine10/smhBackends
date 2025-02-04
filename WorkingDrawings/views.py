@@ -10,6 +10,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from WorkingDrawings.Scripts.WorkingDrawings.Plumbing.PlumbingBOQs import main_plumbing_boq
 from WorkingDrawings.Scripts.WorkingDrawings.Structural.Struct import pipeline_main_final
+from WorkingDrawings.Scripts.WorkingDrawings.Structural.centralLine import center_line_main_new
 from .models import *
 import nest_asyncio 
 nest_asyncio.apply()
@@ -765,4 +766,118 @@ class StructuralMainView(BaseWorkingDrawingView):
         ).order_by('-created_at')
         
         serializer = StructuralMainSerializer(mains, many=True)
+        return Response(serializer.data)
+    
+class StructuralCenterLineView(BaseWorkingDrawingView):
+    def process_centerline_async(self, instance):
+        input_temp_path = None
+        output_temp_path = None
+        
+        try:
+            instance.status = 'processing'
+            instance.save()
+            os.makedirs(TEMP_FOLDER, exist_ok=True)
+
+            # Setup temporary file paths
+            input_temp_path = os.path.join(TEMP_FOLDER, f'input_{instance.id}.dxf')
+            output_filename = f"centerline_{instance.id}.dxf"
+            output_temp_path = os.path.join(TEMP_FOLDER, output_filename)
+
+            # Write input file to temp location
+            with open(input_temp_path, 'wb') as f:
+                f.write(instance.input_file.read())
+
+            try:
+                # Process centerline
+                center_line_main_new(
+                    input_temp_path,
+                    output_temp_path
+                )
+
+                # Save output DXF
+                with open(output_temp_path, 'rb') as f:
+                    output_path = f'structural/centerline/outputs/{output_filename}'
+                    instance.output_file.save(output_path, ContentFile(f.read()))
+                
+                instance.status = 'completed'
+                instance.save()
+
+            except Exception as e:
+                raise RuntimeError(f"Processing error: {str(e)}")
+
+        except Exception as e:
+            instance.status = 'failed'
+            instance.save()
+            logger.error(f"Structural centerline processing failed: {str(e)}")
+            raise
+
+        finally:
+            # Cleanup temporary files
+            for temp_file in [input_temp_path, output_temp_path]:
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except OSError as e:
+                        logger.error(f"Cleanup error for {temp_file}: {str(e)}")
+
+    @transaction.atomic
+    def post(self, request, project_id):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        try:
+            input_file = self.validate_dxf_file(request.FILES.get('input_file'))
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            'subproject': working_drawing.subproject.id,
+            'user': request.user.id,
+            'input_file': input_file,
+            'size': input_file.size
+        }
+
+        serializer = StructuralCenterLineSerializer(data=data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            
+            thread = threading.Thread(
+                target=self.process_centerline_async,
+                args=(instance,),
+                name=f"ProcessStructuralCenterLine-{instance.id}"
+            )
+            thread.daemon = True
+            thread.start()
+            
+            return Response({
+                'id': instance.id,
+                'status': 'processing',
+                'message': 'Processing started. Check status for completion.',
+                'working_drawing': {
+                    'id': working_drawing.id,
+                },
+                'data': {
+                    'input_file': instance.input_file_url,
+                    'output_file': None
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, project_id, centerline_id=None):
+        working_drawing = self.get_working_drawing(project_id, request.user)
+        
+        if centerline_id:
+            centerline = get_object_or_404(
+                StructuralCenterLine, 
+                id=centerline_id, 
+                subproject=working_drawing.subproject
+            )
+            serializer = StructuralCenterLineSerializer(centerline)
+            return Response(serializer.data)
+        
+        centerlines = StructuralCenterLine.objects.filter(
+            subproject=working_drawing.subproject
+        ).order_by('-created_at')
+        
+        serializer = StructuralCenterLineSerializer(centerlines, many=True)
         return Response(serializer.data)

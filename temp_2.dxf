@@ -493,7 +493,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2460710.0195949073
+2460711.697627315
   9
 $TDUCREATE
  40
@@ -501,7 +501,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2460710.0195949073
+2460711.697627315
   9
 $TDUUPDATE
  40
@@ -937,7 +937,7 @@ $FINGERPRINTGUID
   9
 $VERSIONGUID
   2
-{AA310795-5392-4025-904F-B3F8AA18EF0E}
+{031BFA46-489F-4CB7-8394-C7DDD08D875D}
   9
 $EXTNAMES
 290
@@ -17235,7 +17235,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 160
 636
 310
@@ -17485,7 +17485,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 160
 636
 310
@@ -17735,7 +17735,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 160
 636
 310
@@ -17985,7 +17985,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 160
 636
 310
@@ -18235,7 +18235,7 @@ AcDbEntity
   8
 WashBasin
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18259,7 +18259,7 @@ AcDbEntity
   8
 Sink
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18283,7 +18283,7 @@ AcDbEntity
   8
 WC
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18307,7 +18307,7 @@ AcDbEntity
   8
 WashBasin
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18331,7 +18331,7 @@ AcDbEntity
   8
 WC
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18355,7 +18355,7 @@ AcDbEntity
   8
 WC
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18379,7 +18379,7 @@ AcDbEntity
   8
 Shower
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18401,7 +18401,7 @@ AcDbEntity
   8
 Shower
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18425,7 +18425,7 @@ AcDbEntity
   8
 WC
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18451,7 +18451,7 @@ AcDbEntity
   8
 WashBasin
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18477,7 +18477,7 @@ AcDbEntity
   8
 WashBasin
 440
-33554482
+33554559
 100
 AcDbBlockReference
   2
@@ -18499,7 +18499,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18525,7 +18525,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18551,7 +18551,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18577,7 +18577,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18603,7 +18603,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18629,7 +18629,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18655,7 +18655,7 @@ AcDbEntity
   8
 WashArea
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18681,7 +18681,7 @@ AcDbEntity
   8
 Garden
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18707,7 +18707,7 @@ AcDbEntity
   8
 WashArea
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18733,7 +18733,7 @@ AcDbEntity
   8
 BedRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18759,7 +18759,7 @@ AcDbEntity
   8
 BedRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18785,7 +18785,7 @@ AcDbEntity
   8
 Garden
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18811,7 +18811,7 @@ AcDbEntity
   8
 BedRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18837,7 +18837,7 @@ AcDbEntity
   8
 Parking
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18863,7 +18863,7 @@ AcDbEntity
   8
 BedRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18889,7 +18889,7 @@ AcDbEntity
   8
 Garden
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18915,7 +18915,7 @@ AcDbEntity
   8
 LivingRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18941,7 +18941,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18967,7 +18967,7 @@ AcDbEntity
   8
 Kitchen
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -18993,7 +18993,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19019,7 +19019,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19045,7 +19045,7 @@ AcDbEntity
   8
 Kitchen
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19071,7 +19071,7 @@ AcDbEntity
   8
 WashArea
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19097,7 +19097,7 @@ AcDbEntity
   8
 BedRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19123,7 +19123,7 @@ AcDbEntity
   8
 BedRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19149,7 +19149,7 @@ AcDbEntity
   8
 Parking
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19175,7 +19175,7 @@ AcDbEntity
   8
 Kitchen
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19201,7 +19201,7 @@ AcDbEntity
   8
 Kitchen
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19227,7 +19227,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19253,7 +19253,7 @@ AcDbEntity
   8
 Kitchen
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19279,7 +19279,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19305,7 +19305,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19331,7 +19331,7 @@ AcDbEntity
   8
 Staircase_outertwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19357,7 +19357,7 @@ AcDbEntity
   8
 DiningRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19383,7 +19383,7 @@ AcDbEntity
   8
 Staircase_outertwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19409,7 +19409,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19435,7 +19435,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19461,7 +19461,7 @@ AcDbEntity
   8
 DiningRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19487,7 +19487,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19513,7 +19513,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19539,7 +19539,7 @@ AcDbEntity
   8
 Staircase_innerwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19565,7 +19565,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19591,7 +19591,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19617,7 +19617,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19643,7 +19643,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19669,7 +19669,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19695,7 +19695,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19721,7 +19721,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19747,7 +19747,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19773,7 +19773,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19799,7 +19799,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19825,7 +19825,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19851,7 +19851,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19877,7 +19877,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19903,7 +19903,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19929,7 +19929,7 @@ AcDbEntity
   8
 DiningRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19955,7 +19955,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -19981,7 +19981,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20007,7 +20007,7 @@ AcDbEntity
   8
 Staircase_innerwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20033,7 +20033,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20059,7 +20059,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20085,7 +20085,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20111,7 +20111,7 @@ AcDbEntity
   8
 LivingRoom1
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20137,7 +20137,7 @@ AcDbEntity
   8
 DiningRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20163,7 +20163,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20189,7 +20189,7 @@ AcDbEntity
   8
 Staircase_outertwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20215,7 +20215,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20241,7 +20241,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20267,7 +20267,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20293,7 +20293,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20319,7 +20319,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20345,7 +20345,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20371,7 +20371,7 @@ AcDbEntity
   8
 DiningRoom
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20397,7 +20397,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20423,7 +20423,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20449,7 +20449,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20475,7 +20475,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20501,7 +20501,7 @@ AcDbEntity
   8
 BathRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20527,7 +20527,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20553,7 +20553,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20579,7 +20579,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20605,7 +20605,7 @@ AcDbEntity
   8
 BedRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20631,7 +20631,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20657,7 +20657,7 @@ AcDbEntity
   8
 BedRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20683,7 +20683,7 @@ AcDbEntity
   8
 BedRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20709,7 +20709,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20735,7 +20735,7 @@ AcDbEntity
   8
 BedRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20761,7 +20761,7 @@ AcDbEntity
   8
 BathRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20787,7 +20787,7 @@ AcDbEntity
   8
 LivingRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20813,7 +20813,7 @@ AcDbEntity
   8
 BathRoom2b
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20839,7 +20839,7 @@ AcDbEntity
   8
 BathRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20865,7 +20865,7 @@ AcDbEntity
   8
 BathRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20891,7 +20891,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20917,7 +20917,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20943,7 +20943,7 @@ AcDbEntity
   8
 Staircase_outertwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20969,7 +20969,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -20995,7 +20995,7 @@ AcDbEntity
   8
 BathRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21021,7 +21021,7 @@ AcDbEntity
   8
 BedRoom3
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21047,7 +21047,7 @@ AcDbEntity
   8
 Balcony
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21073,7 +21073,7 @@ AcDbEntity
   8
 Balcony
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21099,7 +21099,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21125,7 +21125,7 @@ AcDbEntity
   8
 BedRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21151,7 +21151,7 @@ AcDbEntity
   8
 BathRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21177,7 +21177,7 @@ AcDbEntity
   8
 BedRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21203,7 +21203,7 @@ AcDbEntity
   8
 BathRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21229,7 +21229,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21255,7 +21255,7 @@ AcDbEntity
   8
 BathRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21281,7 +21281,7 @@ AcDbEntity
   8
 BathRoom2b
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21307,7 +21307,7 @@ AcDbEntity
   8
 LivingRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21333,7 +21333,7 @@ AcDbEntity
   8
 LivingRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21359,7 +21359,7 @@ AcDbEntity
   8
 BedRoom3
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21385,7 +21385,7 @@ AcDbEntity
   8
 BathRoom2b
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21411,7 +21411,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21437,7 +21437,7 @@ AcDbEntity
   8
 BathRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21463,7 +21463,7 @@ AcDbEntity
   8
 LivingRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21489,7 +21489,7 @@ AcDbEntity
   8
 BedRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21515,7 +21515,7 @@ AcDbEntity
   8
 BedRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21541,7 +21541,7 @@ AcDbEntity
   8
 BathRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21567,7 +21567,7 @@ AcDbEntity
   8
 BathRoom2b
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21593,7 +21593,7 @@ AcDbEntity
   8
 Balcony
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21619,7 +21619,7 @@ AcDbEntity
   8
 BedRoom3
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21645,7 +21645,7 @@ AcDbEntity
   8
 BedRoom3
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21671,7 +21671,7 @@ AcDbEntity
   8
 BedRoom3
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21697,7 +21697,7 @@ AcDbEntity
   8
 BedRoom3
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21723,7 +21723,7 @@ AcDbEntity
   8
 Staircase_outertwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21749,7 +21749,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21775,7 +21775,7 @@ AcDbEntity
   8
 Balcony
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21801,7 +21801,7 @@ AcDbEntity
   8
 LivingRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21827,7 +21827,7 @@ AcDbEntity
   8
 BedRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21853,7 +21853,7 @@ AcDbEntity
   8
 BedRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21879,7 +21879,7 @@ AcDbEntity
   8
 BedRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21905,7 +21905,7 @@ AcDbEntity
   8
 BathRoom2a
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21931,7 +21931,7 @@ AcDbEntity
   8
 BathRoom2b
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -21957,7 +21957,7 @@ AcDbEntity
   8
 Parking
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -21989,7 +21989,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22015,7 +22015,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22041,7 +22041,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22067,7 +22067,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22093,7 +22093,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22119,7 +22119,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22145,7 +22145,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22171,7 +22171,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22197,7 +22197,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22223,7 +22223,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22249,7 +22249,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22275,7 +22275,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22301,7 +22301,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22327,7 +22327,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22353,7 +22353,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22379,7 +22379,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22405,7 +22405,7 @@ AcDbEntity
   8
 Boundary
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22431,7 +22431,7 @@ AcDbEntity
   8
 Parking
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22457,7 +22457,7 @@ AcDbEntity
   8
 Main_gate
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22483,7 +22483,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22509,7 +22509,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22535,7 +22535,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22561,7 +22561,7 @@ AcDbEntity
   8
 WashArea
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22587,7 +22587,7 @@ AcDbEntity
   8
 WashArea
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22613,7 +22613,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22639,7 +22639,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22665,7 +22665,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22691,7 +22691,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22717,7 +22717,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22743,7 +22743,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22769,7 +22769,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22795,7 +22795,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22821,7 +22821,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22847,7 +22847,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22873,7 +22873,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22899,7 +22899,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22925,7 +22925,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22951,7 +22951,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -22977,7 +22977,7 @@ AcDbEntity
   8
 Staircase_innerwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23003,7 +23003,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23029,7 +23029,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23055,7 +23055,7 @@ AcDbEntity
   8
 Staircase_innerwall
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23081,7 +23081,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23107,7 +23107,7 @@ AcDbEntity
   8
 Door4fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23133,7 +23133,7 @@ AcDbEntity
   8
 Door4fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23159,7 +23159,7 @@ AcDbEntity
   8
 Door3fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23185,7 +23185,7 @@ AcDbEntity
   8
 Door2.6fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23211,7 +23211,7 @@ AcDbEntity
   8
 Door2.6fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23237,7 +23237,7 @@ AcDbEntity
   8
 Door2.6fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23263,7 +23263,7 @@ AcDbEntity
   8
 Door2.6fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23289,7 +23289,7 @@ AcDbEntity
   8
 Door2.6fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23315,7 +23315,7 @@ AcDbEntity
   8
 Door2.6fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23341,7 +23341,7 @@ AcDbEntity
   8
 Door3fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23367,7 +23367,7 @@ AcDbEntity
   8
 Door3fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23393,7 +23393,7 @@ AcDbEntity
   8
 Door3fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23419,7 +23419,7 @@ AcDbEntity
   8
 Door4fPanel
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23445,7 +23445,7 @@ AcDbEntity
   8
 LivingRoom2
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23471,7 +23471,7 @@ AcDbEntity
   8
 Kitchen
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -23497,7 +23497,7 @@ AcDbEntity
   8
 BedRoom1
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23529,7 +23529,7 @@ AcDbEntity
   8
 BathRoom1
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23561,7 +23561,7 @@ AcDbEntity
   8
 Kitchen
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23593,7 +23593,7 @@ AcDbEntity
   8
 LivingRoom1
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23625,7 +23625,7 @@ AcDbEntity
   8
 LivingRoom2
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23657,7 +23657,7 @@ AcDbEntity
   8
 BedRoom2
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23689,7 +23689,7 @@ AcDbEntity
   8
 BathRoom2
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23721,7 +23721,7 @@ AcDbEntity
   8
 BedRoom3
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23753,7 +23753,7 @@ AcDbEntity
   8
 BathRoom2b
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23785,7 +23785,7 @@ AcDbEntity
   8
 BedRoom2a
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23817,7 +23817,7 @@ AcDbEntity
   8
 BathRoom2a
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23849,7 +23849,7 @@ AcDbEntity
   8
 PoojaRoom
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23881,7 +23881,7 @@ AcDbEntity
   8
 WashArea
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23913,7 +23913,7 @@ AcDbEntity
   8
 DiningRoom
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23945,7 +23945,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -23977,7 +23977,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24009,7 +24009,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24041,7 +24041,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24073,7 +24073,7 @@ AcDbEntity
   8
 Entrance_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24105,7 +24105,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24137,7 +24137,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24169,7 +24169,7 @@ AcDbEntity
   8
 WashArea_Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24201,7 +24201,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24233,7 +24233,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24265,7 +24265,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24297,7 +24297,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24329,7 +24329,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24361,7 +24361,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24393,7 +24393,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24425,7 +24425,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24457,7 +24457,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24489,7 +24489,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24521,7 +24521,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24553,7 +24553,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24585,7 +24585,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24617,7 +24617,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24649,7 +24649,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24681,7 +24681,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24713,7 +24713,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24745,7 +24745,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24777,7 +24777,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24809,7 +24809,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24841,7 +24841,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24873,7 +24873,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24905,7 +24905,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24937,7 +24937,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -24969,7 +24969,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25001,7 +25001,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25033,7 +25033,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25065,7 +25065,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25097,7 +25097,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25129,7 +25129,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25161,7 +25161,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25193,7 +25193,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25225,7 +25225,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25257,7 +25257,7 @@ AcDbEntity
   8
 Staircase
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25289,7 +25289,7 @@ AcDbEntity
   8
 Garden
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25321,7 +25321,7 @@ AcDbEntity
   8
 Balcony
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25353,7 +25353,7 @@ AcDbEntity
   8
 Walkway
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25385,7 +25385,7 @@ AcDbEntity
   8
 Mumty
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -25411,7 +25411,7 @@ AcDbEntity
   8
 Mumty
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -25437,7 +25437,7 @@ AcDbEntity
   8
 Mumty
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -25463,7 +25463,7 @@ AcDbEntity
   8
 Mumty
 440
-33554482
+33554559
 100
 AcDbLine
  10
@@ -25489,7 +25489,7 @@ AcDbEntity
   8
 Mumty
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -25521,7 +25521,7 @@ AcDbEntity
   8
 Terrace
 440
-33554482
+33554559
 100
 AcDbMText
  10
@@ -35229,7 +35229,7 @@ DictionaryVariables
 280
 0
   1
-1.3.1 @ 2025-02-02T18:58:13.095518+00:00
+1.3.1 @ 2025-02-04T11:14:35.757563+00:00
   0
 DICTIONARY
   5

@@ -12,6 +12,8 @@ import re
 from typing import List, Optional
 from sklearn.decomposition import PCA
 from collections import defaultdict
+import os
+
 
 # Suppress SettingWithCopyWarning from pandas
 warnings.filterwarnings("ignore", category=pd.errors.SettingWithCopyWarning)
@@ -23,9 +25,6 @@ logger = logging.getLogger(__name__)
 # Configure logging to only show warnings and above
 logging.getLogger('ezdxf').setLevel(logging.WARNING)
 logging.getLogger('root').setLevel(logging.WARNING)
-
-# %% [markdown]
-# # Step 1- Adjust DXF to zero
 
 # %%
 def adjust_dxf_coordinates_to00(filename, output_filename):
@@ -149,9 +148,6 @@ def adjust_dxf_coordinates_to00(filename, output_filename):
     except IOError:
         logging.error(f"Failed to save file: {output_filename}")
 
-# %% [markdown]
-# # Step 2- Setting transparency
-
 # %%
 def set_transparency_for_all_entities(dxf_file_path, output_file_path, transparency_percent):
     """
@@ -163,7 +159,7 @@ def set_transparency_for_all_entities(dxf_file_path, output_file_path, transpare
         transparency_percent (float): Transparency value as a percentage (0 to 100).
     """
     try:
-        # Convert transparency percentage to DXF transparency value (0 to 1)
+        # Convert transparency percentage to DXF transparency value (0 to 1) 
         transparency_value = transparency_percent / 100.0
 
         # Read the DXF file
@@ -175,7 +171,7 @@ def set_transparency_for_all_entities(dxf_file_path, output_file_path, transpare
                 # Set transparency to the specified value
                 entity.transparency = transparency_value  # Transparency value must be between 0 and 1
             except AttributeError:
-                # Some entities may not support transparency, skip them
+                # Some entities may not support transparency, skip them  
                 continue
 
         # Save the updated DXF file
@@ -183,8 +179,6 @@ def set_transparency_for_all_entities(dxf_file_path, output_file_path, transpare
 
     except Exception as e:
         print(f"An error occurred: {e}")
-
-# # Step 3 - DXF to dataframe 
 
 # %%
 def calculate_length(start, end):
@@ -196,20 +190,6 @@ def calculate_length(start, end):
         # Return a default length of 0 if start or end points are malformed
         return 0.0
 
-def get_transparency(entity):
-    """Helper function to get transparency value with error handling."""
-    try:
-        # Get transparency value if it exists, otherwise return 0 (fully opaque)
-        transparency = getattr(entity.dxf, 'transparency', 0)
-        # Convert from DXF transparency format to percentage (0-100)
-        if isinstance(transparency, int):
-            # Convert from DXF integer format (0-255) to percentage
-            return (255 - transparency) / 255.0 * 100 if transparency != 0 else 0
-        return transparency * 100 if transparency else 0
-    except AttributeError as e:
-        logging.warning(f"Could not get transparency value: {e}")
-        return 0
-
 # DXF to PANDAS DATAFRAME
 def Dxf_to_DF_1(filename):
     try:
@@ -218,7 +198,7 @@ def Dxf_to_DF_1(filename):
     except IOError as e:
         logging.error(f"Cannot open file: {filename} - {e}")
         return pd.DataFrame()  # Return an empty DataFrame on failure
-    except ezdxf.DXFStructureError as e:
+    except ezdxf.DXFStructureError as e:  
         logging.error(f"Invalid or corrupt DXF file: {filename} - {e}")
         return pd.DataFrame()
 
@@ -230,12 +210,9 @@ def Dxf_to_DF_1(filename):
 
         try:
             entity_data['Layer'] = entity.dxf.layer
-            # Add transparency for all entities
-            entity_data['Transparency'] = get_transparency(entity)
-            logging.info(f"Processing entity on layer '{entity.dxf.layer}' with transparency {entity_data['Transparency']}%")
+            logging.info(f"Processing entity on layer '{entity.dxf.layer}'")
         except AttributeError:
             entity_data['Layer'] = 'Unknown'
-            entity_data['Transparency'] = 0
             logging.warning(f"Entity with unknown layer: {entity.dxftype()}")
 
         try:
@@ -311,11 +288,10 @@ def Dxf_to_DF_1(filename):
     # Return a DataFrame of all extracted entities
     return pd.DataFrame(entities_data)
 
-# %% [markdown]
-# # Step 4 - Floor distribution
-
 # %%
-def calculate_ranges(df: pd.DataFrame) -> List[Tuple[float, float]]:
+from typing import List, Tuple
+
+def calculate_ranges(df: pd.DataFrame):
     """
     Calculate floor ranges based on X coordinates in the dataframe.
     
@@ -534,78 +510,65 @@ def floor_main(df: pd.DataFrame) -> pd.DataFrame:
         logger.error(f"Error in floor_main: {str(e)}")
         return pd.DataFrame()
 
-# %% [markdown]
-# # Step 5 - Dxf from dataframe
-
 # %%
 def create_dxf_from_dataframe(df):
     doc = ezdxf.new()
     layers = {}
+
     for index, row in df.iterrows():
         layer_name = str(row['Layer'])  
+
         if not layer_name or layer_name.lower() == 'nan': 
             continue
-            
-        # Create new layer if it doesn't exist
+
         if layer_name not in layers and layer_name != '0': 
-            layers[layer_name] = doc.layers.new(name=layer_name)
-            
+            layers[layer_name] = doc.layers.new(name=layer_name)  
+
         msp = doc.modelspace()
-        
-        # Get transparency value from dataframe, default to 0 if not present
-        transparency = row.get('Transparency', 0)
-        # Convert transparency to DXF format (0-255, where 0 is opaque)
-        dxf_transparency = int((1 - transparency/100) * 255) if transparency is not None else 0
-        
-        # Base attributes dictionary with layer and transparency
-        base_attrs = {
-            'layer': layer_name,
-            'transparency': dxf_transparency
-        }
         
         if row['Type'] == 'LINE':
             start = (row['X_start'], row['Y_start'])
             end = (row['X_end'], row['Y_end'])
-            msp.add_line(start, end, dxfattribs=base_attrs)
+            msp.add_line(start, end, dxfattribs={'layer': layer_name})
+
         elif row['Type'] == 'CIRCLE':
             center = (row['X_center'], row['Y_center'])
             radius = row['Radius']
-            msp.add_circle(center, radius, dxfattribs=base_attrs)
+            msp.add_circle(center, radius, dxfattribs={'layer': layer_name})
+
         elif row['Type'] == 'ARC':
             center = (row['X_center'], row['Y_center'])
             radius = row['Radius']
             start_angle = row['Start Angle']
             end_angle = row['End Angle']
-            msp.add_arc(center, radius, start_angle, end_angle, dxfattribs=base_attrs)
+            msp.add_arc(center, radius, start_angle, end_angle, dxfattribs={'layer': layer_name})
+
         elif row['Type'] == 'TEXT':
             insert = (row['X_insert'], row['Y_insert'])
             text = row.get('Text Content', '')
-            text_attrs = base_attrs.copy()
-            text_attrs['insert'] = insert
-            msp.add_text(text, dxfattribs=text_attrs)
+            msp.add_text(text, dxfattribs={'insert': insert, 'layer': layer_name})
+
         elif row['Type'] == 'MTEXT':
             insert = (row['X_insert'], row['Y_insert'])
             text = row.get('Text Content', '')
-            text_attrs = base_attrs.copy()
-            text_attrs['insert'] = insert
-            msp.add_mtext(text, dxfattribs=text_attrs)
+            msp.add_mtext(text, dxfattribs={'insert': insert, 'layer': layer_name})
+        
         elif row['Type'] == 'SPLINE':
             fit_point_count = int(row['Fit Point Count']) if not pd.isna(row['Fit Point Count']) else 0
             fit_points = [(row[f'X{i}'], row[f'Y{i}'], row[f'Z{i}']) for i in range(fit_point_count)]
-            msp.add_spline(fit_points, dxfattribs=base_attrs)
+            msp.add_spline(fit_points, dxfattribs={'layer': layer_name})
+        
         elif row['Type'] == 'ELLIPSE':
             center = (row['X_center'], row['Y_center'])
             major_axis = (row['X_major_axis'], row['Y_major_axis'])
             ratio = row['Ratio']
-            msp.add_ellipse(center, major_axis, ratio, dxfattribs=base_attrs)
+            msp.add_ellipse(center, major_axis, ratio, dxfattribs={'layer': layer_name})
+            
         elif row['Type'] == 'POINT':
             location = (row['X_start'], row['Y_start'])
-            msp.add_point(location, dxfattribs=base_attrs)
+            msp.add_point(location, dxfattribs={'layer': layer_name})
                                                 
     return doc
-
-# %% [markdown]
-# # Step 6 - Max along x and Max along y
 
 # %%
 def calculate_max_along_x_y(df):
@@ -618,135 +581,6 @@ def calculate_max_along_x_y(df):
 
     # Return the values for later use
     return max_along_x, max_along_y
-
-# %% [markdown]
-# # Step 7- Nested function
-
-# %%
-def shift_dxf_to_coordinates(doc, target_x=0, target_y=0):
-    """
-    Shifts the DXF entities such that the minimum coordinates align with the given target coordinates.
-    
-    Parameters:
-    - doc: ezdxf.document.Drawing, the DXF document to process.
-    - target_x: float, the target x-coordinate to align the minimum x-coordinate.
-    - target_y: float, the target y-coordinate to align the minimum y-coordinate.
-    
-    Returns:
-    - The modified DXF document.
-    """
-    if not doc:
-        logging.error("Invalid DXF document.")
-        return None
-
-    msp = doc.modelspace()
-
-    min_x, min_y = float('inf'), float('inf')
-
-    # Define a function to get the minimum coordinates for each entity
-    def update_min_coords(x, y):
-        nonlocal min_x, min_y
-        min_x = min(min_x, x)
-        min_y = min(min_y, y)
-
-    # First pass: Find the minimum x and y coordinates
-    for entity in msp:
-        try:
-            if entity.dxftype() == 'CIRCLE' or entity.dxftype() == 'ARC':
-                center = entity.dxf.center
-                update_min_coords(center.x, center.y)
-
-            elif entity.dxftype() == 'LINE':
-                start = entity.dxf.start
-                end = entity.dxf.end
-                update_min_coords(start.x, start.y)
-                update_min_coords(end.x, end.y)
-
-            elif entity.dxftype() in ['TEXT', 'MTEXT']:
-                insert = entity.dxf.insert
-                update_min_coords(insert.x, insert.y)
-
-            elif entity.dxftype() == 'LWPOLYLINE':
-                points = entity.get_points()
-                for point in points:
-                    update_min_coords(point[0], point[1])
-
-            elif entity.dxftype() == 'POLYLINE':
-                vertices = [v.dxf.location for v in entity.vertices]
-                for vertex in vertices:
-                    update_min_coords(vertex[0], vertex[1])
-
-            elif entity.dxftype() == 'INSERT':
-                insert = entity.dxf.insert
-                update_min_coords(insert.x, insert.y)
-
-        except AttributeError:
-            # Skip any malformed entities that are missing coordinates
-            continue
-
-    # Calculate the offsets
-    if min_x == float('inf') or min_y == float('inf'):
-        return doc
-
-    offset_x = target_x - min_x
-    offset_y = target_y - min_y
-
-    # Second pass: Update the coordinates of the entities
-    for entity in msp:
-        try:
-            if entity.dxftype() == 'CIRCLE' or entity.dxftype() == 'ARC':
-                entity.dxf.center = (
-                    entity.dxf.center.x + offset_x,
-                    entity.dxf.center.y + offset_y,
-                    entity.dxf.center.z
-                )
-
-            elif entity.dxftype() == 'LINE':
-                entity.dxf.start = (
-                    entity.dxf.start.x + offset_x,
-                    entity.dxf.start.y + offset_y,
-                    entity.dxf.start.z
-                )
-                entity.dxf.end = (
-                    entity.dxf.end.x + offset_x,
-                    entity.dxf.end.y + offset_y,
-                    entity.dxf.end.z
-                )
-
-            elif entity.dxftype() in ['TEXT', 'MTEXT']:
-                entity.dxf.insert = (
-                    entity.dxf.insert.x + offset_x,
-                    entity.dxf.insert.y + offset_y,
-                    entity.dxf.insert.z
-                )
-
-            elif entity.dxftype() == 'LWPOLYLINE':
-                points = [(p[0] + offset_x, p[1] + offset_y, *p[2:]) for p in entity.get_points()]
-                entity.set_points(points)
-
-            elif entity.dxftype() == 'POLYLINE':
-                for vertex in entity.vertices:
-                    vertex.dxf.location = (
-                        vertex.dxf.location[0] + offset_x,
-                        vertex.dxf.location[1] + offset_y,
-                        vertex.dxf.location[2]
-                    )
-            
-            elif entity.dxftype() == 'INSERT':
-                entity.dxf.insert = (
-                    entity.dxf.insert.x + offset_x,
-                    entity.dxf.insert.y + offset_y,
-                    entity.dxf.insert.z
-                )
-
-        except AttributeError:
-            # Skip any entities that cannot be updated
-            continue
-
-    return doc
-
-# %% [markdown]
-# # Step 8 - Four corners columns
 
 # %%
 def four_corners(dxf_data, max_along_x, max_along_y, width=9, height=12):
@@ -785,24 +619,20 @@ def four_corners(dxf_data, max_along_x, max_along_y, width=9, height=12):
 def create_box(msp, start_point, width, height):
     """
     Creates a rectangular box as a closed polyline with a red hatch in the DXF modelspace.
-    Both the polyline and hatch will be placed in the 'column' layer.
     """
     # Define corners of the box
     p1 = start_point
     p2 = (p1[0] + width, p1[1])
     p3 = (p2[0], p2[1] + height)
     p4 = (p1[0], p1[1] + height)
-    
+
     # Create a closed polyline (DXF color index 1 is red)
     points = [p1, p2, p3, p4, p1]
     polyline = msp.add_lwpolyline(points, close=True, dxfattribs={'color': 1, 'layer': 'column'})
-    
+
     # Add a red hatch inside the box
     hatch = msp.add_hatch(color=1, dxfattribs={'layer': 'column'})
     hatch.paths.add_polyline_path(points, is_closed=True)
-
-# %% [markdown]
-# # Step 9 -Boundary 1 columns
 
 # %%
 def Boundary_1(dxf_data, target_x=9, tolerance=1, width=9, height=12, max_along_y=None):
@@ -915,9 +745,6 @@ def remove_first_last_if_conditions_met(y_coordinates_sorted, max_along_y):
         return y_coordinates_sorted[1:-1]  # Remove first and last element
 
     return y_coordinates_sorted
-
-# %% [markdown]
-# # Step 10 -Boundary 2 columns
 
 # %%
 def Boundary_2(dxf_data, width=12, height=9, tolerance=1, max_along_x=None, max_along_y=None):
@@ -1037,15 +864,11 @@ def Boundary_2(dxf_data, width=12, height=9, tolerance=1, max_along_x=None, max_
             msp.add_lwpolyline(points, close=True, dxfattribs={'color': 1, 'layer': 'column'})
             
             # Add a red hatch to fill the box
-            hatch = msp.add_hatch(color=1,  dxfattribs={'layer': 'column'})  # Red color
+            hatch = msp.add_hatch(color=1, dxfattribs={'layer': 'column'})  # Red color
             hatch.paths.add_polyline_path(points, is_closed=True)
 
     return dxf_data  # Ensure dxf_data is returned after modification
 
-# %% [markdown]
-# # Step 11 -Boundary 3 columns
-
-# %%
 def Boundary_3(dxf_data, width=9, height=12, tolerance=1, max_along_x=None, max_along_y=None):
     '''
     Function Description:
@@ -1163,14 +986,11 @@ def Boundary_3(dxf_data, width=9, height=12, tolerance=1, max_along_x=None, max_
             msp.add_lwpolyline(points, close=True, dxfattribs={'color': 1, 'layer': 'column'})
             
             # Add a red hatch to fill the box
-            hatch = msp.add_hatch(color=1,  dxfattribs={'layer': 'column'})  # Red color
+            hatch = msp.add_hatch(color=1, dxfattribs={'layer': 'column'})  # Red color
             hatch.paths.add_polyline_path(points, is_closed=True)
 
     # Return the modified dxf_data object
     return dxf_data
-
-# %% [markdown]
-# # Step 12-Boundary 4 columns
 
 # %%
 def Boundary_4(dxf_data, width=12, height=9, tolerance=1, max_along_x=None, max_along_y=None):
@@ -1273,7 +1093,7 @@ def Boundary_4(dxf_data, width=12, height=9, tolerance=1, max_along_x=None, max_
                 msp.add_lwpolyline(points, close=True, dxfattribs={'color': 1, 'layer': 'column'})
                 
                 # Add a hatch to fill the polyline with red color
-                hatch = msp.add_hatch(color=1,  dxfattribs={'layer': 'column'})  # Red color
+                hatch = msp.add_hatch(color=1, dxfattribs={'layer': 'column'})  # Red color
                 hatch.paths.add_polyline_path(points, is_closed=True)
     else:
         # If trim_applied is False, check if the last element is (max_along_x - 9)
@@ -1374,9 +1194,6 @@ def Boundary_4(dxf_data, width=12, height=9, tolerance=1, max_along_x=None, max_
     # Return the modified DXF data
     return dxf_data
 
-# %% [markdown]
-# # Step 13 - Helper function
-
 # %%
 def filter_horizontal_lines(df, max_along_x, max_along_y, variance_threshold=0.95):
     '''
@@ -1462,9 +1279,6 @@ def extract_matching_line_pairs(df):
                 })
     
     return pd.DataFrame(matching_pairs)
-
-# %% [markdown]
-# # Step 14 - Columns on walls connected with boundary 1 
 
 # %%
 def process_single_walls_left(df, max_along_x, max_along_y, dxf_data, width=12, height=9, variance_threshold=0.95, tolerance=1e-3):
@@ -1585,9 +1399,6 @@ def process_single_walls_left(df, max_along_x, max_along_y, dxf_data, width=12, 
 
     # The modified dxf_data can now be used in further steps or saved when needed
     return dxf_data
-
-# %% [markdown]
-# #  Step 15 - Columns on walls connected to boundary 3
 
 # %%
 def process_single_walls_right(df, max_along_x, max_along_y, dxf_data, width=12, height=9, variance_threshold=0.95, tolerance=1e-3):
@@ -1719,9 +1530,6 @@ def process_single_walls_right(df, max_along_x, max_along_y, dxf_data, width=12,
     # The modified dxf_data can now be used in further steps or saved when needed
     return dxf_data
 
-# %% [markdown]
-# # Step 16 - Columns on walls connected to upper boundary 
-
 # %%
 def filter_vertical_lines_by_pca(df, max_along_y, min_y=9, variance_threshold=0.95, tolerance=1e-6):
     if df.empty:
@@ -1837,9 +1645,9 @@ def create_boxes_on_dxf(dxf_data, x_coor_up, y_coor_up, width=9, height=12):
         p4 = (p3[0], p1[1])
         points = [p1, p2, p3, p4, p1]
 
-        msp.add_lwpolyline(points, close=True)
+        msp.add_lwpolyline(points, close=True, dxfattribs={'color': 1, 'layer': 'column'})
 
-        hatch = msp.add_hatch(color=1)
+        hatch = msp.add_hatch(color=1, dxfattribs={'layer': 'column'})
         hatch.paths.add_polyline_path(points, is_closed=True)
 
     # Return the modified dxf_data object
@@ -1860,9 +1668,6 @@ def single_wall_up(df, max_along_x, max_along_y, dxf_data, width=9, height=12):
 
     # Return the modified DXF data object
     return dxf_data
-
-# %% [markdown]
-# # Step 17 - Helper function
 
 # %%
 def filter_lines_by_pca(df, max_along_x, max_along_y, variance_threshold=0.95, tolerance=1):
@@ -2183,9 +1988,6 @@ def find_and_separate_points_in_range(intersection_df, range_threshold=9.5):
     
     return df_x_equal, df_y_equal, df_other
 
-# %% [markdown]
-# # Step 18 - extract dataframes for intersecting points 
-
 # %%
 def semi_main_columns(df1, max_along_x, max_along_y):
     # Step 1: Filter lines based on PCA and coordinate ranges
@@ -2222,9 +2024,6 @@ def semi_main_columns(df1, max_along_x, max_along_y):
         "temp_h": temp_h,
         "temp_v": temp_v
     }
-
-# %% [markdown]
-# # Step 19 - Columns on intersections-1 
 
 # %%
 def create_boxes_in_df_x_equal(df_x_equal, temp_v, dxf_data, width=9, height=12, tolerance_v=0.5, radius=12):
@@ -2308,9 +2107,6 @@ def create_boxes_in_df_x_equal(df_x_equal, temp_v, dxf_data, width=9, height=12,
 
     # Return the modified dxf_data object (without saving to file yet)
     return dxf_data
-
-# %% [markdown]
-# # Step 20 - Columns on intersections-2
 
 # %%
 def create_boxes_in_df_y_equal(df_y_equal, temp_h, dxf_data, tolerance_h=0.5, width=12, height=9, radius=12):
@@ -2398,9 +2194,6 @@ def create_boxes_in_df_y_equal(df_y_equal, temp_h, dxf_data, tolerance_h=0.5, wi
     # Return the modified dxf_data object (without saving to file yet)
     return dxf_data
 
-# %% [markdown]
-# # Step 21- extracting group A and group B 
-
 # %%
 def group_by_x(df_other):
     # Create empty DataFrames for the groups
@@ -2428,9 +2221,6 @@ def group_by_x(df_other):
     df_other_groupB.reset_index(drop=True, inplace=True)
 
     return df_other_groupA, df_other_groupB
-
-# %% [markdown]
-# # Step 22 - Columns on intersections-3
 
 # %%
 def create_boxes_in_df_other_groupA(df_other_groupA, width, height, dxf_data, radius=12):
@@ -2494,9 +2284,6 @@ def create_boxes_in_df_other_groupA(df_other_groupA, width, height, dxf_data, ra
 
     # Return the modified dxf_data object (without saving to file yet)
     return dxf_data
-
-# %% [markdown]
-# # Step 23 - Columns on intersections-4
 
 # %%
 def create_boxes_in_df_other_groupB(df_other_groupB, width, height, dxf_data, radius=12):
@@ -2562,63 +2349,88 @@ def create_boxes_in_df_other_groupB(df_other_groupB, width, height, dxf_data, ra
     # Return the modified dxf_data object (without saving to file yet)
     return dxf_data
 
-# %% [markdown]
-# # Step 24 - Detect and label boxes
-
 # %%
-def detect_and_label_boxes(dxf_data, label_position='right', offset=1, text_height=7, text_color=0, shift=0):
+def detect_and_label_boxes(dxf_data, label_position='right', offset=1, text_height=5, text_color=0, shift=0):
     '''
     Detects boxes (closed polylines) in a DXF file, labels them around the box (right, left, or top),
-    and updates the DXF data in memory.
+    and updates the DXF data in memory. Supports hypertuning for label position, text height, color, and shifts.
+
+    Parameters:
+    (1) dxf_data: The DXF data object to modify (ezdxf.document).
+    (2) label_position: The position of the label relative to the box ('right', 'left', 'top').
+    (3) offset: The distance from the box to the label (float, default is 1).
+    (4) text_height: The height of the label text (float, default is 5).
+    (5) text_color: The color of the label text (DXF color index, default is 0 - black).
+    (6) shift: Shift the text position (float, default is 0, can adjust the left or right position).
+
+    Returns:
+    None: The function updates the DXF data in memory.
     '''
     # Access the modelspace of the provided dxf_data
     msp = dxf_data.modelspace()
+
+    # Add Arial text style to the DXF file
+    dxf_data.styles.new('ArialStyle', dxfattribs={'font': 'arial.ttf'})
+    
     box_number = 1
-    
-    # Create 'column_text' layer if it doesn't exist
-    if 'column_text' not in msp.doc.layers:
-        msp.doc.layers.add('column_text')
-    
+
     # Iterate over all entities in the modelspace
     for entity in msp:
         if entity.dxftype() == 'LWPOLYLINE' and entity.closed:
+            # This entity is a closed polyline (a box)
+
+            # Extract the polyline points to calculate the positions
             points = entity.get_points('xy')  # Get points as (x, y) tuples
-            
+
+            # Ensure it's a rectangular box (typically 5 points: 4 corners + closing point)
             if len(points) == 5 and points[0] == points[-1]:
                 # Calculate the corners of the box
                 min_x = min([p[0] for p in points])
                 max_x = max([p[0] for p in points])
                 min_y = min([p[1] for p in points])
                 max_y = max([p[1] for p in points])
-                
+
                 # Determine where to place the label
                 if label_position == 'right':
-                    label_x = max_x + offset + shift
-                    label_y = (min_y + max_y) / 2
+                    label_x = max_x + offset + shift  # Right of the box + optional shift
+                    label_y = (min_y + max_y) / 2  # Vertically centered
                 elif label_position == 'left':
-                    label_x = min_x - offset - shift
-                    label_y = (min_y + max_y) / 2
+                    label_x = min_x - offset - shift  # Left of the box + optional shift
+                    label_y = (min_y + max_y) / 2  # Vertically centered
                 elif label_position == 'top':
-                    label_x = (min_x + max_x) / 2
-                    label_y = max_y + offset
+                    label_x = (min_x + max_x) / 2  # Horizontally centered
+                    label_y = max_y + offset  # Above the box
                 else:
                     raise ValueError("label_position must be 'right', 'left', or 'top'")
-                
+
+                # Create a name for the box like 'C1', 'C2', etc.
                 box_name = f"C{box_number}"
                 box_number += 1
-                
-                # Create mtext directly with all attributes
-                mtext = msp.add_mtext(box_name, dxfattribs={
-                    'char_height': text_height,
-                    'color': text_color,
-                    'layer': 'column_text'
-                })
-                mtext.set_location((label_x, label_y))
-    
+
+                # Add text at the calculated position
+                add_mtext(msp, box_name, (label_x, label_y), text_height, text_color)
+
+    # Return the modified dxf_data object (without saving to file yet)
     return dxf_data
 
-# %% [markdown]
-# # Step 25 - Detect and remove overlapping columns
+def add_mtext(msp, text, position, height=5, color=0):
+    '''
+    Adds MText (multiline text) to the DXF file at the specified position with adjustable height and color.
+
+    Parameters:
+    (1) msp: The modelspace of the DXF document (ezdxf.modelspace).
+    (2) text: The text to add (string).
+    (3) position: The position to place the text (tuple of (x, y)).
+    (4) height: The height of the text (float, default is 5).
+    (5) color: The color of the text (DXF color index, default is 0 - black).
+
+    Returns:
+    None: This function does not return any values.
+    '''
+    
+    mtext = msp.add_mtext(text, dxfattribs={"style": "ArialStyle", 'char_height': height, 'color': color, "layer": "column"})
+    mtext.set_location(position)
+
 
 # %%
 def detect_and_remove_overlapping_columns(dxf_data, tolerance=5):
@@ -2690,9 +2502,6 @@ def detect_and_remove_overlapping_columns(dxf_data, tolerance=5):
 
     # Return the modified dxf_data object (without saving to file yet)
     return dxf_data
-
-# %% [markdown]
-# # Step 26 - Create column schedule dataframe
 
 # %%
 def create_column_schedule_dataframe(dxf_data, max_along_x, max_along_y):
@@ -2788,7 +2597,7 @@ def create_column_schedule_dataframe(dxf_data, max_along_x, max_along_y):
     
     # Create the DataFrame
     df = pd.DataFrame({
-        'Column Nos': column_names,
+        'Columns No': column_names,
         'Length': lengths,
         'Width': widths,
         'X Center': x_centers,
@@ -2796,93 +2605,6 @@ def create_column_schedule_dataframe(dxf_data, max_along_x, max_along_y):
     })
     
     return df
-
-# %% [markdown]
-# # Step 27 - Add boxes on floors using dataframe 
-
-# %%
-def add_mtext(msp, text, position, height=2, color=0):
-    '''
-    Adds MText (multiline text) to the DXF file at the specified position with adjustable height and color.
-    Parameters:
-    (1) msp: The modelspace of the DXF document (ezdxf.modelspace).
-    (2) text: The text to add (string).
-    (3) position: The position to place the text (tuple of (x, y)).
-    (4) height: The height of the text (float, default is 2, increased from 1).
-    (5) color: The color of the text (DXF color index, default is 0 - black).
-    Returns:
-    None: This function does not return any values.
-    '''
-    mtext = msp.add_mtext(text, dxfattribs={'char_height': height, 'color': color, 'layer': 'column_text'})
-    mtext.set_location(position)
-
-def add_boxes_from_dataframe_with_hatch(dxf_data, column_info_df, 
-                                      label_position='right', 
-                                      offset=2, 
-                                      shift=0,
-                                      text_height=7,  # Increased from 5 to 7 for larger column labels
-                                      text_color=0):  # Changed text color to black
-    """
-    Add boxes with hatching and labels to the DXF drawing based on dataframe information.
-    
-    Parameters:
-    dxf_data: ezdxf drawing object
-    column_info_df: DataFrame with columns ['X Center', 'Y Center', 'Width', 'Length', 'Label']
-    label_position: string, one of 'right', 'left', or 'top'
-    offset: float, distance between box and label
-    shift: float, additional shift for label position
-    text_height: float, height of the label text (default increased to 7)
-    text_color: int, DXF color index for the label (default changed to 0 - black)
-    """
-    msp = dxf_data.modelspace()
-    
-    for index, row in column_info_df.iterrows():
-        x_center = row['X Center']
-        y_center = row['Y Center']
-        length = row['Width']
-        width = row['Length']
-        label = row['Column Nos']  # Get the label from the dataframe
-        
-        # Calculate box corners
-        half_length = length / 2
-        half_width = width / 2
-        min_x = x_center - half_length
-        max_x = x_center + half_length
-        min_y = y_center - half_width
-        max_y = y_center + half_width
-        
-        points = [
-            (min_x, min_y),  # bottom_left
-            (max_x, min_y),  # bottom_right
-            (max_x, max_y),  # top_right
-            (min_x, max_y)   # top_left
-        ]
-        
-        # Add polyline and hatch
-        msp.add_lwpolyline(points, close=True, dxfattribs={'color': 1, 'layer': 'column'})
-        hatch = msp.add_hatch(color=1, dxfattribs={'layer': 'column'})  # Color 1 is red in DXF color index
-        hatch.paths.add_polyline_path(points, is_closed=True)
-        
-        # Determine label position
-        if label_position == 'right':
-            label_x = max_x + offset + shift
-            label_y = (min_y + max_y) / 2
-        elif label_position == 'left':
-            label_x = min_x - offset - shift
-            label_y = (min_y + max_y) / 2
-        elif label_position == 'top':
-            label_x = (min_x + max_x) / 2
-            label_y = max_y + offset
-        else:
-            raise ValueError("label_position must be 'right', 'left', or 'top'")
-        
-        # Add label with the updated text settings
-        add_mtext(msp, label, (label_x, label_y), text_height, text_color)
-    
-    return dxf_data
-
-# %% [markdown]
-# # Step 28 - Change line colour to gray
 
 # %%
 def change_line_color_to_light_gray(dxf_data):
@@ -2911,1922 +2633,663 @@ def change_line_color_to_light_gray(dxf_data):
     # Return the modified dxf_data object
     return dxf_data
 
-# %% [markdown]
-# # Step 29 - extract C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col
-
 # %%
-def extract_columns(dxf_data):
+def remove_non_label_text(input_dxf, output_dxf, labels_to_keep):
     """
-    Extract columns of vertically and horizontally aligned boxes based on a DXF document (in memory).
-    Outputs four DataFrames: C1_ver_col, C2_hor_col, C3_ver_col, and C4_hor_col.
+    Remove all text and mtext entities except for specific labels like C1, C2, etc.
 
     Parameters:
-        dxf_data (ezdxf.document): The loaded DXF document in memory.
+        input_dxf (str): Path to the input DXF file.
+        output_dxf (str): Path to save the updated DXF file.
+        labels_to_keep (list): List of text labels to keep (e.g., ["C1", "C2"]).
 
     Returns:
-        tuple: A tuple containing four DataFrames (C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col).
+        None
     """
-    msp = dxf_data.modelspace()
-    
-    # Extract boxes and centers
-    labels = {}
-    centers = {}
-
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            points = [(point[0], point[1]) for point in entity.get_points()]
-            top_left = min(points, key=lambda p: (p[0], p[1]))
-            bottom_right = max(points, key=lambda p: (p[0], p[1]))
-
-            # Assign labels like C1, C2, etc.
-            label = f"C{len(labels) + 1}"
-            labels[(top_left, bottom_right)] = label
-
-            # Calculate center
-            center_x = (top_left[0] + bottom_right[0]) / 2
-            center_y = (top_left[1] + bottom_right[1]) / 2
-            centers[label] = (center_x, center_y)
-
-    # Helper to create vertically aligned DataFrame
-    def get_vertical_col(base_label, reverse_order=False):
-        if base_label not in centers:
-            return None
-        tolerance = 5
-        base_center = centers[base_label]
-        aligned = [(label, center[1]) for label, center in centers.items()
-                   if label != base_label and abs(center[0] - base_center[0]) <= tolerance]
-        aligned_sorted = sorted(aligned, key=lambda x: x[1], reverse=reverse_order)
-        labels_in_order = [base_label] + [label for label, _ in aligned_sorted]
-        return pd.DataFrame(labels_in_order, columns=['connected columns'])
-
-    # Helper to create horizontally aligned DataFrame
-    def get_horizontal_col(base_label, sort_by_distance=False):
-        if base_label not in centers:
-            return None
-        tolerance = 5
-        base_center = centers[base_label]
-        aligned = [(label, center[0] if not sort_by_distance else abs(center[0] - base_center[0]))
-                   for label, center in centers.items()
-                   if label != base_label and abs(center[1] - base_center[1]) <= tolerance]
-        aligned_sorted = sorted(aligned, key=lambda x: x[1])
-        labels_in_order = [base_label] + [label for label, _ in aligned_sorted]
-        return pd.DataFrame(labels_in_order, columns=['connected columns'])
-
-    # Generate DataFrames
-    C1_ver_col = get_vertical_col('C1')
-    C2_hor_col = get_horizontal_col('C2')
-    C3_ver_col = get_vertical_col('C3', reverse_order=True)
-    C4_hor_col = get_horizontal_col('C4', sort_by_distance=True)
-
-    return C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col
-
-# %% [markdown]
-# # Step 30 - Beam on boundary 1
-
-# %%
-def calculate_edges(entity):
-    """
-    Calculates the left and right edges, and the height of a box (polyline entity).
-    """
-    points = entity.get_points('xy') if entity.dxftype() == 'LWPOLYLINE' else [vertex.dxf.location for vertex in entity.vertices]
-    min_x = min(points, key=lambda p: p[0])[0]
-    max_x = max(points, key=lambda p: p[0])[0]
-    min_y = min(points, key=lambda p: p[1])[1]
-    max_y = max(points, key=lambda p: p[1])[1]
-
-    height = max_y - min_y
-    left_edge = min([p for p in points if p[0] == min_x], key=lambda p: p[1])
-    right_edge = min([p for p in points if p[0] == max_x], key=lambda p: p[1])
-
-    return left_edge, right_edge, height
-
-def connect_edges_vertically_boundary_1(dxf_data, aligned_boxes_df, beam_count=0):
-    msp = dxf_data.modelspace()
-    box_edges = {}
-    beam_info_rows = []
-    
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam', dxfattribs={'color': 3})
-    
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            top_edge, bottom_edge, width = calculate_edges(entity)
-            label = f"C{len(box_edges) + 1}"
-            box_edges[label] = {'top': top_edge, 'bottom': bottom_edge, 'width': width}
-    
-    if not all(label in box_edges for label in aligned_boxes_df['connected columns']):
-        return None, None, dxf_data
-    
-    label_counter = beam_count + 1
-    label_count = 0
-    
-    for i in range(len(aligned_boxes_df) - 1):
-        label_lower = aligned_boxes_df.iloc[i, 0]
-        label_upper = aligned_boxes_df.iloc[i + 1, 0]
-        upper_bottom_edge = box_edges[label_upper]['bottom']
-        lower_top_edge = box_edges[label_lower]['top']
-        
-        # Line 1 coordinates
-        line_1_x_start = 0
-        line_1_x_end = 0
-        line_1_y_start = upper_bottom_edge[1]
-        line_1_y_end = lower_top_edge[1]
-        
-        # Line 2 coordinates
-        line_2_x_start = 9
-        line_2_x_end = 9
-        line_2_y_start = upper_bottom_edge[1]
-        line_2_y_end = lower_top_edge[1]
-        
-        # Draw the lines in 'beam' layer
-        msp.add_line(
-            (line_1_x_start, line_1_y_start), 
-            (line_1_x_end, line_1_y_end), 
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        msp.add_line(
-            (line_2_x_start, line_2_y_start), 
-            (line_2_x_end, line_2_y_end), 
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        
-        # Add text label in 'beam' layer with height 7 and black color
-        midpoint_y = (upper_bottom_edge[1] + lower_top_edge[1]) / 2
-        label_text = f"B{label_counter}"
-        text_entity = msp.add_text(
-            label_text, 
-            dxfattribs={
-                'color': 0,  # Changed to black color
-                'height': 7,
-                'layer': 'beam'
-            }
-        )
-        text_entity.dxf.insert = (-1, midpoint_y)
-        text_entity.dxf.rotation = 90
-        
-        length = abs(upper_bottom_edge[1] - lower_top_edge[1])
-        
-        beam_info_rows.append({
-            'beam names': label_text, 
-            'length': length,
-            'line_1_x_start': line_1_x_start,
-            'line_1_x_end': line_1_x_end,
-            'line_1_y_start': line_1_y_start,
-            'line_1_y_end': line_1_y_end,
-            'line_2_x_start': line_2_x_start,
-            'line_2_x_end': line_2_x_end,
-            'line_2_y_start': line_2_y_start,
-            'line_2_y_end': line_2_y_end
-        })
-        
-        label_counter += 1
-        label_count += 1
-    
-    beam_info_df = pd.DataFrame(beam_info_rows)
-    return label_counter, beam_info_df, dxf_data
-
-# %% [markdown]
-# # Step 31 - Beam on boundary 2
-
-# %%
-def connect_edges_horizontally_boundary_2(dxf_data, max_along_y, aligned_boxes_df, beam_count, beam_info_df):
-    """
-    Connects horizontally aligned boxes by drawing green lines between their edge points and labeling pairs.
-    Parameters:
-        dxf_data (ezdxf.document): The loaded DXF document in memory.
-        aligned_boxes_df (pd.DataFrame): DataFrame containing labels of horizontally aligned boxes.
-        max_along_y (float): The maximum Y-coordinate where the beams should be placed.
-        beam_count (int): Starting count for the beam labels.
-        beam_info_df (pd.DataFrame): DataFrame to store beam information, with columns 'beam names' and 'length'.
-    Returns:
-        tuple: Updated beam count after the labels are added, and updated beam_info_df DataFrame.
-    """
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-    
-    msp = dxf_data.modelspace()
-    box_edges = {}
-    
-    # Extract edges for each box
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            left_edge, right_edge, height = calculate_edges(entity)
-            label = f"C{len(box_edges) + 1}"
-            box_edges[label] = {'left': left_edge, 'right': right_edge, 'height': height}
-            
-    if not all(label in box_edges for label in aligned_boxes_df['connected columns']):
-        return None, beam_info_df
-        
-    label_counter = beam_count + 1
-    label_count = 0
-    
-    for i in range(len(aligned_boxes_df) - 1):
-        label_left = aligned_boxes_df.iloc[i, 0]
-        label_right = aligned_boxes_df.iloc[i + 1, 0]
-        right_edge_left_box = box_edges[label_left]['right']
-        left_edge_right_box = box_edges[label_right]['left']
-        beam_length = abs(left_edge_right_box[0] - right_edge_left_box[0])
-        
-        # Store coordinates for both lines
-        line_1_x_start = right_edge_left_box[0]
-        line_1_x_end = left_edge_right_box[0]
-        line_1_y_start = max_along_y
-        line_1_y_end = max_along_y
-        
-        line_2_x_start = right_edge_left_box[0]
-        line_2_x_end = left_edge_right_box[0]
-        line_2_y_start = max_along_y - 9
-        line_2_y_end = max_along_y - 9
-        
-        # Draw the connecting lines with adjusted y-coordinates in 'beam' layer
-        line1 = msp.add_line(
-            (line_1_x_start, line_1_y_start),
-            (line_1_x_end, line_1_y_end),
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        
-        line2 = msp.add_line(
-            (line_2_x_start, line_2_y_start),
-            (line_2_x_end, line_2_y_end),
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        
-        midpoint_x = (right_edge_left_box[0] + left_edge_right_box[0]) / 2
-        midpoint_y = max_along_y - 9
-        label_text = f"B{label_counter}"
-        # Add text with increased height, black color, and in 'beam' layer
-        text_entity = msp.add_text(
-            label_text, 
-            dxfattribs={
-                'color': 0,  # Black color
-                'height': 7,  # Increased height
-                'layer': 'beam'  # Added to beam layer
-            }
-        )
-        text_entity.dxf.insert = (midpoint_x, midpoint_y)
-        
-        # Create new row with all coordinates
-        new_row = pd.DataFrame([{
-            'beam names': label_text, 
-            'length': beam_length,
-            'line_1_x_start': line_1_x_start,
-            'line_1_x_end': line_1_x_end,
-            'line_1_y_start': line_1_y_start,
-            'line_1_y_end': line_1_y_end,
-            'line_2_x_start': line_2_x_start,
-            'line_2_x_end': line_2_x_end,
-            'line_2_y_start': line_2_y_start,
-            'line_2_y_end': line_2_y_end
-        }])
-        
-        beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-        label_counter += 1
-        label_count += 1
-        
-    return label_counter, beam_info_df, dxf_data
-
-# %% [markdown]
-# # Step 32 - Beam on boundary 3
-
-# %%
-def connect_edges_vertically_boundary_3(dxf_data, aligned_boxes_df, beam_count, beam_info_df):
-    """
-    Connect vertically aligned boxes by drawing green lines between their edge points, labeling pairs, 
-    and updating the beam_info_df with beam label and length.
-    Parameters:
-        dxf_data (ezdxf.document): The loaded DXF document in memory.
-        aligned_boxes_df (pd.DataFrame): DataFrame containing labels of vertically aligned boxes.
-        beam_count (int): Starting count for the beam labels.
-        beam_info_df (pd.DataFrame): DataFrame to store information about each created beam.
-    
-    Returns:
-        Tuple[int, pd.DataFrame, ezdxf.document]: 
-            - Updated beam count,
-            - The modified beam_info_df,
-            - The modified DXF document in memory.
-    """
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-        
-    msp = dxf_data.modelspace()
-    box_edges = {}
-    
-    # Extract edges for each box
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            left_edge, right_edge, height = calculate_edges(entity)
-            label = f"C{len(box_edges) + 1}"
-            box_edges[label] = {'left': left_edge, 'right': right_edge, 'height': height}
-            
-    if not all(label in box_edges for label in aligned_boxes_df['connected columns']):
-        return None, beam_info_df, dxf_data
-        
-    label_counter = beam_count
-    label_count = 0
-    
-    for i in range(len(aligned_boxes_df) - 1):
-        label_left = aligned_boxes_df.iloc[i, 0]
-        label_right = aligned_boxes_df.iloc[i + 1, 0]
-        right_edge_left_box = box_edges[label_left]['right']
-        left_edge_right_box = box_edges[label_right]['left']
-        height_left_box = box_edges[label_left]['height']
-        height_right_box = box_edges[label_right]['height']
-        box_width = abs(right_edge_left_box[0] - left_edge_right_box[0])
-        
-        # Store coordinates for both lines
-        line_1_x_start = right_edge_left_box[0]
-        line_1_x_end = right_edge_left_box[0]
-        line_1_y_start = right_edge_left_box[1]
-        line_1_y_end = left_edge_right_box[1]
-        
-        line_2_x_start = left_edge_right_box[0]
-        line_2_x_end = left_edge_right_box[0]
-        line_2_y_start = right_edge_left_box[1]
-        line_2_y_end = left_edge_right_box[1]
-        
-        # Draw the green vertical lines in 'beam' layer
-        line1 = msp.add_line(
-            (line_1_x_start, line_1_y_start),
-            (line_1_x_end, line_1_y_end),
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        line2 = msp.add_line(
-            (line_2_x_start, line_2_y_start),
-            (line_2_x_end, line_2_y_end),
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        
-        midpoint_y = (right_edge_left_box[1] + left_edge_right_box[1]) / 2
-        label_text = f"B{label_counter}"
-        # Add text with increased height, black color, and in 'beam' layer
-        text_entity = msp.add_text(
-            label_text, 
-            dxfattribs={
-                'color': 0,  # Black color
-                'height': 7,  # Increased height
-                'layer': 'beam'  # Added to beam layer
-            }
-        )
-        text_entity.dxf.insert = (line_1_x_start + 0.1, midpoint_y)
-        
-        beam_length = abs(right_edge_left_box[1] - left_edge_right_box[1])
-        
-        # Create new row with all coordinates
-        new_row = pd.DataFrame([{
-            'beam names': label_text,
-            'length': beam_length,
-            'line_1_x_start': line_1_x_start,
-            'line_1_x_end': line_1_x_end,
-            'line_1_y_start': line_1_y_start,
-            'line_1_y_end': line_1_y_end,
-            'line_2_x_start': line_2_x_start,
-            'line_2_x_end': line_2_x_end,
-            'line_2_y_start': line_2_y_start,
-            'line_2_y_end': line_2_y_end
-        }])
-        
-        beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-        label_counter += 1
-        label_count += 1
-        
-    return label_counter, beam_info_df, dxf_data
-
-# %% [markdown]
-# # Step 33 - Beams on horizontally aligned boundary 1
-
-# %%
-def find_parallel_lines(msp, x1, x2, y_center, tolerance=0.5):
-    """
-    Find parallel horizontal lines between two x-coordinates around a y-center.
-    Returns True if valid wall spacing is found (4-6 or 8-9 units).
-    """
-    # Store y-coordinates of horizontal lines
-    horizontal_lines = []
-    
-    for entity in msp:
-        if entity.dxftype() == 'LINE':
-            start = entity.dxf.start
-            end = entity.dxf.end
-            
-            # Check if line is horizontal
-            if abs(start.y - end.y) < tolerance:
-                # Check if line is between x1 and x2
-                line_x_min = min(start.x, end.x)
-                line_x_max = max(start.x, end.x)
-                
-                # Check if line overlaps with our region of interest
-                if (line_x_min <= x2 and line_x_max >= x1):
-                    # Check if line is near our y_center
-                    if abs(start.y - y_center) < 10:  # Search within 10 units
-                        horizontal_lines.append(start.y)
-    
-    # Sort and find pairs of lines
-    horizontal_lines.sort()
-    for i in range(len(horizontal_lines) - 1):
-        spacing = abs(horizontal_lines[i] - horizontal_lines[i + 1])
-        # Check for valid wall spacings (4-6 or 8-9 units)
-        if (4 <= spacing <= 6) or (8 <= spacing <= 9):
-            return True
-            
-    return False
-
-def check_horizontal_alignment_boundary_1(dxf_data, max_along_x, C1_ver_col, beam_count, tolerance=15, beam_info_df=None):
-    """[previous docstring remains the same]"""
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-        
-    msp = dxf_data.modelspace()
-
-    # Extract boxes and calculate their center points [unchanged]
-    centers = {}
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            points = [(point[0], point[1]) for point in entity.get_points()]
-            top_left = min(points, key=lambda p: (p[0], p[1]))
-            bottom_right = max(points, key=lambda p: (p[0], p[1]))
-            label = f"C{len(centers) + 1}"
-            center_x = (top_left[0] + bottom_right[0]) / 2
-            center_y = (top_left[1] + bottom_right[1]) / 2
-            centers[label] = (center_x, center_y)
-
-    alignment_data = []
-
-    # Original alignment detection logic [unchanged]
-    for i in range(1, len(C1_ver_col) - 1):
-        current_label = C1_ver_col.iloc[i]['connected columns']
-        if current_label not in centers:
-            continue
-
-        current_center = centers[current_label]
-        aligned_boxes = []
-
-        for label, center in centers.items():
-            if label == current_label:
-                continue
-
-            if abs(center[1] - current_center[1]) <= tolerance and current_center[0] < center[0] <= max_along_x:
-                aligned_boxes.append((label, center[0]))
-
-        aligned_labels = [label for label, _ in sorted(aligned_boxes, key=lambda x: x[1])]
-        alignment_data.append({
-            'Boundary column': current_label,
-            'Horizontal aligned column': aligned_labels
-        })
-
-    Boundary_1_connection = pd.DataFrame(alignment_data)
-
-    # Modified beam drawing section to capture coordinates
-    for index, row in Boundary_1_connection.iterrows():
-        boundary_box = row['Boundary column']
-        if row['Horizontal aligned column']:
-            x_start = centers[boundary_box][0]
-            y_center = centers[boundary_box][1]
-
-            for target_label in row['Horizontal aligned column']:
-                target_x = centers[target_label][0]
-                
-                # Check for wall between columns
-                if find_parallel_lines(msp, x_start, target_x, y_center):
-                    # Store coordinates for both lines
-                    line_1_x_start = x_start
-                    line_1_x_end = target_x
-                    line_1_y_start = y_center
-                    line_1_y_end = y_center
-
-                    line_2_x_start = x_start
-                    line_2_x_end = target_x
-                    line_2_y_start = y_center + 5
-                    line_2_y_end = y_center + 5
-
-                    # Draw beam lines using stored coordinates in 'beam' layer
-                    msp.add_line(
-                        (line_1_x_start, line_1_y_start),
-                        (line_1_x_end, line_1_y_end),
-                        dxfattribs={'color': 3, 'layer': 'beam'}
-                    )
-                    msp.add_line(
-                        (line_2_x_start, line_2_y_start),
-                        (line_2_x_end, line_2_y_end),
-                        dxfattribs={'color': 3, 'layer': 'beam'}
-                    )
-
-                    beam_label = f"B{beam_count}"
-                    label_x = (x_start + target_x) / 2
-                    label_y = y_center + 7
-
-                    # Add text with increased height, black color, and in 'beam' layer
-                    msp.add_text(
-                        beam_label, 
-                        dxfattribs={
-                            'height': 7,    # Increased height
-                            'color': 0,     # Black color
-                            'layer': 'beam' # Added to beam layer
-                        }
-                    ).set_dxf_attrib("insert", (label_x, label_y))
-
-                    # Create new row with beam information including coordinates
-                    new_row = pd.DataFrame([{
-                        'beam names': beam_label,
-                        'length': abs(target_x - x_start),
-                        'line_1_x_start': line_1_x_start,
-                        'line_1_x_end': line_1_x_end,
-                        'line_1_y_start': line_1_y_start,
-                        'line_1_y_end': line_1_y_end,
-                        'line_2_x_start': line_2_x_start,
-                        'line_2_x_end': line_2_x_end,
-                        'line_2_y_start': line_2_y_start,
-                        'line_2_y_end': line_2_y_end
-                    }])
-
-                    beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-                    beam_count += 1
-
-                x_start = target_x + 3
-                if x_start >= max_along_x:
-                    break
-
-    return beam_count, beam_info_df, dxf_data
-
-# %% [markdown]
-# # Step 34 -Beams on vertically aligned boundary 2
-
-# %%
-def find_vertical_wall(msp, x_center, y1, y2, tolerance=0.5):
-    """
-    Find parallel vertical lines between two y-coordinates around an x-center.
-    Returns True if valid wall spacing is found (4-6 or 8-9 units).
-    """
-    vertical_lines = []
-    
-    for entity in msp:
-        if entity.dxftype() == 'LINE':
-            start = entity.dxf.start
-            end = entity.dxf.end
-            
-            # Check if line is vertical
-            if abs(start.x - end.x) < tolerance:
-                # Check if line is near our x_center
-                if abs(start.x - x_center) < 10:  # Search within 10 units
-                    # Check if line spans between our y-coordinates
-                    line_y_min = min(start.y, end.y)
-                    line_y_max = max(start.y, end.y)
-                    
-                    # Check for overlap with our region of interest
-                    if (line_y_min <= y2 and line_y_max >= y1):
-                        vertical_lines.append(start.x)
-    
-    # Sort and find pairs of lines
-    vertical_lines.sort()
-    for i in range(len(vertical_lines) - 1):
-        spacing = abs(vertical_lines[i] - vertical_lines[i + 1])
-        # Check for valid wall spacings (4-6 or 8-9 units)
-        if (4 <= spacing <= 6) or (8 <= spacing <= 9):
-            return True
-            
-    return False
-
-def check_vertical_alignment_boundary_2(dxf_data, C2_hor_col, max_along_y, beam_count, tolerance=15, beam_info_df=None):
-    """[previous docstring remains the same]"""
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-        
-    msp = dxf_data.modelspace()
-
-    # Extract centers from DXF data [unchanged]
-    centers = {}
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            points = [(point[0], point[1]) for point in entity.get_points()]
-            top_left = min(points, key=lambda p: (p[0], p[1]))
-            bottom_right = max(points, key=lambda p: (p[0], p[1]))
-            label = f"C{len(centers) + 1}"
-            center_x = (top_left[0] + bottom_right[0]) / 2
-            center_y = (top_left[1] + bottom_right[1]) / 2
-            centers[label] = (center_x, center_y)
-    
-    # Iterate over C2_hor_col
-    for i in range(1, len(C2_hor_col) - 1):
-        current_label = C2_hor_col.iloc[i]['connected columns']
-        if current_label not in centers:
-            continue
-
-        current_center = centers[current_label]
-        aligned_boxes = []
-
-        for label, center in centers.items():
-            if label != current_label and abs(center[0] - current_center[0]) <= tolerance:
-                distance = sqrt((center[0] - current_center[0])**2 + 
-                              (center[1] - current_center[1])**2)
-                aligned_boxes.append((label, center[1], distance))
-
-        if aligned_boxes:
-            aligned_boxes_sorted = sorted(aligned_boxes, key=lambda x: x[2])
-            target_label, target_y, _ = aligned_boxes_sorted[0]
-            
-            if current_label in centers:
-                midpoint_x = centers[current_label][0]
-                min_y = min(current_center[1], target_y)
-                max_y = max(current_center[1], target_y)
-
-                if find_vertical_wall(msp, midpoint_x, min_y, max_y):
-                    # Store coordinates for both lines
-                    line_1_x_start = midpoint_x
-                    line_1_x_end = midpoint_x
-                    line_1_y_start = min_y
-                    line_1_y_end = max_y
-
-                    line_2_x_start = midpoint_x + 5
-                    line_2_x_end = midpoint_x + 5
-                    line_2_y_start = min_y
-                    line_2_y_end = max_y
-
-                    # Draw the lines using stored coordinates in 'beam' layer
-                    msp.add_line(
-                        (line_1_x_start, line_1_y_start),
-                        (line_1_x_end, line_1_y_end),
-                        dxfattribs={'color': 3, 'layer': 'beam'}
-                    )
-                    msp.add_line(
-                        (line_2_x_start, line_2_y_start),
-                        (line_2_x_end, line_2_y_end),
-                        dxfattribs={'color': 3, 'layer': 'beam'}
-                    )
-                    
-                    beam_label = f"B{beam_count}"
-                    label_offset_x = 15
-                    midpoint_y = (min_y + max_y) / 2
-                    
-                    # Add text with increased height, black color, and in 'beam' layer
-                    text_entity = msp.add_text(
-                        beam_label, 
-                        dxfattribs={
-                            'color': 0,     # Black color
-                            'height': 7,    # Increased height
-                            'layer': 'beam' # Added to beam layer
-                        }
-                    )
-                    text_entity.dxf.insert = (midpoint_x - label_offset_x, midpoint_y)
-                    text_entity.dxf.rotation = 90
-                    
-                    beam_length = max_y - min_y
-
-                    # Create new row with beam information including coordinates
-                    new_row = pd.DataFrame([{
-                        'beam names': beam_label,
-                        'length': beam_length,
-                        'line_1_x_start': line_1_x_start,
-                        'line_1_x_end': line_1_x_end,
-                        'line_1_y_start': line_1_y_start,
-                        'line_1_y_end': line_1_y_end,
-                        'line_2_x_start': line_2_x_start,
-                        'line_2_x_end': line_2_x_end,
-                        'line_2_y_start': line_2_y_start,
-                        'line_2_y_end': line_2_y_end
-                    }])
-
-                    beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-                    beam_count += 1
-    
-    return beam_count, beam_info_df, dxf_data
-
-# %% [markdown]
-# # Steps 35 - Beams on horizontally aligned boundary 3
-
-# %%
-def check_horizontal_alignment_boundary_3(dxf_data, max_along_x, C3_ver_col, beam_count, beam_info_df, tolerance=10):
-    """[previous docstring remains the same]"""
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-        
-    msp = dxf_data.modelspace()
-
-    # [Previous code unchanged until line drawing section]
-    centers = {}
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            points = [(point[0], point[1]) for point in entity.get_points()]
-            top_left = min(points, key=lambda p: (p[0], p[1]))
-            bottom_right = max(points, key=lambda p: (p[0], p[1]))
-            label = f"C{len(centers) + 1}"
-            center_x = (top_left[0] + bottom_right[0]) / 2
-            center_y = (top_left[1] + bottom_right[1]) / 2
-            centers[label] = (center_x, center_y)
-
-    alignment_data = []
-
-    # [Previous alignment detection logic unchanged]
-    for i in range(1, len(C3_ver_col) - 1):
-        current_label = C3_ver_col.iloc[i]['connected columns']
-        if current_label not in centers:
-            continue
-
-        current_center = centers[current_label]
-        aligned_boxes = []
-
-        for label, center in centers.items():
-            if label == current_label:
-                continue
-
-            if abs(center[1] - current_center[1]) <= tolerance and 0 < center[0] <= max_along_x - 24:
-                aligned_boxes.append((label, center[0]))
-
-        aligned_labels = [label for label, _ in sorted(aligned_boxes, key=lambda x: x[1], reverse=True)]
-
-        alignment_data.append({
-            'Boundary column': current_label,
-            'Horizontal aligned column': aligned_labels
-        })
-
-    Boundary_3_connection = pd.DataFrame(alignment_data)
-
-    # Modified line and text drawing section
-    for index, row in Boundary_3_connection.iterrows():
-        boundary_box = row['Boundary column']
-        aligned_boxes = row['Horizontal aligned column']
-
-        if aligned_boxes:
-            for next_box in aligned_boxes:
-                if boundary_box in centers and next_box in centers:
-                    x_min = min(centers[boundary_box][0], centers[next_box][0])
-                    x_max = max(centers[boundary_box][0], centers[next_box][0])
-                    y_center = centers[boundary_box][1]
-
-                    green_line_exists = False
-                    for entity in msp.query('LINE[color==3]'):
-                        existing_x_start = min(entity.dxf.start.x, entity.dxf.end.x)
-                        existing_x_end = max(entity.dxf.start.x, entity.dxf.end.x)
-                        existing_y = entity.dxf.start.y
-
-                        if (existing_x_start <= x_min and existing_x_end >= x_max) and \
-                           (y_center - tolerance <= existing_y <= y_center + tolerance):
-                            green_line_exists = True
-                            break
-
-                    if not green_line_exists:
-                        # Store coordinates for both lines
-                        line_1_x_start = x_min
-                        line_1_x_end = x_max
-                        line_1_y_start = y_center
-                        line_1_y_end = y_center
-
-                        line_2_x_start = x_min
-                        line_2_x_end = x_max
-                        line_2_y_start = y_center - 5
-                        line_2_y_end = y_center - 5
-
-                        # Draw the lines in 'beam' layer
-                        msp.add_line(
-                            (line_1_x_start, line_1_y_start),
-                            (line_1_x_end, line_1_y_end),
-                            dxfattribs={'color': 3, 'layer': 'beam'}
-                        )
-                        msp.add_line(
-                            (line_2_x_start, line_2_y_start),
-                            (line_2_x_end, line_2_y_end),
-                            dxfattribs={'color': 3, 'layer': 'beam'}
-                        )
-
-                        beam_label = f"B{beam_count}"
-                        label_x = (x_min + x_max) / 2
-                        label_y = y_center + 7
-
-                        # Add text with increased height, black color, and in 'beam' layer
-                        text_entity = msp.add_text(
-                            beam_label, 
-                            dxfattribs={
-                                'color': 0,     # Black color
-                                'height': 7,    # Increased height
-                                'layer': 'beam' # Added to beam layer
-                            }
-                        )
-                        text_entity.dxf.insert = (label_x, label_y)
-                        text_entity.dxf.rotation = 90
-
-                        length = x_max - x_min
-                        
-                        # [Rest of code for creating new row unchanged]
-                        new_row = pd.DataFrame([{
-                            'beam names': beam_label,
-                            'length': length,
-                            'line_1_x_start': line_1_x_start,
-                            'line_1_x_end': line_1_x_end,
-                            'line_1_y_start': line_1_y_start,
-                            'line_1_y_end': line_1_y_end,
-                            'line_2_x_start': line_2_x_start,
-                            'line_2_x_end': line_2_x_end,
-                            'line_2_y_start': line_2_y_start,
-                            'line_2_y_end': line_2_y_end
-                        }])
-
-                        beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-                        beam_count += 1
-
-                    boundary_box = next_box
-
-            # Handle last aligned box to x=0
-            x_min = 0
-            x_max = centers[boundary_box][0]
-            y_center = centers[boundary_box][1]
-
-            green_line_exists = False
-            for entity in msp.query('LINE[color==3]'):
-                existing_x_start = min(entity.dxf.start.x, entity.dxf.end.x)
-                existing_x_end = max(entity.dxf.start.x, entity.dxf.end.x)
-                existing_y = entity.dxf.start.y
-
-                if (existing_x_start <= x_min and existing_x_end >= x_max) and \
-                   (y_center - 15 <= existing_y <= y_center + 15):
-                    green_line_exists = True
-                    break
-
-            if not green_line_exists:
-                # Store coordinates for final lines
-                line_1_x_start = x_min
-                line_1_x_end = x_max
-                line_1_y_start = y_center
-                line_1_y_end = y_center
-
-                line_2_x_start = x_min
-                line_2_x_end = x_max
-                line_2_y_start = y_center - 5
-                line_2_y_end = y_center - 5
-
-                # Draw final lines in 'beam' layer
-                msp.add_line(
-                    (line_1_x_start, line_1_y_start),
-                    (line_1_x_end, line_1_y_end),
-                    dxfattribs={'color': 3, 'layer': 'beam'}
-                )
-                msp.add_line(
-                    (line_2_x_start, line_2_y_start),
-                    (line_2_x_end, line_2_y_end),
-                    dxfattribs={'color': 3, 'layer': 'beam'}
-                )
-
-    return beam_count, beam_info_df, dxf_data
-
-# %% [markdown]
-# # Steps 36 - Beams on vertically aligned boundary 4
-
-# %%
-def check_vertical_alignment_boundary_4(dxf_data, C4_hor_col, max_along_y, beam_count, beam_info_df, tolerance=15):
-    """[previous docstring remains the same]"""
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-        
-    msp = dxf_data.modelspace()
-    
-    # [Previous code unchanged until line drawing section]
-    centers = {}
-    for entity in msp:
-        if entity.dxftype() in ['LWPOLYLINE', 'POLYLINE']:
-            points = [(point[0], point[1]) for point in entity.get_points()]
-            top_left = min(points, key=lambda p: (p[0], p[1]))
-            bottom_right = max(points, key=lambda p: (p[0], p[1]))
-            label = f"C{len(centers) + 1}"
-            center_x = (top_left[0] + bottom_right[0]) / 2
-            center_y = (top_left[1] + bottom_right[1]) / 2
-            centers[label] = (center_x, center_y)
-    
-    # [Previous alignment detection logic unchanged]
-    for i in range(1, len(C4_hor_col) - 1):
-        current_label = C4_hor_col.iloc[i]['connected columns']
-        if current_label not in centers:
-            continue
-
-        current_center = centers[current_label]
-        aligned_boxes = []
-
-        for label, center in centers.items():
-            if label != current_label and abs(center[0] - current_center[0]) <= tolerance:
-                distance = sqrt((center[0] - current_center[0])**2 + (center[1] - current_center[1])**2)
-                aligned_boxes.append((label, center[1], distance))
-
-        if aligned_boxes:
-            aligned_boxes_sorted = sorted(aligned_boxes, key=lambda x: x[2])
-            target_label, target_y, _ = aligned_boxes_sorted[0]
-            
-            if current_label in centers:
-                midpoint_x = centers[current_label][0]
-                first_line_x = midpoint_x
-
-                min_y = min(current_center[1], target_y)
-                max_y = max(current_center[1], target_y)
-
-                # [Previous line checking logic unchanged]
-                parallel_lines = []
-                for entity in msp:
-                    if entity.dxftype() == 'LINE':
-                        if abs(entity.dxf.start.x - entity.dxf.end.x) <= tolerance:
-                            if abs(entity.dxf.start.x - first_line_x) <= tolerance:
-                                parallel_lines.append(entity)
-
-                if len(parallel_lines) == 1:
-                    second_line_x = first_line_x + 5
-                    parallel_line_found = False
-                    for entity in msp:
-                        if entity.dxftype() == 'LINE':
-                            if abs(entity.dxf.start.x - second_line_x) <= tolerance and abs(entity.dxf.end.x - second_line_x) <= tolerance:
-                                if (abs(entity.dxf.start.y - 0) <= 1 or abs(entity.dxf.start.y - 9) <= 1 or
-                                    abs(entity.dxf.end.y - 0) <= 1 or abs(entity.dxf.end.y - 9) <= 1):
-                                    parallel_line_found = True
-                                    break
-                    
-                    if parallel_line_found:
-                        # Store coordinates for both lines
-                        line_1_x_start = first_line_x
-                        line_1_x_end = first_line_x
-                        line_1_y_start = min_y
-                        line_1_y_end = max_y
-
-                        line_2_x_start = first_line_x + 5
-                        line_2_x_end = first_line_x + 5
-                        line_2_y_start = min_y
-                        line_2_y_end = max_y
-
-                        # Draw the lines in 'beam' layer
-                        msp.add_line(
-                            (line_1_x_start, line_1_y_start),
-                            (line_1_x_end, line_1_y_end),
-                            dxfattribs={'color': 3, 'layer': 'beam'}
-                        )
-                        msp.add_line(
-                            (line_2_x_start, line_2_y_start),
-                            (line_2_x_end, line_2_y_end),
-                            dxfattribs={'color': 3, 'layer': 'beam'}
-                        )
-                        
-                        beam_label = f"B{beam_count}"
-                        label_offset_x = 15
-                        midpoint_y = (min_y + max_y) / 2
-                        
-                        # Add text with increased height, black color, and in 'beam' layer
-                        text_entity = msp.add_text(
-                            beam_label, 
-                            dxfattribs={
-                                'color': 0,     # Black color
-                                'height': 7,    # Increased height
-                                'layer': 'beam' # Added to beam layer
-                            }
-                        )
-                        text_entity.dxf.insert = (midpoint_y - label_offset_x, midpoint_y)
-                        text_entity.dxf.rotation = 90
-                        
-                        beam_length = max_y - min_y
-
-                        # [Rest of code for creating new row unchanged]
-                        new_row = pd.DataFrame([{
-                            'beam_names': beam_label,
-                            'length': beam_length,
-                            'line_1_x_start': line_1_x_start,
-                            'line_1_x_end': line_1_x_end,
-                            'line_1_y_start': line_1_y_start,
-                            'line_1_y_end': line_1_y_end,
-                            'line_2_x_start': line_2_x_start,
-                            'line_2_x_end': line_2_x_end,
-                            'line_2_y_start': line_2_y_start,
-                            'line_2_y_end': line_2_y_end
-                        }])
-                        
-                        beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-                        beam_count += 1
-    
-    return beam_count, beam_info_df, dxf_data
-
-# %% [markdown]
-# # Steps 37 - Final code for alignment data 
-
-# %%
-def read_and_filter_columns(dxf_data, C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col):
-    """
-    Reads all closed polylines (columns) from the DXF file, creates a complete list of columns, and removes the ones
-    present in the provided DataFrames.
-
-    Parameters:
-        dxf_data: The input DXF data.
-        C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col: DataFrames containing columns to exclude.
-
-    Returns:
-        A list of filtered columns.
-    """
-    # Access the modelspace of the provided DXF data
-    msp = dxf_data.modelspace()
-
-    # List to store all column names from the DXF file
-    all_columns = []
-    column_positions = {}  # To store positions of columns
-
-    # Iterate over all entities in the modelspace
-    for entity in msp:
-        if entity.dxftype() == 'LWPOLYLINE' and entity.closed:
-            # Extract the polyline points to calculate the positions
-            points = entity.get_points('xy')  # Get points as (x, y) tuples
-
-            # Ensure it's a rectangular box (typically 5 points: 4 corners + closing point)
-            if len(points) == 5 and points[0] == points[-1]:
-                # Calculate the corners of the box
-                min_x = min([p[0] for p in points])
-                max_x = max([p[0] for p in points])
-                min_y = min([p[1] for p in points])
-                max_y = max([p[1] for p in points])
-
-                # Create a unique label for the box (column)
-                column_label = f"C{len(all_columns) + 1}"  # Example: C1, C2, C3, ...
-
-                # Add the column label and its position to the list and dictionary
-                all_columns.append(column_label)
-                column_positions[column_label] = {
-                    "min_x": min_x, "max_x": max_x, "min_y": min_y, "max_y": max_y,
-                    "center_x": (min_x + max_x) / 2, "center_y": (min_y + max_y) / 2
-                }
-
-    # Combine all columns from the provided DataFrames into a single list
-    excluded_columns = (
-        C1_ver_col['connected columns'].tolist() +
-        C2_hor_col['connected columns'].tolist() +
-        C3_ver_col['connected columns'].tolist() +
-        C4_hor_col['connected columns'].tolist()
-    )
-
-    # Filter out the excluded columns from the entire list of columns
-    filtered_columns = [col for col in all_columns if col not in excluded_columns]
-
-    return filtered_columns, column_positions
-
-def find_aligned_columns(filtered_columns, column_positions, tolerance=7):
-    """
-    Find vertical and horizontal aligned columns for each column in the filtered list, with a given tolerance.
-    For left-aligned and right-aligned columns, sort them based on their distance from the base column.
-    Parameters:
-        filtered_columns: List of column labels to check.
-        column_positions: Dictionary with column labels as keys and their position data as values.
-        tolerance: Allowed deviation for alignment in coordinates.
-    Returns:
-        A dictionary with each column and its aligned columns in the left, right, up, and down directions.
-        Left-aligned and right-aligned columns are sorted by distance from base column.
-    """
-    alignment_data = {}
-    for column in filtered_columns:
-        current = column_positions[column]
-        aligned = {"left": [], "right": [], "up": [], "down": []}
-        left_columns_with_distances = []  # To store tuples of (column, distance)
-        right_columns_with_distances = []  # To store tuples of (column, distance)
-        up_columns_with_distances = []
-        down_columns_with_distances = []
-        
-        for other_column in filtered_columns:
-            if column == other_column:
-                continue
-            other = column_positions[other_column]
-            # Check horizontal alignment (left and right)
-            if abs(current["center_y"] - other["center_y"]) <= tolerance:
-                if other["center_x"] < current["center_x"]:
-                    # Store the column and its distance for later sorting
-                    distance = current["center_x"] - other["center_x"]
-                    left_columns_with_distances.append((other_column, distance))
-                elif other["center_x"] > current["center_x"]:
-                    # Store the column and its distance for right alignment sorting
-                    distance = other["center_x"] - current["center_x"]
-                    right_columns_with_distances.append((other_column, distance))
-            # Check vertical alignment (up and down)
-            if abs(current["center_x"] - other["center_x"]) <= tolerance:
-                if other["center_y"] > current["center_y"]:
-                    distance = other["center_y"] - current["center_y"]
-                    up_columns_with_distances.append((other_column, distance))
-                elif other["center_y"] < current["center_y"]:
-                    distance = current["center_y"] - other["center_y"]
-                    down_columns_with_distances.append((other_column, distance))
-                    
-        # Sort left columns based on distance (ascending) and extract just the column labels
-        if left_columns_with_distances:
-            left_columns_with_distances.sort(key=lambda x: x[1])
-            aligned["left"] = [col for col, _ in left_columns_with_distances]
-            
-        # Sort right columns based on distance (ascending) and extract just the column labels
-        if right_columns_with_distances:
-            right_columns_with_distances.sort(key=lambda x: x[1])
-            aligned["right"] = [col for col, _ in right_columns_with_distances]
-
-        if up_columns_with_distances:
-            up_columns_with_distances.sort(key=lambda x:x[1])
-            aligned["up"] = [col for col, _ in up_columns_with_distances]
-
-        if down_columns_with_distances:
-            down_columns_with_distances.sort(key=lambda x:x[1])
-            aligned["down"] = [col for col, _ in down_columns_with_distances]
-            
-        alignment_data[column] = aligned
-    return alignment_data
-
-# %% [markdown]
-# # Step 38 - Individual dataframes 
-
-# %%
-def process_alignment_data_by_direction(alignment_data, column_info_df, direction):
-    """
-    Generic function to process alignment data for any direction (left, right, up, down).
-    
-    Parameters:
-        alignment_data (dict): Dictionary containing alignment information for columns.
-        column_info_df (pd.DataFrame): DataFrame with column details.
-        direction (str): Direction to process ('left', 'right', 'up', 'down')
-    
-    Returns:
-        pd.DataFrame: DataFrame containing pairs of columns and their x, y centers.
-    """
-    result = []
-    for base_col, directions in alignment_data.items():
-        aligned_cols = directions.get(direction, [])
-        if not aligned_cols:  # Skip if direction is empty
-            continue
-            
-        # Get base column's x and y centers
-        base_row = column_info_df[column_info_df['Column Nos'] == base_col]
-        if base_row.empty:
-            continue
-        base_x, base_y = base_row.iloc[0]['X Center'], base_row.iloc[0]['Y Center']
-        
-        # Iterate through aligned columns
-        for i, aligned_col in enumerate(aligned_cols):
-            aligned_row = column_info_df[column_info_df['Column Nos'] == aligned_col]
-            if aligned_row.empty:
-                continue
-            aligned_x, aligned_y = aligned_row.iloc[0]['X Center'], aligned_row.iloc[0]['Y Center']
-            
-            if i == 0:
-                # Base column and first aligned column
-                result.append((base_col, base_x, base_y, aligned_col, aligned_x, aligned_y))
-            else:
-                # Consecutive aligned columns
-                prev_col = aligned_cols[i - 1]
-                prev_row = column_info_df[column_info_df['Column Nos'] == prev_col]
-                if prev_row.empty:
-                    continue
-                prev_x, prev_y = prev_row.iloc[0]['X Center'], prev_row.iloc[0]['Y Center']
-                result.append((prev_col, prev_x, prev_y, aligned_col, aligned_x, aligned_y))
-    
-    # Create a DataFrame from the results
-    columns = ['Column 1', 'Column 1 X', 'Column 1 Y', 'Column 2', 'Column 2 X', 'Column 2 Y']
-    result_df = pd.DataFrame(result, columns=columns)
-    
-    # Remove duplicate rows
-    result_df = result_df.drop_duplicates()
-    return result_df
-
-def get_all_alignments(alignment_data, column_info_df):
-    """
-    Process alignment data for all four directions and return separate DataFrames.
-    
-    Parameters:
-        alignment_data (dict): Dictionary containing alignment information for columns.
-        column_info_df (pd.DataFrame): DataFrame with column details.
-    
-    Returns:
-        tuple: (left_df, right_df, up_df, down_df)
-    """
-    # Process each direction
-    left_df = process_alignment_data_by_direction(alignment_data, column_info_df, 'left')
-    right_df = process_alignment_data_by_direction(alignment_data, column_info_df, 'right')
-    up_df = process_alignment_data_by_direction(alignment_data, column_info_df, 'up')
-    down_df = process_alignment_data_by_direction(alignment_data, column_info_df, 'down')
-    
-    return left_df, right_df, up_df, down_df
-
-# %% [markdown]
-# # Step 39 - Left aligned columns 
-
-# %%
-def beam_and_wall_detection_left(dxf_data, left_df, beam_count, beam_info_df):
-    """
-    Check for green and gray horizontal lines between pairs of columns.
-    When exactly 2 parallel gray lines with spacing 4-9 units are found,
-    draw green horizontal lines at those positions.
-    """
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-    
-    # Create a copy of the input DataFrame
-    df = left_df.copy()
-    
-    # [Previous column creation code unchanged]
-    df['green_horizontal_line'] = False
-    df['first_gray_horizontal_line'] = False
-    df['gray_line_count'] = 0 
-    df['has_parallel_gray_lines'] = False
-    
-    # Define the light gray color using RGB values
-    R, G, B = 128, 128, 128
-    light_gray_color = (R << 16) | (G << 8) | B
-    
-    msp = dxf_data.modelspace()
-    
-    # [Previous iteration and calculation logic unchanged]
-    for idx, row in df.iterrows():
-        Y1 = min(row['Column 1 Y'], row['Column 2 Y']) - 7
-        Y2 = max(row['Column 1 Y'], row['Column 2 Y']) + 7
-        X1 = min(row['Column 1 X'], row['Column 2 X']) + 5
-        X2 = max(row['Column 1 X'], row['Column 2 X']) - 5
-        
-        # [Previous green line check logic unchanged]
-        found_green_line = False
-        for entity in msp:
-            if entity.dxftype() == 'LINE' and entity.dxf.color == 3:
-                start_point = entity.dxf.start
-                end_point = entity.dxf.end
-                
-                if abs(start_point[1] - end_point[1]) <= 0.1:
-                    line_y = start_point[1]
-                    if Y1 <= line_y <= Y2:
-                        line_x1 = min(start_point[0], end_point[0])
-                        line_x2 = max(start_point[0], end_point[0])
-                        
-                        if line_x1 <= X1 + 2 and line_x2 >= X2 - 2:
-                            found_green_line = True
-                            break
-        
-        df.at[idx, 'green_horizontal_line'] = found_green_line
-        
-        # If no green line found, check for gray lines
-        if not found_green_line:
-            # [Previous gray line detection logic unchanged]
-            gray_lines_y = []
-            
-            for entity in msp:
-                if entity.dxftype() == 'LINE' and entity.dxf.true_color == light_gray_color:
-                    start_point = entity.dxf.start
-                    end_point = entity.dxf.end
-                    
-                    if abs(start_point[1] - end_point[1]) <= 0.1:
-                        line_y = start_point[1]
-                        if Y1 <= line_y <= Y2:
-                            line_x1 = min(start_point[0], end_point[0])
-                            line_x2 = max(start_point[0], end_point[0])
-                            
-                            if line_x1 <= X1 + 10 and line_x2 >= X2 - 10:
-                                gray_lines_y.append(line_y)
-            
-            # [Previous parallel line check logic unchanged]
-            gray_lines_y.sort()
-            valid_parallel_pair = None
-            
-            if len(gray_lines_y) >= 2:
-                for i in range(len(gray_lines_y) - 1):
-                    for j in range(i + 1, len(gray_lines_y)):
-                        spacing = abs(gray_lines_y[j] - gray_lines_y[i])
-                        if 4 <= spacing <= 9:
-                            if len(gray_lines_y) == 2:
-                                valid_parallel_pair = (gray_lines_y[i], gray_lines_y[j])
-                                break
-                    if valid_parallel_pair:
-                        break
-            
-            if valid_parallel_pair:
-                # Draw green lines in 'beam' layer
-                line_1_x_start = X1
-                line_1_x_end = X2
-                line_1_y_start = valid_parallel_pair[0]
-                line_1_y_end = valid_parallel_pair[0]
-
-                line_2_x_start = X1
-                line_2_x_end = X2
-                line_2_y_start = valid_parallel_pair[1]
-                line_2_y_end = valid_parallel_pair[1]
-
-                msp.add_line(
-                    (line_1_x_start, line_1_y_start),
-                    (line_1_x_end, line_1_y_end),
-                    dxfattribs={'color': 3, 'layer': 'beam'}
-                )
-                
-                msp.add_line(
-                    (line_2_x_start, line_2_y_start),
-                    (line_2_x_end, line_2_y_end),
-                    dxfattribs={'color': 3, 'layer': 'beam'}
-                )
-
-                # Add beam label with new specifications
-                beam_label = f"B{beam_count}"
-                label_x = (X1 + X2) / 2
-                label_y = max(valid_parallel_pair) + 7
-
-                msp.add_text(
-                    beam_label, 
-                    dxfattribs={
-                        'color': 0,     # Black color
-                        'height': 7,    # Increased height
-                        'layer': 'beam' # Added to beam layer
-                    }
-                ).set_dxf_attrib("insert", (label_x, label_y))
-
-                # [Previous DataFrame handling unchanged]
-                new_row = pd.DataFrame([{
-                    'beam names': beam_label,
-                    'length': X2 - X1,
-                    'line_1_x_start': line_1_x_start,
-                    'line_1_x_end': line_1_x_end,
-                    'line_1_y_start': line_1_y_start,
-                    'line_1_y_end': line_1_y_end,
-                    'line_2_x_start': line_2_x_start,
-                    'line_2_x_end': line_2_x_end,
-                    'line_2_y_start': line_2_y_start,
-                    'line_2_y_end': line_2_y_end
-                }])
-
-                beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-                beam_count += 1
-                
-                df.at[idx, 'has_parallel_gray_lines'] = True
-            
-            df.at[idx, 'gray_horizontal_line'] = len(gray_lines_y) > 0
-            df.at[idx, 'gray_line_count'] = len(gray_lines_y)
-    
-    return df, beam_info_df, beam_count, dxf_data
-
-# %% [markdown]
-# # Step 40 - Right aligned columns 
-
-# %%
-def beam_and_wall_detection_right(dxf_data, right_df, beam_count, beam_info_df):
-    """
-    Check for green and gray horizontal lines between pairs of columns.
-    When exactly 2 parallel gray lines with spacing 4-9 units are found,
-    draw green horizontal lines at those positions.
-    """
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-    
-    # Create a copy of the input DataFrame
-    df = right_df.copy()
-    
-    # [Previous DataFrame initialization code remains unchanged]
-    df['green_horizontal_line'] = False
-    df['first_gray_horizontal_line'] = False
-    df['gray_line_count'] = 0
-    df['has_parallel_gray_lines'] = False
-    
-    R, G, B = 128, 128, 128
-    light_gray_color = (R << 16) | (G << 8) | B
-    
-    msp = dxf_data.modelspace()
-    
-    # [Previous iteration and line detection logic remains unchanged]
-    for idx, row in df.iterrows():
-        Y1 = min(row['Column 1 Y'], row['Column 2 Y']) - 7
-        Y2 = max(row['Column 1 Y'], row['Column 2 Y']) + 7
-        X1 = min(row['Column 1 X'], row['Column 2 X']) + 5
-        X2 = max(row['Column 1 X'], row['Column 2 X']) - 5
-        
-        # [Previous green line checking logic remains unchanged]
-        found_green_line = False
-        for entity in msp:
-            if entity.dxftype() == 'LINE' and entity.dxf.color == 3:
-                start_point = entity.dxf.start
-                end_point = entity.dxf.end
-                
-                if abs(start_point[1] - end_point[1]) <= 0.1:
-                    line_y = start_point[1]
-                    if Y1 <= line_y <= Y2:
-                        line_x1 = min(start_point[0], end_point[0])
-                        line_x2 = max(start_point[0], end_point[0])
-                        
-                        if line_x1 <= X1 + 2 and line_x2 >= X2 - 2:
-                            found_green_line = True
-                            break
-        
-        df.at[idx, 'green_horizontal_line'] = found_green_line
-        
-        if not found_green_line:
-            # [Previous gray line detection logic remains unchanged]
-            gray_lines_y = []
-            
-            for entity in msp:
-                if entity.dxftype() == 'LINE' and entity.dxf.true_color == light_gray_color:
-                    start_point = entity.dxf.start
-                    end_point = entity.dxf.end
-                    
-                    if abs(start_point[1] - end_point[1]) <= 0.1:
-                        line_y = start_point[1]
-                        if Y1 <= line_y <= Y2:
-                            line_x1 = min(start_point[0], end_point[0])
-                            line_x2 = max(start_point[0], end_point[0])
-                            
-                            if line_x1 <= X1 + 10 and line_x2 >= X2 - 10:
-                                gray_lines_y.append(line_y)
-            
-            # [Previous parallel line check logic remains unchanged]
-            gray_lines_y.sort()
-            valid_parallel_pair = None
-            
-            if len(gray_lines_y) >= 2:
-                for i in range(len(gray_lines_y) - 1):
-                    for j in range(i + 1, len(gray_lines_y)):
-                        spacing = abs(gray_lines_y[j] - gray_lines_y[i])
-                        if 4 <= spacing <= 9:
-                            if len(gray_lines_y) == 2:
-                                valid_parallel_pair = (gray_lines_y[i], gray_lines_y[j])
-                                break
-                    if valid_parallel_pair:
-                        break
-            
-            if valid_parallel_pair:
-                # Store coordinates for both lines
-                line_1_x_start = X1
-                line_1_x_end = X2
-                line_1_y_start = valid_parallel_pair[0]
-                line_1_y_end = valid_parallel_pair[0]
-
-                line_2_x_start = X1
-                line_2_x_end = X2
-                line_2_y_start = valid_parallel_pair[1]
-                line_2_y_end = valid_parallel_pair[1]
-
-                # Draw lines in 'beam' layer
-                msp.add_line(
-                    (line_1_x_start, line_1_y_start),
-                    (line_1_x_end, line_1_y_end),
-                    dxfattribs={'color': 3, 'layer': 'beam'}
-                )
-                
-                msp.add_line(
-                    (line_2_x_start, line_2_y_start),
-                    (line_2_x_end, line_2_y_end),
-                    dxfattribs={'color': 3, 'layer': 'beam'}
-                )
-
-                # Add beam label with new specifications
-                beam_label = f"B{beam_count}"
-                label_x = (X1 + X2) / 2
-                label_y = max(valid_parallel_pair) + 7
-
-                msp.add_text(
-                    beam_label, 
-                    dxfattribs={
-                        'color': 0,     # Black color
-                        'height': 7,    # Increased height
-                        'layer': 'beam' # Added to beam layer
-                    }
-                ).set_dxf_attrib("insert", (label_x, label_y))
-
-                # [Previous DataFrame handling remains unchanged]
-                new_row = pd.DataFrame([{
-                    'beam names': beam_label,
-                    'length': X2 - X1,
-                    'line_1_x_start': line_1_x_start,
-                    'line_1_x_end': line_1_x_end,
-                    'line_1_y_start': line_1_y_start,
-                    'line_1_y_end': line_1_y_end,
-                    'line_2_x_start': line_2_x_start,
-                    'line_2_x_end': line_2_x_end,
-                    'line_2_y_start': line_2_y_start,
-                    'line_2_y_end': line_2_y_end
-                }])
-
-                beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-                beam_count += 1
-                
-                df.at[idx, 'has_parallel_gray_lines'] = True
-            
-            df.at[idx, 'gray_horizontal_line'] = len(gray_lines_y) > 0
-            df.at[idx, 'gray_line_count'] = len(gray_lines_y)
-    
-    return df, beam_info_df, beam_count, dxf_data
-
-# %% [markdown]
-# # Step 41 - Up aligned columns 
-
-# %%
-def beam_and_wall_detection_up(dxf_data, up_df, beam_count, beam_info_df):
-    """
-    Check for green and gray vertical lines between pairs of columns.
-    Draws green vertical lines where exactly 2 parallel gray lines with spacing 3.5-9.5 are found.
-    """
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-    
-    # [Previous initialization code remains unchanged]
-    df = up_df.copy()
-    df['green_vertical_line'] = False
-    df['gray_vertical_line'] = False
-    df['gray_line_count'] = 0
-    df['gray_line_spacings'] = ''
-    df['has_parallel_gray_lines'] = False
-    
-    R, G, B = 128, 128, 128
-    light_gray_color = (R << 16) | (G << 8) | B
-    
-    msp = dxf_data.modelspace()
-    
-    # [Previous iteration and detection logic remains unchanged]
-    for idx, row in df.iterrows():
-        X1 = min(row['Column 1 X'], row['Column 2 X']) - 8
-        X2 = max(row['Column 1 X'], row['Column 2 X']) + 8
-        Y1 = min(row['Column 1 Y'], row['Column 2 Y']) - 7
-        Y2 = max(row['Column 1 Y'], row['Column 2 Y']) + 7
-        
-        found_green_line = False
-        
-        # [Previous green line check logic remains unchanged]
-        for entity in msp:
-            if entity.dxftype() == 'LINE' and entity.dxf.color == 3:
-                start_point = entity.dxf.start
-                end_point = entity.dxf.end
-                
-                if abs(start_point[0] - end_point[0]) <= 0.1:
-                    line_x = start_point[0]
-                    
-                    if X1 <= line_x <= X2:
-                        line_y1 = min(start_point[1], end_point[1])
-                        line_y2 = max(start_point[1], end_point[1])
-                        
-                        if line_y1 <= Y1 + 2 and line_y2 >= Y2 - 2:
-                            found_green_line = True
-                            break
-        
-        df.at[idx, 'green_vertical_line'] = found_green_line
-        
-        if not found_green_line:
-            # [Previous gray line detection logic remains unchanged until line drawing section]
-            valid_gray_lines = []
-            min_y = min(row['Column 1 Y'], row['Column 2 Y'])
-            max_y = max(row['Column 1 Y'], row['Column 2 Y'])
-            
-            # [Previous gray line collection logic remains unchanged]
-            for entity in msp:
-                if entity.dxftype() == 'LINE' and entity.dxf.true_color == light_gray_color:
-                    start_point = entity.dxf.start
-                    end_point = entity.dxf.end
-                    
-                    if abs(start_point[0] - end_point[0]) <= 0.1:
-                        line_x = start_point[0]
-                        
-                        if X1 <= line_x <= X2:
-                            line_y1 = min(start_point[1], end_point[1])
-                            line_y2 = max(start_point[1], end_point[1])
-                            
-                            if (line_y1 <= min_y + 10 and line_y2 >= max_y - 10):
-                                valid_gray_lines.append({
-                                    'x': line_x,
-                                    'y1': line_y1,
-                                    'y2': line_y2
-                                })
-            
-            valid_gray_lines.sort(key=lambda x: x['x'])
-            
-            spacings = []
-            if len(valid_gray_lines) >= 2:
-                for i in range(len(valid_gray_lines) - 1):
-                    spacing = round(valid_gray_lines[i + 1]['x'] - valid_gray_lines[i]['x'], 2)
-                    spacings.append(str(spacing))
-            
-            has_parallel_lines = False
-            if len(valid_gray_lines) == 2:
-                spacing = abs(valid_gray_lines[1]['x'] - valid_gray_lines[0]['x'])
-                if 3.5 <= spacing <= 9.5:
-                    has_parallel_lines = True
-
-                    # Draw green vertical lines in 'beam' layer
-                    line_1_x_start = valid_gray_lines[0]['x']
-                    line_1_x_end = valid_gray_lines[0]['x']
-                    line_1_y_start = min_y
-                    line_1_y_end = max_y
-
-                    line_2_x_start = valid_gray_lines[1]['x']
-                    line_2_x_end = valid_gray_lines[1]['x']
-                    line_2_y_start = min_y
-                    line_2_y_end = max_y
-
-                    msp.add_line(
-                        (line_1_x_start, line_1_y_start),
-                        (line_1_x_end, line_1_y_end),
-                        dxfattribs={'color': 3, 'layer': 'beam'}
-                    )
-                    msp.add_line(
-                        (line_2_x_start, line_2_y_start),
-                        (line_2_x_end, line_2_y_end),
-                        dxfattribs={'color': 3, 'layer': 'beam'}
-                    )
-
-                    # Add beam label with new specifications
-                    beam_label = f"B{beam_count}"
-                    label_x = (line_1_x_start + line_2_x_start) / 2
-                    label_y = (min_y + max_y) / 2
-
-                    msp.add_text(
-                        beam_label,
-                        dxfattribs={
-                            'color': 0,     # Black color
-                            'height': 7,    # Increased height
-                            'layer': 'beam' # Added to beam layer
-                        }
-                    ).set_dxf_attrib("insert", (label_x - 1, label_y))
-
-                    # [Previous DataFrame handling remains unchanged]
-                    new_row = pd.DataFrame([{
-                        'beam names': beam_label,
-                        'length': max_y - min_y,
-                        'line_1_x_start': line_1_x_start,
-                        'line_1_x_end': line_1_x_end,
-                        'line_1_y_start': line_1_y_start,
-                        'line_1_y_end': line_1_y_end,
-                        'line_2_x_start': line_2_x_start,
-                        'line_2_x_end': line_2_x_end,
-                        'line_2_y_start': line_2_y_start,
-                        'line_2_y_end': line_2_y_end
-                    }])
-
-                    beam_info_df = pd.concat([beam_info_df, new_row], ignore_index=True)
-                    beam_count += 1
-            
-            # [Previous DataFrame updates remain unchanged]
-            df.at[idx, 'gray_vertical_line'] = len(valid_gray_lines) > 0
-            df.at[idx, 'gray_line_count'] = len(valid_gray_lines)
-            df.at[idx, 'gray_line_spacings'] = ', '.join(spacings) if spacings else 'N/A'
-            df.at[idx, 'has_parallel_gray_lines'] = has_parallel_lines
-    
-    return df, beam_info_df, beam_count, dxf_data
-
-# %% [markdown]
-# # Step 42 - Beams on additional floors using beam dataframe 
-
-# %%
-def add_lines_and_labels_from_dataframe(dxf_data, beam_info_df, text_height=1, text_color=7, text_offset=5):
-    """
-    Add lines and labels to the DXF drawing based on beam_info_df.
-    Parameters:
-    dxf_data: ezdxf drawing object
-    beam_info_df: DataFrame with columns ['beam names', 'length', 'line_1_x_start', 'line_1_x_end', 
-                                          'line_1_y_start', 'line_1_y_end', 'line_2_x_start', 
-                                          'line_2_x_end', 'line_2_y_start', 'line_2_y_end']
-    text_height: float, height of the text
-    text_color: int, DXF color index for the label
-    text_offset: float, distance to offset the text for better visibility
-    """
-    # Create 'beam' layer if it doesn't exist
-    if 'beam' not in dxf_data.layers:
-        dxf_data.layers.new(name='beam')
-        
-    msp = dxf_data.modelspace()
-    
-    for _, row in beam_info_df.iterrows():
-        # Extract line coordinates
-        line_1_start = (row['line_1_x_start'], row['line_1_y_start'])
-        line_1_end = (row['line_1_x_end'], row['line_1_y_end'])
-        line_2_start = (row['line_2_x_start'], row['line_2_y_start'])
-        line_2_end = (row['line_2_x_end'], row['line_2_y_end'])
-        
-        # Draw first line in 'beam' layer
-        msp.add_line(
-            start=line_1_start, 
-            end=line_1_end, 
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        
-        # Draw second line in 'beam' layer
-        msp.add_line(
-            start=line_2_start, 
-            end=line_2_end, 
-            dxfattribs={'color': 3, 'layer': 'beam'}
-        )
-        
-        # Determine if the beam is vertical or horizontal
-        if row['line_1_x_start'] == row['line_1_x_end']:  # Vertical beam
-            text_x = row['line_1_x_start'] + text_offset  # Shift text to the right
-            text_y = (row['line_1_y_start'] + row['line_1_y_end']) / 2  # Center vertically
-        else:  # Horizontal beam
-            text_x = (row['line_1_x_start'] + row['line_1_x_end']) / 2  # Center horizontally
-            text_y = row['line_1_y_start'] + text_offset  # Shift text above
-            
-        text_position = (text_x, text_y)
-        
-        # Add beam label with new specifications using add_text
-        text = msp.add_text(
-            row['beam names'],
-            dxfattribs={
-                'height': 7,     # Increased height
-                'color': 0,      # Black color
-                'layer': 'beam'  # Added to beam layer
-            }
-        )
-        text.dxf.insert = text_position
-    
-    return dxf_data
-
-# %% [markdown]
-# # Step 43 - Column schedule dxf
-
-# %%
-def dataframe_to_dxf_table(df, output_dxf_path, start_x=0, start_y=100, col_width=80, row_height=20):
-    """
-    Convert a DataFrame to a table in a new DXF file with title 'COLUMN LEGEND'.
-    """
-    
-    # Create a new DXF file
-    doc = ezdxf.new()
-    
-    # Set the document units to inches
-    doc.header['$INSUNITS'] = 1  # 1 = Inches
-    doc.header['$LUNITS'] = 2    # 2 = Decimal
-    doc.header['$MEASUREMENT'] = 1  # 1 = English (inches)
-    
-    # Calculate total height components (in inches)
-    title_spacing = 20  # Space between title and table
-    title_height = 10   # Height of title text
-    table_height = (len(df) + 1) * row_height  # Height of table (+1 for header row)
-    total_height = title_spacing + title_height + table_height
-    
+    # Load the DXF file
+    doc = ezdxf.readfile(input_dxf)
     msp = doc.modelspace()
 
-    # Create column_legend layer
-    if 'column_legend' not in doc.layers:
-        doc.layers.new(name='column_legend')
-    
-    # Get column headers
-    headers = df.columns.tolist()
-    
-    # Calculate table width
-    table_width = col_width * len(headers)
-    
-    # Add title 'COLUMN LEGEND'
-    title_height = 10  # Increased from 5 to 10
-    title_x = start_x + table_width/2  # Center of table
-    title_y = start_y + 20  # Increased spacing above table
-    
-    title = msp.add_text(
-        'COLUMN LEGEND',
-        dxfattribs={
-            'height': title_height,
-            'color': 0,  # Black color
-            'layer': 'column_legend'
-        }
-    )
-    title.dxf.insert = (title_x, title_y)
-    title.dxf.halign = 1  # Center horizontal alignment
-    title.dxf.valign = 1  # Center vertical alignment
-    
-    # Draw horizontal lines for table
-    for i in range(len(df) + 2):  # +2 for header and bottom line
-        y = start_y - i * row_height
-        msp.add_line(
-            (start_x, y),
-            (start_x + col_width * len(headers), y),
-            dxfattribs={'color': 0, 'layer': 'column_legend'}
-        )
-    
-    # Draw vertical lines for table
-    for i in range(len(headers) + 1):  # +1 for rightmost line
-        x = start_x + i * col_width
-        msp.add_line(
-            (x, start_y),
-            (x, start_y - (len(df) + 1) * row_height),
-            dxfattribs={'color': 0, 'layer': 'column_legend'}
-        )
-    
-    # Add headers
-    for col_idx, header in enumerate(headers):
-        x = start_x + col_idx * col_width + col_width/2  # Center of column
-        text = msp.add_text(
-            str(header),
-            dxfattribs={
-                'height': 7,  # Increased from 3 to 7
-                'color': 0,
-                'layer': 'column_legend'
-            }
-        )
-        text.dxf.insert = (x, start_y - row_height/2)
-        text.dxf.halign = 1  # Center horizontal alignment
-        text.dxf.valign = 1  # Center vertical alignment
-    
-    # Add data
-    for row_idx, row in df.iterrows():
-        for col_idx, value in enumerate(row):
-            x = start_x + col_idx * col_width + col_width/2  # Center of column
-            y = start_y - (row_idx + 2) * row_height + row_height/2  # Center of row
-            
-            # Format value to one decimal place if it's a number
-            if isinstance(value, (int, float)):
-                formatted_value = f"{value:.1f}"
-            else:
-                formatted_value = str(value)
-                
-            text = msp.add_text(
-                formatted_value,
-                dxfattribs={
-                    'height': 5,  # Increased from 2.5 to 5
-                    'color': 0,
-                    'layer': 'column_legend'
-                }
-            )
-            text.dxf.insert = (x, y)
-            text.dxf.halign = 1  # Center horizontal alignment
-            text.dxf.valign = 1  # Center vertical alignment
-    
-    # Save the DXF file
-    doc.saveas(output_dxf_path)
+    # Loop through all text entities (TEXT and MTEXT)
+    for entity in msp.query('TEXT MTEXT'):
+        # Check if the text matches any of the labels in the list
+        if entity.dxftype() == 'TEXT':
+            if entity.text not in labels_to_keep:
+                msp.delete_entity(entity)  # Remove TEXT entity
+        elif entity.dxftype() == 'MTEXT':
+            if entity.text not in labels_to_keep:
+                msp.delete_entity(entity)  # Remove MTEXT entity
 
-    return total_height
-
-# %% [markdown]
-# # Merge code
-
-# %%
-def merge_dxf_files(input_dxf_paths, output_path):
+    # Save the updated DXF file
+    doc.saveas(output_dxf)
+    
+# Example usage
+def process_dxf_with_labels(input_dxf, output_dxf, df):
     """
-    Merge multiple DXF files into a single DXF file with detailed logging.
-    """
-    # Set up logging
-    logging.basicConfig(level=logging.INFO)
-    
-    # Load all input drawings
-    drawings = []
-    for file_path in input_dxf_paths:
-        try:
-            drawing = ezdxf.readfile(file_path)
-            # Log entity count before merging
-            msp = drawing.modelspace()
-            entity_count = len(list(msp))
-            drawings.append((file_path, drawing))
-        except Exception as e:
-            logging.error(f"Error reading {file_path}: {e}")
-            continue
-
-    # Create new DXF for merged output
-    merged_dxf = ezdxf.new('R2010')
-    merged_msp = merged_dxf.modelspace()
-    
-    total_entities_copied = 0
-
-    # Combine all drawings
-    for file_path, drawing in drawings:
-        msp = drawing.modelspace()
-        entities_copied = 0
-        
-        for entity in msp:
-            try:
-                # Copy entity
-                merged_msp.add_entity(entity.copy())
-                entities_copied += 1
-                
-            except Exception as e:
-                logging.error(f"Error copying entity from {file_path}: {e}")
-                continue
-        
-        total_entities_copied += entities_copied
-
-    # Verify final entity count
-    final_count = len(list(merged_dxf.modelspace()))
-
-    # Save merged DXF
-    try:
-        merged_dxf.saveas(output_path)
-        return merged_dxf
-    except Exception as e:
-        logging.error(f"Error saving merged file: {e}")
-        return None
-    
-    # Verify input files exist
-    for file_path in input_dxf_paths:
-        try:
-            doc = ezdxf.readfile(file_path)
-            msp = doc.modelspace()
-            entity_count = len(list(msp))
-        except Exception as e:
-            logging.error(f"Cannot read {file_path}: {e}")
-
-
-# %%
-def pipeline_main_final(input_file, output_file):
-    """
-    Optimized main pipeline function for in-memory DXF manipulation.
+    Process the DXF file and remove text/mtext entities that are not in the 'Columns No' column of the dataframe.
 
     Parameters:
-    - input_file: Path to the input DXF file.
-    - output_filename: Path to save the final modified DXF file.
+        input_dxf (str): Path to the input DXF file.
+        output_dxf (str): Path to save the updated DXF file.
+        df (pd.DataFrame): DataFrame containing the 'Columns No' column with labels to keep.
+
+    Returns:
+        None
     """
+    # Extract labels from the 'Columns No' column
+    labels_to_keep = df['Columns No'].tolist()
 
-    base_offset = 500  # Offset in X-direction for each floor and column
+    # Call the function to remove non-label text from the DXF
+    remove_non_label_text(input_dxf, output_dxf, labels_to_keep)
+
+# %% [markdown]
+# # Center line core code
+
+# %%
+def draw_x_start_point(input_dxf, max_along_y):
+    """
+    Modify the input DXF document by adding a start point marker.
     
+    Args:   
+        input_dxf (ezdxf.drawing.Drawing or str): Input DXF document or path to DXF file
+        max_along_y (float): Y-coordinate for positioning the start point marker
+    
+    Returns:
+        ezdxf.drawing.Drawing: Modified DXF document
+    """
+    try:
+        # Step 1: Read the DXF file safely
+        doc = ezdxf.readfile(input_dxf)
+        
+        # Step 2: Check for corruption
+        auditor = doc.audit()
+        if auditor.has_errors:
+            print("Warning: DXF file has corruption issues. It may not be fully valid.")
+    except ezdxf.DXFStructureError as e:
+        print(f"Error: The DXF file is corrupt or unreadable. Details: {e}")
+        return None  # Return None if file is corrupted
+    
+    msp = doc.modelspace()
+    
+    # Define coordinates for the dotted vertical line
+    start_point = (0, max_along_y)
+    end_point = (0, max_along_y + 70)  # plot's length + 50 inches downward dotted line
+    
+    # Draw a dotted vertical line
+    msp.add_line(start=start_point, end=end_point, dxfattribs={"linetype": "DOT", 'color':1})
+    
+    # Define the buffer distance (10 inches) to offset the MText from dotted line
+    buffer_distance = 10
+    mtext_position = (end_point[0] - 10, end_point[1])
+    
+    # Define the MText content and parameters
+    mtext_content = "START POINT = 0"
+    mtext_rotation = 90  # Rotate text by 90 degrees
+    mtext_height = 8  # Approximate text height
+    
+    # Add rotated MText at the position 0.5 inches away from the end of the dotted line
+    mtext_entity = msp.add_mtext(
+        mtext_content,
+        dxfattribs={
+            "style": "ArialStyle",
+            "char_height": mtext_height,  # Set character height
+            "layer": "center_line_mtext",
+            "width": 100},
+    )
+    mtext_entity.set_location(mtext_position)  # Set MText position
+    mtext_entity.dxf.rotation = mtext_rotation  # Set the rotation
+    
+    # Final validation before returning
+    auditor = doc.audit()
+    if auditor.has_errors:
+        print("Warning: Modified DXF object has issues. Check before further processing.")
+    
+    return doc
+
+# %%
+def inches_to_feet_and_inches(value_in_inches):
+    """Convert inches to feet and inches as a string (e.g., 2'5")."""
+    feet = int(value_in_inches // 12)
+    inches = round(value_in_inches % 12)  # Changed to match the original function
+    return f"{feet}'{inches}\""
+
+def draw_center_lines_with_X_distance(doc, df, max_along_x, max_along_y):
+    """
+    Draw vertical dotted red lines from column centers in a DXF document,
+    and place column names (from 'Columns No') along with the distance from X = 0.
+    
+    Args:
+        input_dxf (ezdxf.drawing.Drawing or str): Input DXF document or path to DXF file
+        df (pd.DataFrame): DataFrame containing column information
+        max_along_x (float): Maximum X coordinate for end point
+        max_along_y (float): Maximum Y coordinate for line placement
+    
+    Returns:
+        ezdxf.drawing.Drawing: Modified DXF document
+    """
+        
+    msp = doc.modelspace()
+    
+    # Extract unique X Center values
+    df['X Center'] = df['X Center'].round(1)
+    unique_x_centers = sorted(df['X Center'].unique())
+    
+    # Define Y-coordinate range for the vertical lines
+    y_start = 0
+    y_end = max_along_y + 50
+    
+    # Store the actual text positions (not the line positions)
+    text_positions = []
+    
+    # Iterate through sorted unique X Center values
+    for idx, x_center in enumerate(unique_x_centers):
+        # Draw vertical dotted red line
+        msp.add_line(
+            start=(x_center, y_start),
+            end=(x_center, y_end),
+            dxfattribs={
+                'color': 1,
+                'linetype': 'DOT',
+            }
+        )
+        
+        # Handle text positioning
+        text_x = x_center
+        text_y = y_end + 30
+        
+        # Check for overlaps with previous text positions
+        while any(math.sqrt((text_x - px) ** 2 + (text_y - py) ** 2) < 15 for px, py in text_positions):
+            text_x += 10  # Shift text to the right to avoid overlap
+        
+        # Extend vertical line and bend northeast
+        extended_y = y_end + 20  # Extend 20 inches vertically
+        msp.add_line(
+            start=(x_center, y_end),
+            end=(x_center, extended_y),
+            dxfattribs={
+                'color': 1,
+                'linetype': 'DOT',
+            }
+        )
+        
+        msp.add_line(
+            start=(x_center, extended_y),
+            end=(text_x, text_y),
+            dxfattribs={
+                'color': 1,
+                'linetype': 'DOT',
+            }
+        )
+        
+        # Store the final text position
+        text_positions.append((text_x, text_y))
+        
+        # Get column labels and create text
+        column_labels = df[df['X Center'] == x_center]['Columns No'].tolist()
+        distance = inches_to_feet_and_inches(x_center)
+        column_labels_text = ', '.join(column_labels) + f" = {distance}"
+        
+        # Add the text to the drawing
+        mtext_entity = msp.add_mtext(
+            column_labels_text,
+            dxfattribs={
+                "style": "ArialStyle",
+                "char_height": 5,
+                "width": 200,
+                "layer": "center_line_text",
+            },
+        )
+        mtext_entity.set_location((text_x, text_y))
+        mtext_entity.dxf.rotation = 90
+    
+    # Draw the initial vertical line (matching the original function's coordinates)
+    start_point = (max_along_x, max_along_y)
+    end_point = (max_along_x, max_along_y + 50)
+    msp.add_line(
+        start=start_point,
+        end=end_point,
+        dxfattribs={
+            'color': 1,
+            'linetype': 'DOT',
+        }
+    )
+    
+    # Get the last text position's x-coordinate and add 20
+    last_text_x = text_positions[-1][0] + 20 if text_positions else max_along_x + 20
+    
+    # Convert max_along_x from inches to feet and inches using the correct format
+    result = inches_to_feet_and_inches(max_along_x)
+    
+    # Define the END POINT text position and parameters
+    buffer_distance = 10
+    mtext_y = y_end + 30  # Match the height of other text elements
+    mtext_position = (last_text_x, mtext_y)
+    
+    # Draw the extended vertical line and northeast bend for END POINT
+    extended_y = y_end + 20  # Extended y-coordinate for the bend
+    
+    # Draw the extended vertical portion
+    msp.add_line(
+        start=end_point,
+        end=(max_along_x, extended_y),
+        dxfattribs={
+            'color': 1,
+            'linetype': 'DOT',
+        }
+    )
+    
+    # Draw the northeast bend to the text position
+    msp.add_line(
+        start=(max_along_x, extended_y),
+        end=mtext_position,
+        dxfattribs={
+            'color': 1,
+            'linetype': 'DOT',
+        }
+    )
+    
+    # Add the END POINT text
+    mtext_content = f"END POINT = {result}"
+    mtext_entity = msp.add_mtext(
+        mtext_content,
+        dxfattribs={
+            "style": "ArialStyle",
+            "char_height": 8,
+            "width": 200,
+            "layer": "center_line_text",
+        },
+    )
+    mtext_entity.set_location(mtext_position)
+    mtext_entity.dxf.rotation = 90
+
+    # Final validation before returning
+    auditor = doc.audit()
+    if auditor.has_errors:
+        print("Warning: Modified DXF object has issues. Check before further processing.")
+    
+    return doc
+
+
+# %%
+def draw_y_start_point(doc, max_along_x, max_along_y):
+    # Load the input DXF file
+    msp = doc.modelspace()
+
+    # Define coordinates for the dotted horizontal line
+    start_point = (max_along_x, max_along_y)
+    end_point = (max_along_x + 80, max_along_y )  # plot's width + 50 inches towards right dotted line
+
+    # Draw a dotted vertical line
+    msp.add_line(start=start_point, end=end_point, dxfattribs={"linetype": "DOT", 'color' : 1})
+
+    # Define the buffer distance (10 inches) to offset the MText from dotted line
+    buffer_distance = 10
+    mtext_position = (end_point[0] + buffer_distance, end_point[1] + 10 )
+
+    # Define the MText content and parameters
+    mtext_content = "START POINT = 0"
+    mtext_height = 8  # Approximate text height 
+
+    # Add rotated MText at the position 0.5 inches away from the end of the dotted line
+    mtext_entity = msp.add_mtext(
+        mtext_content,
+        dxfattribs={
+            "style": "ArialStyle",
+            "char_height": mtext_height,  # Set character height
+            "width": 100,  # Initial width; will be adjusted later
+            "layer": "center_line_text",
+        },
+    )
+    mtext_entity.set_location(mtext_position)  # Set MText position
+
+    # Final validation before returning
+    auditor = doc.audit()
+    if auditor.has_errors:
+        print("Warning: Modified DXF object has issues. Check before further processing.")
+
+    return doc
+
+# %%
+def inches_to_feet_and_inches(value_in_inches):
+    """Convert inches to feet and inches as a string (e.g., 0'4.5")."""
+    feet = int(value_in_inches // 12)
+    inches = round(value_in_inches % 12, 1)  # Round to 1 decimal place
+    if inches == 0:
+        return f"{feet}'"
+    return f"{feet}'{inches}\""
+
+def draw_center_lines_with_Y_distance(doc, df, max_along_x, max_along_y):
+    """
+    Draw horizontal dotted red lines from column centers in a DXF file,
+    and place column names (from 'Columns No') beside the corresponding dotted line.
+    """
+    msp = doc.modelspace()
+
+    # Extract unique Y Center values
+    df['Y Center'] = df['Y Center'].round(1)
+    unique_y_centers = df['Y Center'].unique()
+
+    # Sort Y center values in descending order
+    unique_y_centers = sorted(unique_y_centers, reverse=True)
+
+    # Define Y-coordinate range for the horizontal lines
+    x_start = 0
+    x_end = max_along_x + 50
+
+    # Store the actual text positions (not the line positions)
+    text_positions = []
+    
+    # Iterate through sorted unique Y Center values
+    for idx, y_center in enumerate(unique_y_centers):
+        # Draw a horizontal dotted red line
+        msp.add_line(
+            start=(x_start, y_center),
+            end=(x_end, y_center),
+            dxfattribs={
+                'color': 1,
+                'linetype': 'DOT',
+            }
+        )
+
+        # Handle text positioning
+        text_x = x_end + 30
+        text_y = y_center
+
+        # Check for overlaps with previous text positions
+        while any(math.sqrt((text_x - px) ** 2 + (text_y - py) ** 2) < 15 for px, py in text_positions):
+            text_y -= 10
+
+        # Extend vertical line and bend northeast
+        extended_x = x_end + 20
+        msp.add_line(
+            start=(x_end, y_center),
+            end=(extended_x, y_center),
+            dxfattribs={
+                'color': 1,
+                'linetype': 'DOT',
+            }
+        )
+
+        msp.add_line(
+            start=(extended_x, y_center),
+            end=(text_x, text_y),
+            dxfattribs={
+                'color': 1,
+                'linetype': 'DOT',
+            }
+        )
+
+        # Store the final text position
+        text_positions.append((text_x, text_y))
+
+        # Get column labels and create text
+        column_labels = df[df['Y Center'] == y_center]['Columns No'].tolist()
+        distance_from_max_along_y = abs(max_along_y - y_center)
+        distance = inches_to_feet_and_inches(distance_from_max_along_y)
+        column_labels_text = ', '.join(column_labels) + f" = {distance}"
+
+        # Add the text to the drawing
+        mtext_entity = msp.add_mtext(
+            column_labels_text,
+            dxfattribs={"style": "ArialStyle",
+                "layer": "center_line_text",
+                "char_height": 5,
+                "width": 200,
+            },
+        )
+        mtext_entity.set_location((text_x, text_y))
+        mtext_entity.dxf.rotation = 0
+
+    # Define coordinates for the dotted horizontal line
+    start_point = (max_along_x, 0)
+    end_point = (max_along_x + 50, 0)
+    msp.add_line(
+        start=start_point,
+        end=end_point,
+        dxfattribs={
+            'color': 1,
+            'linetype': 'DOT',
+        }
+    )
+    
+    # Get the last unique y-center value and subtract 20 for the final text position
+    last_y_center = unique_y_centers[-1] - 20 if len(unique_y_centers) > 0 else 0
+    
+    # Use the same x position as other texts
+    mtext_x = x_end + 30
+    mtext_position = (mtext_x, last_y_center)
+    
+    # Convert max_along_y from inches to feet and inches
+    result = inches_to_feet_and_inches(max_along_y)
+    
+    # Draw the extended horizontal portion
+    extended_x = x_end + 20
+    
+    # Draw the extended horizontal line
+    msp.add_line(
+        start=end_point,
+        end=(extended_x, 0),
+        dxfattribs={
+            'color': 1,
+            'linetype': 'DOT',
+        }
+    )
+    
+    # Draw the southeast bend to the text position
+    msp.add_line(
+        start=(extended_x, 0),
+        end=mtext_position,
+        dxfattribs={
+            'color': 1,
+            'linetype': 'DOT',
+        }
+    )
+    
+    # Add the END POINT text
+    mtext_content = f"END POINT = {result}"
+    mtext_entity = msp.add_mtext(
+        mtext_content,
+        dxfattribs={"style": "ArialStyle",
+            "char_height": 8,
+            "width": 200,
+            "layer": "center_line_text",
+        },
+    )
+    mtext_entity.set_location(mtext_position)
+    mtext_entity.dxf.rotation = 0
+
+    # Final validation before returning
+    auditor = doc.audit()
+    if auditor.has_errors:
+        print("Warning: Modified DXF object has issues. Check before further processing.")
+    
+    return doc
+
+# %%
+def draw_diagonal_1_with_distance(doc, max_along_x, max_along_y):
+    """
+    Draw a diagonal line from (0,0) to (max_along_x, max_along_y) in a DXF file,
+    calculate its length in feet and inches, and write the distance diagonally above the line.
+
+    Parameters:
+        input_dxf (str): Path to the input DXF file.
+        output_dxf (str): Path to save the output DXF file.
+        max_along_x (float): Maximum X-coordinate of the diagonal line.
+        max_along_y (float): Maximum Y-coordinate of the diagonal line.
+
+    Returns:
+        None
+    """
+    # Load the DXF file
+    msp = doc.modelspace()
+
+    # Start and end points of the diagonal
+    start_point = (0, 0)
+    end_point = (max_along_x, max_along_y)
+
+    # Draw the diagonal line (black color)
+    msp.add_line(
+        start=start_point,
+        end=end_point,
+        dxfattribs={'color': 1}  # Black color
+    )
+
+    # Calculate the length of the diagonal
+    diagonal_length = math.sqrt(max_along_x**2 + max_along_y**2)
+
+    # Convert diagonal length to feet and inches
+    def inches_to_feet_and_inches(value_in_inches):
+        feet = int(value_in_inches // 12)
+        inches = round(value_in_inches % 12, 1)
+        if inches == 0:
+            return f"{feet}'"
+        return f"{feet}'{inches}\""
+
+    distance_text = inches_to_feet_and_inches(diagonal_length)
+
+    # Calculate the midpoint of the diagonal
+    old_midpoint = ((start_point[0] + end_point[0]) / 2, (start_point[1] + end_point[1]) / 2)
+    midpoint= ( old_midpoint[0] + 5, old_midpoint [1])
+    
+    # Calculate the angle of the diagonal line in degrees
+    angle = math.degrees(math.atan2(max_along_y, max_along_x))
+
+    # Offset the text position slightly above the diagonal line
+    offset_distance = 15  # Adjust this value for more or less offset
+    offset_x = offset_distance * math.cos(math.radians(angle + 90))
+    offset_y = offset_distance * math.sin(math.radians(angle + 90))
+    text_position = (midpoint[0] + offset_x, midpoint[1] + offset_y)
+
+    # Add the distance text as MTEXT, rotated to align with the diagonal
+    mtext_entity = msp.add_mtext(
+        text=distance_text,
+        dxfattribs={"style": "ArialStyle",
+            "char_height": 8,  # Set character height
+            "layer": "center_line_text",
+        }
+    )
+    mtext_entity.set_location(text_position, rotation=angle)
+
+    # Final validation before returning
+    auditor = doc.audit()
+    if auditor.has_errors:
+        print("Warning: Modified DXF object has issues. Check before further processing.")
+
+    return doc 
+
+
+# %%
+def draw_diagonal_2_with_distance(doc, max_along_x, max_along_y):
+    """
+    Draw a diagonal line from (0,max_along_y) to (max_along_x, 0) in a DXF file,
+    calculate its length in feet and inches, and write the distance diagonally above the line.
+
+    Parameters:
+        input_dxf (str): Path to the input DXF file.
+        output_dxf (str): Path to save the output DXF file.
+        max_along_x (float): Maximum X-coordinate of the diagonal line.
+        max_along_y (float): Maximum Y-coordinate of the diagonal line.
+
+    Returns:
+        None
+    """
+    msp = doc.modelspace()
+
+    # Start and end points of the diagonal
+    start_point = (0, max_along_y)
+    end_point = (max_along_x, 0)
+
+    # Draw the diagonal line (black color)
+    msp.add_line(
+        start=start_point,
+        end=end_point,
+        dxfattribs={'color': 1}  # Black color
+    )
+
+    # Calculate the length of the diagonal
+    diagonal_length = math.sqrt(max_along_x**2 + max_along_y**2)
+
+    # Convert diagonal length to feet and inches
+    def inches_to_feet_and_inches(value_in_inches):
+        feet = int(value_in_inches // 12)
+        inches = round(value_in_inches % 12, 1)
+        if inches == 0:
+            return f"{feet}'"
+        return f"{feet}'{inches}\""
+
+    distance_text = inches_to_feet_and_inches(diagonal_length)
+
+    # Calculate the midpoint of the diagonal
+    old_midpoint = ((start_point[0] + end_point[0]) / 2, (start_point[1] + end_point[1]) / 2)
+    midpoint=(old_midpoint[0] + 12, old_midpoint[1]-18)
+    
+    # Calculate the angle of the diagonal line in degrees
+    angle = math.degrees(math.atan2(max_along_y, max_along_x))
+
+    # Offset the text position slightly above the diagonal line in the southeast direction
+    text_position = (midpoint[0] , midpoint[1] )
+
+    # Add the distance text as MTEXT, rotated to align with the diagonal
+    mtext_entity = msp.add_mtext(
+        text=distance_text,
+        dxfattribs={"style": "ArialStyle",
+            "char_height": 8,  # Set character height
+            "layer": "center_line_text",
+        }
+    )
+    mtext_entity.set_location(text_position, rotation=angle-90)
+
+    # Final validation before returning
+    auditor = doc.audit()
+    if auditor.has_errors:
+        print("Warning: Modified DXF object has issues. Check before further processing.")
+
+    return doc
+
+def validate_dxf_entities(doc):
+    for entity in doc.modelspace():
+        if hasattr(entity, "is_valid"):
+            if not entity.is_valid:
+                print(f"Warning: Invalid entity found: {entity.dxftype()}")
+
+def validate_coordinates(doc):
+    for entity in doc.modelspace():
+        if hasattr(entity, "dxf"):
+            for key, value in entity.dxf.all_existing_dxf_attribs().items():
+                if isinstance(value, (float, int)):
+                    if not math.isfinite(value):
+                        raise ValueError(f"Invalid coordinate found in {entity.dxftype()}: {key}={value}")
+
+def save_dxf_safely(doc, output_dxf):
+    try:
+        # Set the DXF version to AutoCAD 2010
+        doc.header['$ACADVER'] = 'AC1024'
+        
+        # Save the file
+        doc.saveas(output_dxf)
+        
+        # Verify the saved file
+        test_doc = ezdxf.readfile(output_dxf)
+                
+    except ezdxf.DXFStructureError as e:
+        raise ValueError(f"Error: {output_dxf} is corrupt or unreadable. Details: {e}")
+    except Exception as e:
+        raise ValueError(f"Unexpected error while saving {output_dxf}: {str(e)}")
+
+def center_line_main_new(input_dxf, output_dxf):
     # Step 1: Adjust coordinates 
-    adjust_dxf_coordinates_to00(input_file, 'temp_1.dxf')
+    adjust_dxf_coordinates_to00(input_dxf, 'temp_1.dxf')
 
-    set_transparency_for_all_entities('temp_1.dxf', 'temp_2.dxf', transparency_percent = 80)
-    
-    # Step 2: Convert dxf to dataframe
-    df= Dxf_to_DF_1('temp_2.dxf')
-    
-    # Remove blocks from dataframe 
+    # Step 2: Set transparency
+    set_transparency_for_all_entities('temp_1.dxf', 'temp_2.dxf', transparency_percent = 50)
+
+    # Step 3: Dxf to dataframe 
+    df = Dxf_to_DF_1('temp_2.dxf')
+
+    # Step 4: Remove blocks
     df = df[df['Type'] != 'INSERT']
 
-    # Step 3: Distribute floors
+    # Step 5: Distribute floors
     df = floor_main(df)
     
     # Get the unique values in the 'floor' column
@@ -4848,25 +3311,7 @@ def pipeline_main_final(input_file, output_file):
     # Step 5: Calculate max_along_x and max_along_y
     max_along_x, max_along_y = calculate_max_along_x_y(df_0)
 
-    # For saving each floors DXF's.
-    for floor in unique_floors:
-        if floor >= 1:
-            current_df = globals().get(f'df_{floor}', None)  # Dynamically access each DataFrame
-            if current_df is not None and not current_df.empty:
-                dxf_data = create_dxf_from_dataframe(current_df)
-
-                # Get the offset for the current floor
-                target_x = floor * base_offset  # Default offset 0 if not found
-
-                # Shift the DXF to align its base offset.
-                dxf_data = shift_dxf_to_coordinates(dxf_data, target_x=target_x, target_y=0)
-
-                dxf_filename = f"floor_{floor}.dxf"
-                dxf_data.saveas(dxf_filename)
-            else:
-                raise ValueError(f"DataFrame for floor {floor} is missing or empty.")
-
-    # Check if max_along_x and max_along_y are valid
+     # Check if max_along_x and max_along_y are valid
     if max_along_x is None or max_along_y is None:
         raise ValueError("max_along_x or max_along_y is None")
 
@@ -4882,7 +3327,7 @@ def pipeline_main_final(input_file, output_file):
     dxf_data_0 = Boundary_2(dxf_data_0, width=12, height=9, tolerance=1, max_along_x=max_along_x, max_along_y=max_along_y)
     if dxf_data_0 is None:
         raise ValueError("Boundary_2 returned None")
-        
+
     dxf_data_0 = Boundary_3(dxf_data_0, width=9, height=12, tolerance=1, max_along_x=max_along_x, max_along_y=max_along_y)
     if dxf_data_0 is None:
         raise ValueError("Boundary_3 returned None")
@@ -4928,264 +3373,68 @@ def pipeline_main_final(input_file, output_file):
     dxf_data_0 = create_boxes_in_df_other_groupB(df_other_groupB, width=12, height=9, dxf_data=dxf_data_0)
     if dxf_data_0 is None:
         raise ValueError("create_boxes_in_df_other_groupB returned None")
-        
-    dxf_data_0 = detect_and_label_boxes(dxf_data_0, label_position='right', offset=1, text_height=7, text_color=0, shift=0.5)
+
+    dxf_data_0 = detect_and_label_boxes(dxf_data_0, label_position='right', offset=1, text_height=5, text_color=0, shift=0.5)
     if dxf_data_0 is None:
         raise ValueError("detect_and_label_boxes returned None")
         
     dxf_data_0 = detect_and_remove_overlapping_columns(dxf_data_0)
     if dxf_data_0 is None:
         raise ValueError("detect_and_remove_overlapping_columns returned None")
-    
-    base_column_info_df = create_column_schedule_dataframe(dxf_data_0, max_along_x, max_along_y)
 
-    # Iterate through each floor and process its DXF file
-    for floor in unique_floors:
-        if floor >= 1:
-            # Dynamically generate the filename for the current floor
-            dxf_filename = f"floor_{floor}.dxf"
-
-            # Load the existing DXF file
-            try:
-                dxf_data = ezdxf.readfile(dxf_filename)
-
-                # Get the offset for the current floor
-                floor_key = f'df_{floor}'
-                x_offset = floor * base_offset  # Default offset 0 if not found
-
-                # Adjust the 'X Center' column
-                column_info_df = base_column_info_df.copy()
-                column_info_df['X Center'] += x_offset
-
-                # Add boxes with hatches to the DXF file
-                dxf_data = add_boxes_from_dataframe_with_hatch(dxf_data, column_info_df, label_position='right', offset=5, shift=2, text_height=7, text_color=0)
-
-                # Save the updated DXF file
-                dxf_data.saveas(dxf_filename)
-            except IOError:
-                logging.error(f"Failed to load {dxf_filename}. File does not exist.")
+    df = create_column_schedule_dataframe(dxf_data_0, max_along_x, max_along_y)
 
     dxf_data_0 = change_line_color_to_light_gray(dxf_data_0)
     if dxf_data_0 is None:
         raise ValueError("change_line_color_to_light_gray returned None")
 
-
-    C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col = extract_columns(dxf_data_0)
-
-    beam_count = 0
-    beam_info_df = pd.DataFrame(columns=['beam names', 'length','line_1_x_start','line_1_x_end','line_1_y_start','line_1_y_end',
-                                         'line_2_x_start','line_2_x_end','line_2_y_start','line_2_y_end'])
-
-    beam_count, beam_info_df, dxf_data_0 = connect_edges_vertically_boundary_1(dxf_data_0, C1_ver_col, beam_count)
-    if dxf_data_0 is None:
-        raise ValueError("connect_edges_vertically_boundary_1 returned None")
-    
-    beam_count, beam_info_df, dxf_data_0 = connect_edges_horizontally_boundary_2(dxf_data_0, max_along_y, C2_hor_col, beam_count, beam_info_df)
-    if dxf_data_0 is None:
-        raise ValueError("connect_edges_horizontally_boundary_2 returned None")
-        
-    beam_count, beam_info_df, dxf_data_0 = connect_edges_vertically_boundary_3(dxf_data_0, C3_ver_col, beam_count, beam_info_df)
-    if dxf_data_0 is None:
-        raise ValueError("connect_edges_vertically_boundary_3 returned None")
-
-    beam_count, beam_info_df, dxf_data_0 = check_horizontal_alignment_boundary_1(
-        dxf_data=dxf_data_0,      
-        max_along_x=max_along_x,              
-        C1_ver_col=C1_ver_col,         
-        beam_count=beam_count,       
-        tolerance=15,                  
-        beam_info_df=beam_info_df
-    )
-    if dxf_data_0 is None:
-        raise ValueError("check_horizontal_alignment_boundary_1 returned None")
-
-    beam_count, beam_info_df, dxf_data_0 = check_vertical_alignment_boundary_2(
-        dxf_data=dxf_data_0,
-        C2_hor_col=C2_hor_col,
-        max_along_y=max_along_y, 
-        beam_count=beam_count, 
-        tolerance=15, 
-        beam_info_df=beam_info_df
-    )
-    if dxf_data_0 is None:
-        raise ValueError("check_vertical_alignment_boundary_2 returned None")
-
-    beam_count, beam_info_df, dxf_data_0 = check_horizontal_alignment_boundary_3(
-        dxf_data=dxf_data_0, 
-        max_along_x=max_along_x, 
-        C3_ver_col=C3_ver_col, 
-        beam_count=beam_count, 
-        beam_info_df=beam_info_df, 
-        tolerance=15
-    )
-    if dxf_data_0 is None:
-        raise ValueError("check_horizontal_alignment_boundary_3 returned None")
-
-    beam_count, beam_info_df, dxf_data_0 = check_vertical_alignment_boundary_4(
-        dxf_data=dxf_data_0, 
-        C4_hor_col=C4_hor_col, 
-        max_along_y=max_along_y, 
-        beam_count=beam_count, 
-        beam_info_df=beam_info_df, 
-        tolerance=15
-    )
-    if dxf_data_0 is None:
-        raise ValueError("check_vertical_alignment_boundary_4 returned None")
-
-    filtered_columns, column_positions = read_and_filter_columns(dxf_data_0, C1_ver_col, C2_hor_col, C3_ver_col, C4_hor_col)
-    alignment_data = find_aligned_columns(filtered_columns, column_positions, tolerance=7)
-    left_df, right_df, up_df, down_df = get_all_alignments(alignment_data, base_column_info_df)
-    left_df, beam_info_df, beam_count, dxf_data_0 = beam_and_wall_detection_left(dxf_data_0, left_df, beam_count=beam_count, beam_info_df=beam_info_df)
-    right_df, beam_info_df, beam_count, dxf_data_0 = beam_and_wall_detection_right(dxf_data_0, right_df, beam_count=beam_count, beam_info_df=beam_info_df)
-    up_df, beam_info_df, beam_count, dxf_data_0 = beam_and_wall_detection_up(dxf_data_0, up_df, beam_count=beam_count, beam_info_df=beam_info_df)
-
-
-    # Iterate through each floor and process its DXF file
-    for floor in unique_floors:
-        if floor >= 1:
-            # Dynamically generate the filename for the current floor
-            dxf_filename = f"floor_{floor}.dxf"
-
-            # Load the existing DXF file
-            try:
-                dxf_data = ezdxf.readfile(dxf_filename)
-
-                # Get the offset for the current floor
-                floor_key = f'df_{floor}'
-                x_offset = floor * base_offset  # Default offset 0 if not found
-
-                # Adjust the 'X Center' column
-                beam_info_df_copy = beam_info_df.copy()
-                beam_info_df_copy['line_1_x_start'] += x_offset
-                beam_info_df_copy['line_1_x_end'] += x_offset
-                beam_info_df_copy['line_2_x_start'] += x_offset
-                beam_info_df_copy['line_2_x_end'] += x_offset
-
-                # Add beams to the floor DXF file
-                dxf_data = add_lines_and_labels_from_dataframe(dxf_data, beam_info_df_copy)
-
-                # Save the updated DXF file
-                dxf_data.saveas(dxf_filename)
-            except IOError:
-                logging.error(f"Failed to load {dxf_filename}. File does not exist.")
-                
-    # Concatenate all floors into the output file
-    drawings = []
-    
     # Save the in-memory DXF to a temporary file
-    beam_dxf_filename = "beam_output.dxf"
-    dxf_data_0.saveas(beam_dxf_filename)
-    
-    # Load the temporary DXF file
-    drawing = ezdxf.readfile(beam_dxf_filename)
-    drawings.append(drawing)
-    
-    dxf_files = []
-    
-    # Collect DXF files for each floor
-    for floor in unique_floors:
-        if floor >= 1:
-            dxf_filename = f"floor_{floor}.dxf"
-            dxf_files.append(dxf_filename)
-    
-    # Read and append floor-specific DXFs
-    for file in dxf_files:
-        try:
-            drawing = ezdxf.readfile(file)
-            drawings.append(drawing)
-        except Exception as e:
-            logging.error(f"Error reading {file}: {e}")
-    
-    # Create a new DXF document
-    combined_beam_dxf = ezdxf.new()
-    
-    # Access the modelspace of the combined DXF
-    combined_beam_msp = combined_beam_dxf.modelspace()
-    
-    # Combine entities
-    for drawing in drawings:
-        msp = drawing.modelspace()
-        for entity in msp:
-            try:
-                combined_beam_msp.add_entity(entity.copy())  # Add a copy of the entity to the combined modelspace
-            except Exception as e:
-                logging.error(f"Error copying entity from {drawing}: {e}")  # Debugging
+    col_dxf_filename = "col_output.dxf"
+    dxf_data_0.saveas(col_dxf_filename)
 
-    # Save the final combined DXF
-    combined_beam_dxf.saveas('combined_beam.dxf')
-    print("combined_beam.dxf created.")
+    process_dxf_with_labels("col_output.dxf", 'Clean_col_output.dxf', df)
+                                      
+    doc = draw_x_start_point('Clean_col_output.dxf', max_along_y = max_along_y)
 
-    # Extract only columns A, B, and C
-    col_legend_df= base_column_info_df[["Column Nos", "Length", "Width"]]
+    doc = draw_center_lines_with_X_distance(doc, df, max_along_x=max_along_x, max_along_y=max_along_y)
 
-    # Column legend dxf
-    col_file_pos = dataframe_to_dxf_table(col_legend_df, "column_legend.dxf")
-    drawings = []
+    doc = draw_y_start_point(doc, max_along_x = max_along_x, max_along_y=max_along_y)
 
-    input_dxf_paths = ['combined_beam.dxf', "column_legend.dxf"]
-    
-    # Load all drawings
-    for file_path in input_dxf_paths:
-        try:
-            drawing = ezdxf.readfile(file_path)
-            drawings.append(drawing)
-        except Exception as e:
-            print(f"Error reading {file_path}: {e}")
+    doc = draw_center_lines_with_Y_distance(doc, df, max_along_x= max_along_x, max_along_y = max_along_y)
 
-    # Create new document with specified version
-    merged_dxf = ezdxf.new('R2010')
-    merged_msp = merged_dxf.modelspace()
+    doc = draw_diagonal_1_with_distance(doc, max_along_x = max_along_x, max_along_y = max_along_y)
 
-    offsets = [
-        (0, 0, 0),      # First file at origin
-        (0, -col_file_pos, 0),    # Second file offset by 1000 units in X direction
-    ]
-    # Combine entities with offsets
-    for drawing, offset in zip(drawings, offsets):
-        msp = drawing.modelspace()
-        offset_x, offset_y, offset_z = offset
-        
-        for entity in msp:
-            try:
-                # Create a copy of the entity
-                copied_entity = entity.copy()
-                
-                # Apply offset based on entity type
-                if entity.dxftype() == 'LINE':
-                    # Offset start and end points
-                    copied_entity.dxf.start = (
-                        entity.dxf.start[0] + offset_x,
-                        entity.dxf.start[1] + offset_y,
-                        entity.dxf.start[2] + offset_z if len(entity.dxf.start) > 2 else 0
-                    )
-                    copied_entity.dxf.end = (
-                        entity.dxf.end[0] + offset_x,
-                        entity.dxf.end[1] + offset_y,
-                        entity.dxf.end[2] + offset_z if len(entity.dxf.end) > 2 else 0
-                    )
-                
-                elif entity.dxftype() == 'TEXT':
-                    # Offset text insertion point
-                    copied_entity.dxf.insert = (
-                        entity.dxf.insert[0] + offset_x,
-                        entity.dxf.insert[1] + offset_y,
-                        entity.dxf.insert[2] + offset_z if len(entity.dxf.insert) > 2 else 0
-                    )
-                
-                # Add the offset entity to merged modelspace
-                merged_msp.add_entity(copied_entity)
-                
-            except Exception as e:
-                print(f"Error copying entity: {e}")
-    
-    # Save the final dxf
+    doc = draw_diagonal_2_with_distance(doc, max_along_x = max_along_x, max_along_y = max_along_y)
+
+    # Set units and measurement system
+    doc.header['$MEASUREMENT'] = 1  # Sets units to metric
+    doc.header['$INSUNITS'] = 4    # Sets units to millimeters
+
+    # Validate entities and coordinates
+    validate_dxf_entities(doc)
+    validate_coordinates(doc)
+
+    # Save using the safe saving function
+    save_dxf_safely(doc, output_dxf)
+
+    # Additional check for minimal required DXF content
     try:
-        merged_dxf.saveas(output_file)
-        print(f"Successfully saved merged file to {output_file}")
+        with open(output_dxf, 'r') as f:
+            content = f.read()
+            if "ENTITIES" not in content or "HEADER" not in content:
+                raise ValueError("DXF file missing critical sections")
     except Exception as e:
-        print(f"Error saving file: {e}")
-    
-    # Return both output_filename and column_info_df
-    return base_column_info_df , beam_info_df
+        raise ValueError(f"Error verifying DXF content: {str(e)}")
 
-# pipeline_main_final('smh_file_Testing1_multifloor.dxf', 'first_merged.dxf')
+    # Validation: Ensure the saved file is not corrupt
+    if not os.path.exists(output_dxf):
+        raise FileNotFoundError(f"Error: {output_dxf} was not created.")
+
+    try:
+        test_doc = ezdxf.readfile(output_dxf)
+        print(f"Success: {output_dxf} was saved and is valid.")
+    except ezdxf.DXFStructureError as e:
+        raise ValueError(f"Error: {output_dxf} is corrupt or unreadable. Details: {e}")
+
+
+# center_line_main_new('smh_file_Testing1_multifloor.dxf', 'final_center_line_plan.dxf')

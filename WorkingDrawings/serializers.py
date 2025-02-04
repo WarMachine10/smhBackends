@@ -173,7 +173,42 @@ class StructuralMainSerializer(serializers.ModelSerializer):
         if 'input_file' in validated_data:
             validated_data['size'] = validated_data['input_file'].size
         return super().create(validated_data)
+
+class StructuralCenterLineSerializer(serializers.ModelSerializer):
+    input_file_url = serializers.SerializerMethodField()
+    output_file_url = serializers.SerializerMethodField()
     
+    class Meta:
+        model = StructuralCenterLine
+        fields = [
+            'id', 'user', 'subproject', 'input_file', 'output_file',
+            'input_file_url', 'output_file_url', 'size',
+            'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['output_file', 'status', 'created_at', 'updated_at',
+                           'input_file_url', 'output_file_url']
+
+    def get_input_file_url(self, obj):
+        if obj.input_file:
+            return {
+                'url': obj.input_file.url,
+                'size': obj.size
+            }
+        return None
+
+    def get_output_file_url(self, obj):
+        if obj.output_file:
+            return {
+                'url': obj.output_file.url,
+                'size': obj.size
+            }
+        return None
+
+    def create(self, validated_data):
+        if 'input_file' in validated_data:
+            validated_data['size'] = validated_data['input_file'].size
+        return super().create(validated_data)
+
 class PlumbingSectionSerializer(serializers.Serializer):
     water_supply = WaterSupplySerializer(many=True, read_only=True)
 
@@ -201,9 +236,10 @@ class SectionsSerializer(serializers.Serializer):
 
     def get_structural(self, obj):
         structural_main = StructuralMain.objects.filter(subproject=obj.subproject)
+        structural_centerline = StructuralCenterLine.objects.filter(subproject=obj.subproject)
         return {
             'structural_main': StructuralMainSerializer(structural_main, many=True).data,
-            'columns': []
+            'centerline': StructuralCenterLineSerializer(structural_centerline, many=True).data,
         }
 
 class WorkingDrawingProjectSerializer(serializers.ModelSerializer):

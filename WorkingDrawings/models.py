@@ -218,7 +218,33 @@ class StructuralMain(BaseFileModel):
     def output_file_url(self):
         return self.output_file.url if self.output_file else None
 
+class StructuralCenterLine(BaseFileModel):
+    subproject = models.ForeignKey(SubProject, on_delete=models.CASCADE, related_name='structural_centerline')
+    input_file = models.FileField(upload_to='structural/centerline/inputs/')
+    output_file = models.FileField(upload_to='structural/centerline/outputs/', null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed')
+    ], default='pending')
+    updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def input_file_url(self):
+        return self.input_file.url if self.input_file else None
+
+    @property
+    def output_file_url(self):
+        return self.output_file.url if self.output_file else None
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Update working drawing section status
+        if self.status in ['completed', 'failed']:
+            working_drawing = self.subproject.working_drawing
+            if working_drawing:
+                working_drawing.update_section_status('structural', self.status)
 
 
 
